@@ -10,3 +10,5 @@ __________
 ProteoSign's full documentation wih instructions to install, use and code analysis is available [here](http://147.52.72.75/ProteoSign/documentation)!
 
 ![A volcano plot created by PS2](http://147.52.72.75/ProteoSign/images/scrshot28_help.PNG)
+
+[PSlink]: http://bioinformatics.med.uoc.gr/ProteoSign/
