@@ -1,11 +1,25 @@
-dev/quancat manuscript/
-dev/msdiffexp/v2/quancat_2h_PD_psms.txt
-dev/msdiffexp/v2/quancat_4h_PD_psms.txt
-dev/msdiffexp/v2/.Rproj.user
-dev/msdiffexp/v2/limma output
-dev/msdiffexp/v2/msdiffexp_out
+dev/*
 uploads/*
 test data/*
-test data/Dimethyl_DIC_merged_psms.txt
-test data/Dimethyl_DIM_merged_psms.txt
+!test data/edit_testdatadb
 !test data/testdatadb
+!test data/Dimethyl_DIC_merged_psms.txt
+**/backup*
+js/EventListeners.js
+js/Matomo_script.js
+serverconf
+Backups
+cgi-bin/bakups_and_tests
+cgi-bin/palia bakup
+cgi-bin/test folder
+cgi-bin/EventListeners_php
+cgi-bin/EventFunctions.php
+cgi-bin/PHP_errors.log
+cgi-bin/Feedbacks.txt
+PHP_errors.log
+php.ini
+css/backup
+images/Thumbs.db
+images/.htaccess
+js/script authentic.js
+js/backups
