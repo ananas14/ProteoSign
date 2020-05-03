@@ -2,7 +2,6 @@ dev/*
 uploads/*
 test data/*
 !test data/edit_testdatadb
-!test data/testdatadb
 !test data/Dimethyl_DIC_merged_psms.txt
 **/backup*
 js/EventListeners.js
