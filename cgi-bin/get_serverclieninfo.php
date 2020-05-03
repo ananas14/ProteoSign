@@ -24,7 +24,7 @@
 	
 	$server_response['version'] = substr($server_response['version'],1);
 	*/
-	$server_response['version'] = '1.0 rc1';
+	$server_response['version'] = '1.0';
 	$server_response['hostaddr'] = $_SERVER['REMOTE_ADDR'];
 	$server_response['hostname'] = gethostbyaddr($server_response['hostaddr']);
 	

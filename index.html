@@ -8,6 +8,8 @@
 		<meta name="keywords" content="ProteoSign, mass spectrometry, proteomics, data, statistics, statistical analysis, bioinformatics, limma, comparative proteomics, silac, labeling, differential expression">
 		<meta charset="UTF-8">
 		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+		<script src="js/Matomo_script.js"></script>
+		<noscript><p><img src="https://genomics-lab.fleming.gr/piwik/piwik.php?idsite=18&rec=1" style="border:0;" alt="" /></p></noscript>
 	</head>
 	<body>
 		<div class="main_div">
@@ -25,7 +27,8 @@
 				<p>ProteoSign aims to fully automate the process of statistically evaluating differential expression in mass spectrometry-based bottom-up (shotgun) quantitative proteomics data by requiring <strong>minimal user interaction time</strong> and generating <strong>publication-quality data plots.</strong></p>
 				<br><hr class="style-one"><br>
 				<p style="color: #000000">Click <em>Start</em> to begin your analysis.</p>
-				<br>
+				<br><br><br><br><br><br>
+				<p style="color: #000000; font-size: 90%; text-align: right">We recently added <strong>new features</strong> to ProteoSign!<br>Click <a href='change_log.html' target='_blank'><u>here</u></a> to see what's new!</p>
 				<div class="buttonbar">
 					<button type="button" class="main" id="s1btnf">Start</button>
 				</div>
@@ -36,8 +39,8 @@
 				<p>
 				<dl style="font-family: 'Courier New'; font-size: 75%; padding-left: 5%;">
 					<dt>Input file support:</dt>
-					<dd>&#8212 <a href="http://www.google.com/search?q=Thermo%20Proteome%20Discoverer&btnI" target="_blank">Proteome Discoverer&#8482</a> (PD) v1.4+ PSM file.<span class="tooltip" style="position: relative">?<div style="left: -25em; min-width: 50em;"><img class="callout" src="images/callout_black.gif" style="margin-left: 24.3em"/>The <em>peptide spectrum match</em> (PSM) file, comprising the necessary information required for protein quantitation, has to be produced manually through the PD desktop application (see the <em>Export&#x2192;To Text</em> option under the <em>File</em> menu).<p>The PSM file must be created from within a PD report which combines the information from all relevant MS analyses (i.e. replicates, conditions etc). Such a PD report is sometimes required to be created based on separate reports and is referred to as a multi-consensus report.</p><p>Before exporting the information, please <strong>disable</strong> peptide grouping and edit the report's <em>Quantification&nbsp;Method</em> by configuring the <em>Ratio&nbsp;Calculation</em> parameters as shown below. The following screen-shots show where the aforementioned changes can be made from within the PD application.</p><figure style="float: left; width: 49%; margin: 0 auto;"><img src="images/pdpepgroup_help.PNG" style="width: 100%;"/><figcaption style="text-align: center;">Disabling peptide grouping.</figcaption></figure><figure style="float: right; width: 49%; margin: 0 auto;"><img src="images/pdquantmeth_help.PNG" style="width: 100%;"/><figcaption style="text-align: center;">Editing ratio calculation parameters.</figcaption></figure></div></span></dd>
-					<dd>&#8212 <a href="http://www.google.com/search?q=Max%Planck%MaxQuant&btnI" target="_blank">MaxQuant</a> (MQ) v1.3.0.5+ 'proteinGroups' and 'evidence' files.</dd>
+					<dd>&#8212 <a href="https://www.thermofisher.com/gr/en/home/industrial/mass-spectrometry/liquid-chromatography-mass-spectrometry-lc-ms/lc-ms-software/multi-omics-data-analysis/proteome-discoverer-software.html" target="_blank">Proteome Discoverer&#8482</a> (PD) v1.4+ PSM file.<span class="tooltip" style="position: relative">?<div style="left: -25em; min-width: 50em;"><img class="callout" src="images/callout_black.gif" style="margin-left: 24.3em"/>The <em>peptide spectrum match</em> (PSM) file, comprising the necessary information required for protein quantitation, has to be produced manually through the PD desktop application (see the <em>Export&#x2192;To Text</em> option under the <em>File</em> menu).<p>The PSM file must be created from within a PD report which combines the information from all relevant MS analyses (i.e. replicates, conditions etc). Such a PD report is sometimes required to be created based on separate reports and is referred to as a multi-consensus report.</p><p>Before exporting the information, please <strong>disable</strong> peptide grouping and edit the report's <em>Quantification&nbsp;Method</em> by configuring the <em>Ratio&nbsp;Calculation</em> parameters as shown below. The following screen-shots show where the aforementioned changes can be made from within the PD application.</p><figure style="float: left; width: 49%; margin: 0 auto;"><img src="images/pdpepgroup_help.PNG" style="width: 100%;"/><figcaption style="text-align: center;">Disabling peptide grouping.</figcaption></figure><figure style="float: right; width: 49%; margin: 0 auto;"><img src="images/pdquantmeth_help.PNG" style="width: 100%;"/><figcaption style="text-align: center;">Editing ratio calculation parameters.</figcaption></figure></div></span></dd>
+					<dd>&#8212 <a href="https://www.biochem.mpg.de/5111795/maxquant" target="_blank">MaxQuant</a> (MQ) v1.3.0.5+ 'proteinGroups' and 'evidence' files.</dd>
 					<dt><br>Experiment support:</dt>
 					<dd>&#8212 Label-free, <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=15385600" target="_blank">iTRAQ</a>, <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=12713048" target="_blank">TMT</a>, <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=12118079" target="_blank">SILAC</a>, <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=19053139" target="_blank">pulsed SILAC</a>, <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=19300442" target="_blank">dimethyl</a>.</dd>
 				</dl>
@@ -45,6 +48,7 @@
 				 <p style="color: #000000">The input file(s) should be made out of merging multiple LC-MS/MS runs (fractionation, replication) of a <em>single</em>, possibly multiplexed, experiment and should not be the result of merging different or parallel experiments. Thus, <em>multi-experiment analysis is not supported.</em> In addition, only single factor (one-way) analysis is currently supported.</p>
 				<!-- Actual file chooser button, hidden (it can't be avoided) -->
 				<input type="file" id="__s2btnupld" style="display: none" multiple/>
+				<input type="file" id="__upldparams" style="display: none" multiple/>
 				<p>
 					<button class="main upload" type="file" id="s2btnupld"/>Upload file(s)</button>
 				</p>
@@ -55,18 +59,18 @@
 				</div>
 				<div class="buttonbar">
 					<button type="button" class="main" id="s2btnb">Back</button>
-					<button type="button" class="main" id="s2btnf" disabled>Next</button>
+					<button type="button" class="main" id="s2btnf" onclick="ons2btnfclick();" disabled>Next</button>
 				</div>
 			</div>
 			
 			<div class="main_div main_section hidden" id="s22div">
 				<h2>Step 2</h2>
-				<p style="color: #000000">Please define the experimental design by assigning the appropriate structure coordinate to each file. 
+				<p style="color: #000000" id="step2InfoHeader">Please define the experimental design by assigning the appropriate structure coordinate to each file. 
 					<p id = "step2desc" style="font-size: 14px;">A coordinate specifies the biological replicate, technical replicate and fraction a raw file belongs to. Select one or more files from the table on the left, type the biological and technical replicate numbers they belong to in the boxes on the right, and click the <strong>Assign</strong> button. If multiple files are fractions of the same replicate, simply assign the same biological and technical replicate number to them, the order of the fractions does not matter. Use <strong>Shift</strong> to select a range of items. <strong>Right click</strong> on the table for extended functionality.</p>
 					<p style="font-size: 14px;" id="ExtraInfoForLFQ">Please use the <strong>"Assign Condition"</strong> option in the right click menu to tell ProteoSign which Raw Files correspond to which condition.</p>
 				</p>
 				<hr class="style-one">
-            <div style="text-align: center; height: 45%; width: 100%; display: -webkit-flex; display: inline-flex;">
+            <div style="text-align: center; height: 45%; width: 100%; display: -webkit-flex; display: inline-flex;" id="step2ToolsWrapper">
 			<div class="expstructcoord_tbl" style="margin: 10px; height: 100%; overflow: auto; max-height: 100%; width: 70%;">
                   <!-- <div style="margin-top: 1em;"> -->
 						<div style="overflow:auto; height: 200px; margin-top: 1em;">
@@ -93,17 +97,25 @@
                      <button type="button" class="main inline" style="font-size: 80%; padding: 5px 15px 6px 15px;" id="btnResetExpStructCoord" disabled="">Reset</button>
                   </div>
                </div>
-				</div>
+			</div>
+			<div class="expstructcoord_tbl" id="step2RMuseinfo" style="display: none;">
+				<p style="color: #000000;">
+					You have chosen to use <i>Replication Multiplexing</i>. You can <strong><u class="astyle" id="RMundo" onclick="onRMUndo_click();">Undo</u></strong> this or <strong><u class="astyle" id="RMreview" onclick="onRMreview_click();">Review</u></strong> your Replication Multiplexing options.
+				</p>
+			</div>
 				<div class="buttonbar">
 					<button type="button" class="main" id="s22btnb">Back</button>
 					<button type="button" class="main" id="s22btnf" disabled onclick="ons22btnfclick();">Next</button>
+				</div>
+				<div id="s2SaveLoadParams" style="position:absolute; bottom: 1%; right:1%;">
+					<p style="font-size: 80%"><u class = "astyle" id="s2linkLoadParams">Load</u> parameters...</p>
 				</div>
 			</div>
 			
 			<div class="main_div main_section hidden" id="s3div">
 				<h2>Step 3</h2>
 				<p style="color: #000000">Define the experimental parameters and click <em>Submit</em>.</p>
-				<div class="sectionForm" id="s3expparams">
+				<div class="sectionForm" id="s3expparams" style="height: 380px">
 					<table name = "tbl_main_params" id = "tbl_main_params" style="border-spacing: 5px 5px;">
 						<tr>
 							<td id="quantitation_prog_lbl">&#8212 Raw data were quantified with Proteome Discoverer&#8482</td>
@@ -169,10 +181,13 @@
 						</tr>
 						<tr class='hidden'>
 							<td>&#8212 Type of filtering: Peptide-level (as opposed to protein-level)?</td>
-							<td><input name="expquantfiltprot" type="checkbox"/></td>
+							<td><input name="expquantfiltprot" id="expquantfiltprot" type="checkbox"/></td>
 						</tr>
 						<tr id = "s3showdivLabelSwapRow">
 							<td>&#8212 <u class = "astyle" id="s3showdivLabelSwap">Label Swap options...</u>
+						</tr>
+						<tr id = "s3showdivAdvancedOptionsRow">
+							<td>&#8212 <u class = "astyle" id="s3showdivAdvancedOptions">Miscellaneous...</u>
 						</tr>
 					</table>
 					</div>
@@ -181,18 +196,23 @@
 					<button type="button" class="main" id="s3btnb">Back</button>
 					<button type="button" class="main" id="s3btnf">Submit</button>
 				</div>
+				<div id="s3SaveLoadParams" style="position:absolute; bottom: 1%; right:1%;">
+					<p style="font-size: 80%"><u class = "astyle" id="s3linkSaveParams">Save</u>/<u class = "astyle" id="s3linkLoadParams">Load</u> parameters...</p>
+				</div>
 			</div>
 			<div class="main_div main_section hidden" id="s4div">
 				<h2>Step 4</h2>
 				<p id="results_p" style="color: #000000"></p>
-				<br>
 				<hr class="style-one">
 				<br>
 				<div id="server_feedback" class="image_array_div">
 				</div>
 				<div class="buttonbar">
-					<button type="button" class="main" id="s4btnb">Back</button>
-					<button type="button" class="main" id="s4btnf" disabled>Next</button>
+					<button type="button" class="main" id="s4btnb" onclick="ons4btnbclick();">Back</button>
+					<button type="button" class="main" id="s4btnf" onclick = "ons4btnfclick();" disabled>Next</button>
+				</div>
+				<div id="s4SaveLoadParams" style="position:absolute; bottom: 1%; right:1%;">
+					<p style="font-size: 80%"><u class = "astyle" id="s4linkSaveParams">Save</u> parameters...</p>
 				</div>
 			</div>						
 			<div class="main_div main_section hidden" id="s5div">
@@ -208,19 +228,22 @@
 					<button type="button" class="main" id="s5btnb">Back</button>
 					<button type="button" class="main" id="s5btnf">Reset</button>
 				</div>
+				<div class="feedback_area" id="feedback_div">
+					<u class="verticaltext astyle" onclick="onFeedbackclick();">Feedback</u>
+				</div>
 			</div>						
 			<div class="main_div main_footer">
 				<p>
 					<em>Reference:</em><br>
-					<a href="#" target="_blank"><strong>Efstathiou G., Antonakis A. N., Theodosiou T., Pavlopoulos G. A., Divanach P., Trudgian D. C., Thomas B., Papanikolaou N., Aivaliotis M., Acuto O. and Iliopoulos I.<br>ProteoSign: An end-user online differential proteomics statistical analysis platform.</strong><br></a>
+					<a href="https://www.ncbi.nlm.nih.gov/pubmed/28520987" target="_blank"><strong>Efstathiou G., Antonakis A. N., Pavlopoulos G. A., Theodosiou T., Divanach P., Trudgian D. C., Thomas B., Papanikolaou N., Aivaliotis M., Acuto O., Iliopoulos I.<br>ProteoSign: an end-user online differential proteomics statistical analysis platform.</strong><br></a>
 				<p>
 				<span id="proteosignversion" style='font-family: "Courier New"; display: block; float: left'></span>
 				<span id="githubproject" style='font-family: "Courier New"; margin: 0 18%;'><a href="https://github.com/yorgodillo/ProteoSign" target="_blank">Project hosted at GitHub <img src="images/github_icon.png" height="30" style="position: relative; vertical-align: top; margin: -0.7em 0;"></img></a></span>
-				<span style='font-family: "Courier New"; display: block; float: right'><a id='contact' onclick='$("#contact").attr("href","mailto:msdiffexp@gmail.com?Subject=Session%20"+sessionid); return true;' target='_blank'><u>Contact</u></a></span>
+				<span style='font-family: "Courier New"; display: block; float: right'><a href='change_log.html' target='_blank'><u>Change Log</u></a>  <a onclick='onFeedbackclick();'><u>Feedback</u></a>  <a id='contact' onclick='$("#contact").attr("href","mailto:msdiffexp@gmail.com?Subject=Session%20"+sessionid); return true;' target='_blank'><u>Contact</u></a></span>
 			</div>
 		<div>
 
-		<div class="expparamsDlg" id="s3expparamsDlgLabels">
+		<div class="expparamsDlg" id="s3expparamsDlgLabels"> <!-->OBSOLETE<-->
 			<div style="text-align: center">
 				<span style="font-size: 80%">Select one or more (by holding the <em>Ctrl</em> key).</span>
 				<select id="s3expparamsDlgLabelsSelection" style="min-width:90%" multiple>
@@ -248,7 +271,7 @@
 		<div class="expparamsDlg" id="s2LFQConditions" style="width: 340px">
 			<div style="text-align: center;">
 				<span style="font-size: 85%;">Select a condition to assign to the selected raw files<br> or type a <strong>New condition</strong> in the box below.</span>
-				<input id="s2LFQConditionsNew" placeholder="New Condition" style="width:70%" onkeypress="inputChCheck(event,'^(?!_)[a-zA-Z0-9_]+$',10);" onkeyup="SwitchLFQList(event);" onpaste="inputPasteCheck(event,'^(?!_)[a-zA-Z0-9_]+$',10);"></input>
+				<input id="s2LFQConditionsNew" placeholder="New Condition" style="width:70%" onkeypress="inputChCheck(event,'^(?![0-9_])[a-zA-Z0-9_]+$',10);" onkeyup="SwitchLFQList(event);" onpaste="inputPasteCheck(event,'^(?![0-9_])[a-zA-Z0-9_]+$',10);"></input>
 				<select id="s2LFQConditionsList" style="width:70%">
 				</select><br>
 			</div>
@@ -258,10 +281,12 @@
 			</div>			
 		</div>	
 		
-		<div class="expparamsDlg" id="s4UserInfo" style="width: 600px">
+		<div class="expparamsDlg" id="s4UserInfo" style="width: 600px; height: 400px;">
 			<div style="text-align: center;">
 				<span style="font-size: 100%;"><strong>ProteoSign</strong> says:</span>
+				<div style="overflow-y: scroll; height: 310px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin-top:15px;" name="text_container">
 				<div style="text-align: left; font-size: 85%;" id= "s4UserInfoText"></div>
+				</div>
 				<br>
 			</div>
 			<div class="buttonbar" style="text-align: center; position: relative; width: auto; margin-top: 1em">
@@ -272,7 +297,7 @@
 		<div class="expparamsDlg" id="condsadvancedDlg" style="width: 350px">
 			<div style="text-align: center;">
 				<span style="font-size: 85%;">Please type the Name of the <strong>New condition:</strong></span>
-				<input id="s3AdvNewCondition" placeholder="New Condition" style="width:70%" onkeypress="inputChCheck(event,'^(?!_)[a-zA-Z0-9_]+$',10);" onpaste="inputPasteCheck(event,'^(?!_)[a-zA-Z0-9_]+$',10);"></input>
+				<input id="s3AdvNewCondition" placeholder="New Condition" style="width:70%" onkeypress="inputChCheck(event,'^(?![0-9_])[a-zA-Z0-9_]+$',10);" onpaste="inputPasteCheck(event,'^(?![0-9_])[a-zA-Z0-9_]+$',10);"></input>
 			</div>
 			<div class="buttonbar" style="text-align: center; position: relative; width: auto; margin-top: 1em">
 			<button type="button" class="main inline" style="font-size: 80%;" id="s3AdvancedOK">OK</button>
@@ -280,9 +305,9 @@
 			</div>	
 		</div>
 		<div class="expparamsDlg" id="divLabelSwap" style="width: 500px">
-		<div name="LStitlediv" style="text-align: center; display: block; align-items: center; position: relative; border-bottom-style: solid; padding-bottom: 10px;">
-		<span ><strong>Label Swap Assignment</strong></span>
-		</div>
+			<div name="LStitlediv" style="text-align: center; display: block; align-items: center; position: relative; border-bottom-style: solid; padding-bottom: 10px;">
+			<span ><strong>Label Swap Assignment</strong></span>
+			</div>
 			<div name="LS1stdiv" style="text-align: center; display: block; align-items: center; position: relative; border-bottom-style: solid;">
 				<span style="font-size: 85%; display: block; align-items: center; margin-bottom: 10px; margin-top: 10px;">Please select the <strong>Biological</strong> and <strong>Technical</strong> replicate where labels were swapped</span>
 				<div style="position: relative;">
@@ -310,9 +335,118 @@
 			<div name="LSbuttondiv" class="buttonbar" style="text-align: center; position: relative; width: auto; margin-top: 1em">
 				<button type="button" class="main inline" style="font-size: 80%; width: 50px" id="LSBack" onclick="onLSbackclick();">Back</button>
 			</div>	
-		</div>	
+		</div>			
+		<div class="expparamsDlg" id="divAdvancedOptions" style="width: 500px">
+			<div name="LStitlediv" style="text-align: center; display: block; align-items: center; position: relative; border-bottom-style: solid; padding-bottom: 10px;">
+			<span >Change the <i>default</i> data analysis parameters used by ProteoSign and click <strong>OK</strong></span>
+			</div>
+			<div name="divAdvParams" style="text-align: center;">
+				<div name="divLeastBRepandPep" style="position: relative; border-bottom-style: solid; padding-bottom: 2px; padding-top: 2px;">
+					<span class="inline" style="font-size: 85%;">Proteins that were <i>not</i> quantified with at least</span>
+					<select class="inline" id="AdvParamLPep" style="min-width: 50px; width: 60px; align-items: center; vertical-align: middle;"></select>
+					<span class="inline" style="font-size: 85%;"> different peptides in at least </span>
+					<select class="inline" id="AdvParamLBRep" style="min-width: 50px; width: 60px; align-items: center; vertical-align: middle;"></select>
+					<span class="inline" style="font-size: 85%;"> biological replicates will be disqualified.</span>
+				</div>
+				<div name="divPValue" style="position: relative; border-bottom-style: solid; padding-bottom: 2px; padding-top: 2px;">
+					<span class="inline" style="font-size: 85%;">Adjusted p-value threshold for differentially expressed proteins: </span>
+					<input type="text" id="PThreshold" style="width:50px; min-width:50px" onkeypress="inputChCheck(event,'^[0-9.,]+$',10);" onpaste="inputPasteCheck(event,'^[0-9.,]+$',10);"></input>
+				</div>
+			</div>
+			<div class="buttonbar" style="text-align: center; position: relative; width: auto; margin-top: 1em">
+				<button type="button" class="main inline" style="font-size: 80%;" id="ADVoptionsOK" onclick="onADVoptionsOK_click();">OK</button>
+				<button type="button" class="main inline" style="font-size: 80%;" id="ADVoptionsCancel" onclick="onADVoptionsCancel_click();">Cancel</button>
+			</div>
+		</div>
+		<div class="expparamsDlgFeedback" id="s4FeedbackPanel">
+			<div style="text-align: center">
+				<span style="font-size: 104%" style='font-family: "Segoe UI"' class="inline">Thank you for using ProteoSign!<br>Please leave us your feedback below:<br></span>
+				<div id="Feedbackstars" style="margin: 10px;">
+					<img id="star1" id="star1" src="images/star_selected.PNG" style="width: 25px; height: 25px;"></img>
+					<img id="star2"  src="images/star_selected.PNG" style="width: 25px; height: 25px; opacity: 0.6;"></img>
+					<img id="star3"  src="images/star_selected.PNG" style="width: 25px; height: 25px; opacity: 0.6;"></img>
+					<img id="star4" src="images/star_selected.PNG" style="width: 25px; height: 25px; opacity: 0.6;"></img>
+					<img id="star5" src="images/star_selected.PNG" style="width: 25px; height: 25px; opacity: 0.6;"></img>
+				</div>
+				<textarea id="userFeedback" rows="7" cols="50" style="resize: none;" class="inline"maxlength="600"></textarea>
+			</div>
+			<div>
+			<span style="font-size: 75%" id="FBcharleft">600 characters left</span>
+			</div>
+			<div class="buttonbar" style="text-align: center; position: relative; width: auto; margin-top: 1em">
+				<button type="button" class="main inline" style="font-size: 80%;" id="FeedbackPanelSend" onclick="onFeedbackPanelSendclick();">Send</button>
+				<button type="button" class="main inline" style="font-size: 80%;" margin-left: 1em" id="FeedbackPanelCancel">Cancel</button>
+			</div>			
+		</div>
+		<div class="expparamsDlg" id="WarnCarefulBack">
+			<div style="text-align: center">
+				<div style="font-size: 104%" style='font-family: "Segoe UI"' class="inline" id="CarefulBackTitle"></div>
+			</div>
+			<div class="buttonbar" style="text-align: center; position: relative; width: auto; margin-top: 1em">
+				<button type="button" class="main inline" style="font-size: 80%;" id="CarefulBackYes" onclick="onCarefulBackYesclick();">Yes</button>
+				<button type="button" class="main inline" style="font-size: 80%;" margin-left: 1em" id="CarefulBackNo" onclick="onCarefulBackNoclick();">No</button>
+			</div>			
+		</div>
 		
-		<div class="expparamsDlgInfo" id="VariousInfoDialog" style="width: 350px">
+		<div class="RepMultDlg" id="ReplicationMultiplexingDialog" style="width: 650px;">
+			<div style="text-align: center;">
+				<!-- content here -->
+				<h4>Replication Multiplexing</h4>
+				<div class="stepRM1" id="RM1">
+					<p style="font-size: 14px;text-align: left; margin-bottom = 0'"><strong>ProteoSign</strong> supports data sets that have biological or technical replicates represented as different tags. Please choose the options below that best describe your experiment and click Next:<br><span>If you have no technical replicates select <i>"Raw Files"</i> as the corresponding option</span></p>
+					<hr class="style-one">
+					<p style="text-align: left">
+						My <i>biological replicates</i> are represented as different
+							
+							<input type="radio" name="RMbreprepres" id="RMbreprepresrf" value = "rawfiles" checked = "true">Raw Files</input>
+							<input type="radio" name="RMbreprepres" id="RMbrepreprestag" value = "tags">Tags</input>
+					</p>
+					<p style="text-align: left">
+						My <i>technical replicates</i> are represented as different
+							
+							<input type="radio" name="RMtreprepres" id="RMtreprepresrf" value = "rawfiles" checked = "true">Raw Files</input>
+							<input type="radio" name="RMtreprepres" id="RMtrepreprestag" value = "tags">Tags</input>
+					</p>
+					<p style="text-align: left;">
+						My <i>conditions</i> are represented as different
+							
+							<input type="radio" name="RMconditionrepres" id="RMconditionrepresrf" value = "rawfiles" checked = "true">Raw Files</input>
+							<input type="radio" name="RMconditionrepres" id="RMconditionreprestag" value = "tags">Tags</input>
+					</p>
+					<hr class="style-one">
+				</div>
+				<div class="stepRM2 hidden" id="RM2" style="margin: auto; height: 100%; overflow: auto; max-height: 100%; width: 90%;">
+					<p id="stepRM2Info" style="font-size: 14px;text-align: left; margin-bottom = 0'"><strong>Please assign the corresponding elements to your Raw files the fractions will be updated automatically</p>
+					<hr class="style-one" style="margin-top: 7px; margin-bottom: 7px">
+					<div class="expstructcoord_tbl" id="RMtablecontainer" style="margin:5px">
+						<div style="overflow:auto; height: 275px; width:100%; margin-top: 1em;">
+								<table class="compact row-border RMrawfiles RMrawfilestbl" cellspacing="0" width="10%" id="RMrawfiles" style="width: 100%; margin: 0px">
+									<tbody>
+									</tbody>
+								</table>
+						</div>	
+					</div>
+					<div style="text-align:center;">
+					<div id="stepRM2AssignmentTools" class="expstructcoord_tbl" style="text-align: center; padding-top:5px; padding-left: 7px; margin: 0 auto; width:250px">
+						<input id="stepRM2txtbrep" type="text" placeholder="Bio. replicate #" onkeypress="inputChCheck(event, '^[0-9]+$', 2)" onpaste="event.preventDefault();" style="display:block; margin: 0 auto; margin-bottom: 5px;">
+						
+						 <input id="stepRM2txttrep" type="text" placeholder="Tech. replicate #" onkeypress="inputChCheck(event, '^[0-9]+$', 2)" onpaste="event.preventDefault();" style="display:block; margin: 0 auto; margin-bottom: 5px;">
+						 
+						 <input id="stepRM2txtcondition" placeholder="Condition" style="width:148.5px; display: block; margin: 0 auto; margin-bottom: 5px;" onkeypress="inputChCheck(event,'^(?![0-9_])[a-zA-Z0-9_]+$',10);" onpaste="inputPasteCheck(event,'^(?![0-9_])[a-zA-Z0-9_]+$',10);"></input>
+						 <br>
+						 <button type="button" class="main inline" style="font-size: 80%; padding: 5px 15px 6px 15px; margin-top:5px;" id="btnAssignExpStructCoord" onclick="stepRM2Assign_click();">Assign</button>
+					</div>
+					</div>
+				</div>
+			</div>
+			<div class="buttonbar" style="text-align: center; position: relative; width: auto; margin-top: 1em">
+			<button type="button" class="main inline" style="font-size: 80%;" id="RMDialogBack" onclick="onRMDialogBack_click();" disabled>Back</button>
+			<button type="button" class="main inline" style="font-size: 80%;" id="RMDialogNext" onclick="onRMDialogNext_click();">Next</button>
+			<button type="button" class="main inline" style="font-size: 80%;" id="RMDialogCancel" onclick="onRMDialogCancel_click();">Cancel</button>
+			</div>	
+		</div>
+		
+		<div class="expparamsDlgInfo" id="VariousInfoDialog" style="width: 550px">
 			<div style="text-align: center;">
 				<div id="InfoDiv" style="font-size: 85%;"></div>
 			</div>
@@ -321,6 +455,15 @@
 			</div>	
 		</div>
 		
+		<div class="expparamsDlgInfo" id="QuestionBoxDialog" style="width: 550px">
+			<div style="text-align: center;">
+				<div id="CaptionDiv" style="font-size: 85%;"></div>
+			</div>
+			<div class="buttonbar" style="text-align: center; position: relative; width: auto; margin-top: 1em">
+			<button type="button" class="main inline" style="font-size: 80%;" id="QBYes">Yes</button>
+			<button type="button" class="main inline" style="font-size: 80%;" id="QBNo">No</button>
+			</div>	
+		</div>
 		
 		<script src="http://code.jquery.com/jquery-2.1.0.js"></script>
 		<script src="js/jquery.dataTables.min.js"></script>
