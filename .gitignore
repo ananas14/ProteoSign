@@ -19,3 +19,5 @@ cgi-bin/Feedbacks.txt
 PHP_errors.log
 php.ini
 css/backup
+images/Thumbs.db
+images/.htaccess
