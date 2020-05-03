@@ -1,10 +1,4 @@
  <?php
-	/*
-	// DEBUG
-	$test_data_dir = "C:/Users/G Efstathiou/Documents/GitHub/ProteoSign/test data/";
-	$descriptions_requested = false;
-	$dataset_requested = "dimethyl 2-plex (PD)";
-	*/
 	
 	$test_data_dir = dirname(__DIR__) . "/test data";
 	$descriptions_requested = ($_POST["descriptions_requested"] === "true");
@@ -35,9 +29,7 @@
     while($qrow = $qres->fetchArray(SQLITE3_ASSOC)){
 		foreach($qrow as $col => $val){
 			$server_response['queryres'][$col][] = $val;
-			//echo $col . ": " . $val . " ";
 		}
-		//echo "\n";
 	}
 	$qres->finalize();
 	
@@ -51,9 +43,7 @@
 		while($qrow = $qres->fetchArray(SQLITE3_ASSOC)){
 			foreach($qrow as $col => $val){
 				$server_response['queryres'][$col][] = $val;
-				//echo $col . ": " . $val . " ";
 			}
-			//echo "\n";
 		}
 		$qres->finalize();
 		// fetch experimental structure info
@@ -65,9 +55,7 @@
 		while($qrow = $qres->fetchArray(SQLITE3_ASSOC)){
 			foreach($qrow as $col => $val){
 				$server_response['queryres'][$col][] = $val;
-				//echo $col . ": " . $val . " ";
 			}
-			//echo "\n";
 		}
 		$qres->finalize();
 		$qres = $db->query('select option,opt_value from extra_options inner join dataset on dataset.id=extra_options.dataset_id where dataset.desc="' . $_POST["dataset_info_requested"] . '"');
@@ -78,9 +66,7 @@
 		while($qrow = $qres->fetchArray(SQLITE3_ASSOC)){
 			foreach($qrow as $col => $val){
 				$server_response['queryres'][$col][] = $val;
-				//echo $col . ": " . $val . " ";
 			}
-			//echo "\n";
 		}
 		$qres->finalize();
 	}
@@ -88,20 +74,7 @@
 	$db->close();
 	$server_response['success'] = true;
 	
-	/*
-	foreach($server_response['queryres']['selector'] as $key => $val){
-		echo $key . ": " . $val . " ";
-	}
-	echo "\n";	
-	foreach($server_response['queryres']['value'] as $key => $val){
-		echo $key . ": " . $val . " ";
-	}
-	echo "\n";	
-	foreach($server_response['queryres']['file'] as $key => $val){
-		echo $key . ": " . $val . " ";
-	}
-	echo "\n";
-	*/
+
  end:
  	header('Content-type: application/json');
 	echo json_encode($server_response);	

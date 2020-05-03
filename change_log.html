@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>ProteoSign</title>
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<link rel="stylesheet" type="text/css" href="css/jquery-ui.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+		<meta name="keywords" content="ProteoSign, mass spectrometry, proteomics, data, statistics, statistical analysis, bioinformatics, limma, comparative proteomics, silac, labeling, differential expression">
+		<meta charset="UTF-8">
+		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+	</head>
+	<body>
+		<div class="main_div">
+			<div class="main_div main_header">
+				<span class="logo">ProteoSign</span><br>
+				<span class="logo" style="font-size: 100%; left: 12%">comparative proteomics</span>
+				<a href="help.html" target="_blank"><i class="fa fa-question-circle helplink" aria-hidden="true"></i></a><a class="helplink" href="help.html" target="_blank"> HELP</a>
+			</div>
+			<div class="main_div main_nav">
+				<p class="scrolling_p">ProteoSign Change Log</p>
+			</div>
+			<div class="main_div main_section" id="s1div">
+				<ul>
+					<li>Added support for <strong>Replication Multiplexing</strong>! Now you can use <strong>ProteoSign</strong> for experiments where biological, technical replicates or conditions are represented either as different tags or as different MS runs. Visit our <a href = "help.html#RM">help page</a> for more information!
+				</ul>
+			</div>
+			<div class="main_div main_footer">
+				<p>
+					<em>Reference:</em><br>
+					<a href="https://www.ncbi.nlm.nih.gov/pubmed/28520987" target="_blank"><strong>Efstathiou G., Antonakis A. N., Pavlopoulos G. A., Theodosiou T., Divanach P., Trudgian D. C., Thomas B., Papanikolaou N., Aivaliotis M., Acuto O., Iliopoulos I.<br>ProteoSign: an end-user online differential proteomics statistical analysis platform.</strong><br></a>
+				<p>
+				<span id="proteosignversion" style='font-family: "Courier New"; display: block; float: left'></span>
+				<span id="githubproject" style='font-family: "Courier New"; margin: 0 18%;'><a href="https://github.com/yorgodillo/ProteoSign" target="_blank">Project hosted at GitHub <img src="images/github_icon.png" height="30" style="position: relative; vertical-align: top; margin: -0.7em 0;"></img></a></span>
+				<span style='font-family: "Courier New"; display: block; float: right'><a id='contact' onclick='$("#contact").attr("href","mailto:msdiffexp@gmail.com?Subject=Session%20"+sessionid); return true;' target='_blank'><u>Contact</u></a></span>
+			</div>
+		<div>
+		<script src="http://code.jquery.com/jquery-2.1.0.js"></script>
+		<script src="js/jquery.dataTables.min.js"></script>
+ 		<script src="js/jquery-ui.min.js"></script>
+		<script src="js/jquery.ui-contextmenu.min.js"></script>
+		<script src="js/dataTables.select.min.js"></script>
+		<script src="js/script.js"></script>
+</body>
+</html>

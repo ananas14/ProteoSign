@@ -16,16 +16,18 @@
 				}
 				if($labeldefcol > -1){
 					while (($data = fgetcsv($handle, 0, "\t")) !== FALSE) {
-                  if(! isset($rawfiles_names[$data[$labeldefcol]])){
-                     $rawfiles_names[$data[$labeldefcol]] = 1;
-                  }
+						if (count($data) >= $labeldefcol)
+						{
+							if(! isset($rawfiles_names[$data[$labeldefcol]])){
+								$rawfiles_names[$data[$labeldefcol]] = 1;
+							}
+						}
 					}
 					$ret = array_keys($rawfiles_names);
 				}
 			}
 			fclose($handle);
 		}
-		//error_log(print_r($ret, true));
 		return $ret;
 	}
- ?>
+?>

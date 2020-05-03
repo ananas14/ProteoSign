@@ -19,7 +19,6 @@
 		height: inherit;
 		width: inherit;
 	}
-	
 	.hidden{
 		display: none;
 	}
@@ -52,7 +51,7 @@
 		background-color: #E4E4E4;
 		box-shadow: 0 0.1em 0.1em #B1B1B1;
 		border-radius: 0.15em;
-		height: 850px;
+		height: 900px;
 		width: 900px;
 	}
 	
@@ -63,7 +62,7 @@
 		background-color: white;
 		border-radius: 0.25em;
 		transition-delay: 2s;
-		height: 62%;
+		height: 62.5%;
 		width: 93%;
 		position: relative;
 		background: url("../images/secbg.png") no-repeat;
@@ -113,7 +112,7 @@
 		margin: 1% auto 1% auto;
 		padding: 1.5% 1.5% 1.5% 1.5%;
 		width: 95%;
-		height: 10.5%;
+		height: 10%;
 		border-radius: 0.25em;
 		background: url("../images/unis.png") no-repeat;
 		background-size: 25%;
@@ -187,6 +186,9 @@
 }
 
 .rawfiles_tbl {
+   border-bottom: 1px solid #ddd;
+}
+.RMrawfilestbl {
    border-bottom: 1px solid #ddd;
 }
 
@@ -648,6 +650,30 @@
 		opacity: 0.4;
 		z-index: 999;
 	}	
+	#maskFeedback{
+		display: none;
+		background: #000;
+		position: fixed;
+		left: 0;
+		top: 0;
+		z-index: 10;
+		width: 100%;
+		height: 100%;
+		opacity: 0.4;
+		z-index: 999;
+	}
+	#maskRepMult{
+		display: none;
+		background: #000;
+		position: fixed;
+		left: 0;
+		top: 0;
+		z-index: 10;
+		width: 100%;
+		height: 100%;
+		opacity: 0.4;
+		z-index: 999;
+	}
 	
 	.main_div .expparamsDlg {
 		display: none;
@@ -681,6 +707,38 @@
 		border-radius: 3px 3px 3px 3px;
 		-webkit-border-radius: 3px;
 	}
+		.expparamsDlgFeedback {
+		display: none;
+		background-color: #eeeeee;
+		color: #222222;
+		padding: 10px;
+		border: 2px solid #ddd;
+		float: left;
+		position: fixed;
+		top: 40%;
+		left: 25%;
+		z-index: 99999;
+		box-shadow: 0px 0px 20px #999;
+		-webkit-box-shadow: 0px 0px 20px #999;
+		border-radius: 3px 3px 3px 3px;
+		-webkit-border-radius: 3px;
+	}
+	.RepMultDlg {
+		display: none;
+		background-color: #eeeeee;
+		color: #222222;
+		padding: 10px;
+		border: 2px solid #ddd;
+		float: left;
+		position: fixed;
+		top: 40%;
+		left: 25%;
+		z-index: 99999;
+		box-shadow: 0px 0px 20px #999;
+		-webkit-box-shadow: 0px 0px 20px #999;
+		border-radius: 3px 3px 3px 3px;
+		-webkit-border-radius: 3px;
+	}
 	
 
 	/* from http://johnsardine.com/freebies/dl-html-css/simple-little-tab/ */
@@ -689,7 +747,31 @@
 		color: #bd5a35;
 		text-decoration:underline;
 	}
+	.RMrawfiles a:active,
+	.RMrawfiles a:hover {
+		color: #bd5a35;
+		text-decoration:underline;
+	}
 	.rawfiles_tbl {
+		color:#666;
+		font-size: 12px;
+		text-shadow: 1px 1px 0px #fff;
+		background:#eaebec;
+		margin:20px;
+		border:#ccc 1px solid;
+		
+		-moz-border-radius:3px;
+		-webkit-border-radius:3px;
+		border-radius:3px;
+
+		-moz-box-shadow: 0 1px 2px #d1d1d1;
+		-webkit-box-shadow: 0 1px 2px #d1d1d1;
+		box-shadow: 0 1px 2px #d1d1d1;
+		
+		-moz-user-select: -moz-none;
+		-webkit-user-select: none;	
+	}
+	.RMrawfiles {
 		color:#666;
 		font-size: 12px;
 		text-shadow: 1px 1px 0px #fff;
@@ -795,7 +877,6 @@
 		font-size: 80%; /*andreasa: LSLabelSwaps List Font Size*/
 		font-family: 'Arial';
 	}
-	
 .helplink{
 		position: relative;
 		left: 65%;
@@ -808,4 +889,29 @@
 	.main_header a:visited, .main_header a:hover, .main_header a:active {
 		cursor: pointer;
 		text-decoration: none;
+	}
+	
+	.verticaltext
+	{
+		position:absolute;
+		-webkit-transform: rotate(270deg);
+		-moz-transform: rotate(270deg);
+		-ms-transform: rotate(270deg);
+		-o-transform: rotate(270deg);
+		transform: rotate(270deg);
+		bottom:30px;
+		left:-18px;
+		color: #FFFFFF;
+		font-family: "Segoe UI";
+	}
+	.feedback_area
+	{
+		position:absolute;
+		bottom: 1%; right: 0;
+		box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px, rgba(0, 0, 0, 0.19) 0px 6px 20px 0px;
+		background-color: #333333;
+		width: 0px;
+		height: 82px;
+		opacity: 0.1;
+		border-radius: 0.25em 0 0 0.25em;
 	}
