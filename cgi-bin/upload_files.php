@@ -41,12 +41,18 @@
 	// +------------------------------+------------------------------------+
 	//
 	
+	// _get_labels_aguments_sets contain unique regular expressions to get the labels from the header of the files. The resulting labels will be stored in "peptideLabelsNamesFromFile" in javascript
+	// It is an array of arrays built so that it can provide alternative regexes for many filetypes providing the necessary labels. Notice that here the notation "L" stands for Isobaric labelling and labelling as well
+	// e.g. an "L" file from PD might contain the labels in the form "{LABEL}\{LABEL}" or in the form "Abundance: {LABEL}". This is why if we expand _get_labels_aguments_sets we will get: TOP -> PD -> L -> {an array of two arrays the first element of which have regexes for the two
+	// patterns discussed above} notice that the terminal nodes are always three siblings the first of which is the pattern for label recognition and the other 2 are obsolete
+	
 	// For more information about _get_labels_aguments_sets and unique_patterns see the comments below
 	
 	$_get_labels_aguments_sets = array(
 		'PD' => array(
 			'L' => array(
 				array('/^([^\s]+)\/([^\s]+)$/i', '/Modifications/i', '/\((?:[^:]+?:)?(.+?)\)(;|$)/'), //Proteome Discoverer
+				array('/Abundance: (\d+)/i', '/Modifications/i', '/\((?:[^:]+?:)?(.+?)\)(;|$)/'), //Proteome Discoverer
 			)
 		),
 		'MQ' => array(
@@ -61,7 +67,7 @@
 		'PD' => array(
 			'L' => array('/Quan Channel/i'),
 			'LF' => array(null), // there is no unique header for PD-LF
-			'IL' => array('/\d+\/\d+/')
+			'IL' => array('/\d+\/\d+/', 'Abundance: \d+')
 		),
 		'MQ' => array(
 			'L' => array('/Labeling State/i'),
