@@ -18,7 +18,7 @@
 	var cgi_bin_path = 'cgi-bin/'; // Relative path to cgi-bin folder in the server
 	var RSS_prefix = "NAR Advance articles:"; // Prefix before RSS elements displayed while waiting for results
 	var RSS_link = "https://academic.oup.com/rss/site_5127/3091.xml"; // RSS link to display contents while waiting for the results
-	var server_Feedback_file = "/media/sdb1/ProteoSign/Feedbacks.txt"; // The absolute path of the server text file that will store all feedbacks
+	var server_Feedback_file = "/data/ProteoSign/Feedbacks.txt"; // The absolute path of the server text file that will store all feedbacks
 	
 	// === DEBUG flags ===
 	
@@ -87,7 +87,7 @@
 	// | OT2_Terhune(...)DMC-HLNF02_02 | L		   | H			|			 1 |
 	// | OT2_Terhune(...)DMC-HLNF03_02 | L		   | H			|			 2 |
 	// | OT2_Terhune(...)DMC-HLNF04_02 | L		   | H			|			 3 |
-	// | (...)						   |		   |			|			   |
+	// | (...)						 |			 |			  |			   |
 	// | OT2_Terhune(...)DMC-HLNF12_02 | L		   | H			|			11 |
 	// +-------------------------------+-------------+--------------+---------------+
 	//
@@ -690,7 +690,7 @@
 				$("#server_feedback").html("<span class='uploadErrorMsg'><strong><em>The analysis could not be completed: " + data.msg + "<em><strong></span>");
 				if (data.R_dump.length > 0)
 				{
-					$("#server_feedback").append("<br><br><span style='font-family: Georgia; font-size: 95%; text-align: left; display: inline-block; width: 90%'><p>Please ensure that input parameters (such as number of replicates, number of biological conditions/labels etc) are correctly defined and input data format is valid. The statistical analysis routine relies heavily on the validity of the input parameters.</p><p>If the above does not apply, then the statistical analysis may have failed due to numerical problems (e.g. there were too many missing values/data points).</p><p> If you feel that none of the above is the case, please click <a href='mailto:msdiffexp@gmail.com?Subject=Session%20" + sessionid + "' target='_blank'><u>here</u></a> to notify via e-mail (do not delete the session id in the subject) the ProteoSign team for investigation of your analysis issue.</p></span>")
+					$("#server_feedback").append("<br><br><span style='font-family: Georgia; font-size: 95%; text-align: left; display: inline-block; width: 90%'><p>Please ensure that input parameters (such as number of replicates, number of biological conditions/labels etc) are correctly defined and input data format is valid. The statistical analysis routine relies heavily on the validity of the input parameters.</p><p>If the above does not apply, then the statistical analysis may have failed due to numerical problems (e.g. there were too many missing values/data points).</p><p> If you feel that none of the above is the case, please click <a href='mailto:msdiffexp@gmail.com,iliopj@med.uoc.gr?Subject=Session%20" + sessionid + "' target='_blank'><u>here</u></a> to notify via e-mail (do not delete the session id in the subject) the ProteoSign team for investigation of your analysis issue.</p></span>")
 				}
 				R_returned_error = true;
 				RreturnedErrorsInCurSession = true;
@@ -4571,7 +4571,7 @@
 			beforeSend: function (jqXHR, settings) {
 			}}).done(function (data, textStatus, jqXHR) {
 			softversion = data.version;
-			$("#scrollingtext").html("Welcome to ProteoSign");
+			$("#scrollingtext").html("Welcome to ProteoSign ver. 2.0");
 			$("#proteosignversion").html("ProteoSign version " + softversion);
 			}).fail(function (jqXHR, textStatus, errorThrown) {
 		});
