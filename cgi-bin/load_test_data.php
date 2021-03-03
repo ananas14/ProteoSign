@@ -1,6 +1,6 @@
  <?php
 	
-	$test_data_dir = dirname(__DIR__) . "/test data";
+	$test_data_dir = dirname(__DIR__) . "/test_data";
 	$descriptions_requested = ($_POST["descriptions_requested"] === "true");
 	
 	$server_response = [];

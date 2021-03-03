@@ -1,7 +1,7 @@
  <?php
 	// number of days the website source (html, php, js and css files) was changed
 	$softchanges = 153;
-	$ver = [1,0,0,0];
+	$ver = [2,0,0,0];
 	$server_response = [];
 	/*
 	// Calculation of "version string" (x.x.x.x) based on the number of file edits (not creations) since the beginning of the project
@@ -24,7 +24,7 @@
 	
 	$server_response['version'] = substr($server_response['version'],1);
 	*/
-	$server_response['version'] = '1.0';
+	$server_response['version'] = '2.0';
 	$server_response['hostaddr'] = $_SERVER['REMOTE_ADDR'];
 	$server_response['hostname'] = gethostbyaddr($server_response['hostaddr']);
 	
