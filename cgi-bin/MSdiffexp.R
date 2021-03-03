@@ -892,7 +892,9 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
       pgroups_colname<-'Protein.Group.Accessions'
     }
     else if ('Protein.Accessions' %in% colnames(evidence)) {
-      pgroups_colname<-'Protein.Accessions'
+      #pgroups_colname<-'Protein.Accessions'
+      ###Ismini edit: Pattern must starts with Protein.Accessions because id PD 2.4 there is also another column as Master.Protein.Accessions
+      pgroups_colname<-'^Protein.Accessions'
     } else {
       levellog("Error User: The dataset does not contain the columns 'Protein Group Accessions' or 'Protein Accessions'")
     }
@@ -1355,7 +1357,21 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
     if(PDdata){
       # Precursor Area is unfortunately buggy (sometimes 0/NA), so we are left with Intensity to work with
       #intensityCol <- 'Precursor.Area'
-      intensityCol <- 'Intensity'
+      #intensityCol <- 'Intensity'
+      #Ismini edit: in PD 2.4 there is no Intensity column, instead there is the "PRECURSOR.ABUNDANCE" column
+      #intensityCol <- 'Intensity'
+      if(any(grepl('Intensity',colnames(evidence)))){
+        intensityCol <- 'Intensity'
+      }else if(any(grepl('Precursor.Abundance',colnames(evidence)))){
+        intensityCol <- 'Precursor.Abundance'
+      }else{
+        levellog("Error User: The dataset does not contain the columns 'Intensity' or 'Precursor Abundance'")
+      }
+      
+      ###Ismini edit: Must handle PD's ver.2.4 colnames. There is no "Unique Sequence ID", instead there is a "PSMs Peptide ID" column name
+      if(any(grepl('Peptide.ID',colnames(evidence)))){
+            colnames(evidence)[grepl('Peptide.ID',colnames(evidence))]<-'Unique.Sequence.ID'
+      }
     }else{
       intensityCol <- 'Intensity'
     }
@@ -1372,6 +1388,10 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
       #get only the PSMs that PD suggested as eligible for quantification
       if (!'Quan.Usage' %in% colnames(evidence) & 'Peptide.Quan.Usage' %in% colnames(evidence)){
         colnames(evidence)[colnames(evidence) == 'Peptide.Quan.Usage'] <- 'Quan.Usage'
+      }
+      ###Ismini edit: Must handle PD's ver.2.4 colnames. There is no "Unique Sequence ID", instead there is a "PSMs Peptide ID" column name
+      if(any(grepl('Peptide.ID',colnames(evidence)))){
+        colnames(evidence)[grepl('Peptide.ID',colnames(evidence))]<-'Unique.Sequence.ID'
       }
       # Retrieve the following information for all PSMs from evidence: Protein ID, Unique sequence ID (so one column for protein and one
       # for peptide information), its Intensity for each condition seperately, the condition it derives from (label_) and the repetition it derived from (rep_desc)
@@ -1551,7 +1571,9 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
 	for (rep_desc_i in unique(evidence.dt$rep_desc)) {
 		for (cond_i in conditions.labels) {
 			# For each of the columns of interest check if it contains solely 0 values and if so delete the respective intensity column
-			if (all(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)] == 0)) {
+			#if (all(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)] == 0)) {
+		  if (all(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)] == 0, na.rm = TRUE) || all(is.nan(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)]))) {
+		    
 				allcols <- colnames(pgroups)
 				pgroups <- pgroups[, - which(grepl(paste0("Intensity", ".", cond_i, ".", rep_desc_i), allcols))]
 				replicate_mismatch <<- T
