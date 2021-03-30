@@ -16,6 +16,12 @@ if(!require("gtools"))
   install.packages("gtools", repos="http://cran.fhcrc.org")
   library(gtools)
 }
+if(!require("gprofiler2"))
+{
+  install.packages("gprofiler2")
+  library(gprofiler2)
+}
+
 
 # do_results_plots produces the Reproducibility plot, the Volcano plot, the MA plot and the Scatterplot (matrix)
 
@@ -32,6 +38,8 @@ do_results_plots<-function(){
     
   #Plot generation:
   for(i in 1:nrow(ratio_combs)){
+    #######ismini edit
+    i=1
     #Prepare the combination:
     print(paste("Generating plots for combination #",i," ..."),change=1,after=T)
     result <- tryCatch({
@@ -50,7 +58,8 @@ do_results_plots<-function(){
     }, error = function(err){
       print(paste0("Warning! ", ratio_i_str, " combination preparation failed!"))
     })
-	
+	####ismini
+    head(tmp1)
     # 1 - volcano - -log10 P-value vs log ratio
     result <- tryCatch({
       print("Making volcano plot ...")
@@ -342,12 +351,58 @@ pairs.panels <- function (x,y,smooth=TRUE,scale=FALSE,lm=FALSE){
   }
 }
 
+#pattern of uniprot IDs
+my_grep <- function(x){
+  #uniprot IDs pattern
+  grep('^[OPQ][0-9][A-Z0-9]{3}[0-9]|^[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}',x, value=TRUE)
+  }
+
+get_uniprot_ids <- function(){
+  #get p values associated to DE proteins
+  col_desc_<-paste("p.value.adj",paste(conditions.labels[2],".",conditions.labels[1],sep=""),sep=".")
+  #find DE proteins in results file
+  ind_diffexp_tmp<-which(results[,col_desc_]<pThreshold)
+  DE_prot <- rownames(results)[ind_diffexp_tmp]
+  
+  uniprot_ids <- c()
+  
+  for(i in 1:length(DE_prot)){
+    a = rownames(results)[ind_diffexp_tmp][i]
+    b = strsplit(strsplit(a,"\\[")[[1]][1], ";")
+    
+    uniprot_ids_iter <-lapply(b, my_grep)[[1]]
+    uniprot_ids <- c(uniprot_ids, uniprot_ids_iter)
+    
+  }
+  return(uniprot_ids)
+}
+
+run_enrichment_analysis <- function(x,y){
+  ###Enrichment analysis utilizing gprofiler2 R package
+  enrich <- gost(query= uniprot_ids, organism = y, domain_scope = "annotated", significant = T, evcodes = TRUE)
+  enrich.matrix <- as.matrix(enrich$result[,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size",
+                                               "intersection_size",  "effective_domain_size", "intersection")])
+  write.csv(enrich.matrix, 
+            paste(outputFigsPrefix,"enrichment_results",".csv",sep=""), row.names=FALSE)
+}
+
 #MAIN proccess:
 
 #Load the necessary variables: the file Plot_Generator.RData must be contained in the same folder with this script
 load("Plot_Generator.RData", .GlobalEnv)
 #Draw the basic plots:
 do_results_plots()
+
 # Draw the limma plots:
 do_limma_plots()
+
+# Perform enrichment analysis on differentially expressed proteins
+
+###IMPORTANT NOTE: Species (i.e. used for the experiment) must be defined by user e.g. Homo sapiens --> hsapiens, Mus musculus --> mmusculus. Default is set to mmusculus. 
+###For information about other organisms please visit https://biit.cs.ut.ee/gprofiler/page/organism-list
+species <- 'mmusculus'
+uniprot_ids <- get_uniprot_ids()
+run_enrichment_analysis(uniprot_ids,species)
+
 print("Procedure finished")
+
