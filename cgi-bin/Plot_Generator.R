@@ -5,7 +5,7 @@
 
 options(warn=1)
 
-source("http://www.bioconductor.org/biocLite.R")
+
 if(!require("ggplot2"))
 {
   install.packages("ggplot2", repos="http://cran.fhcrc.org")
@@ -379,7 +379,7 @@ get_uniprot_ids <- function(){
 
 run_enrichment_analysis <- function(x,y){
   ###Enrichment analysis utilizing gprofiler2 R package
-  enrich <- gost(query= uniprot_ids, organism = y, domain_scope = "annotated", significant = T, evcodes = TRUE)
+  enrich <- gost(query= x, organism = y, domain_scope = "annotated", significant = T, evcodes = TRUE)
   enrich.matrix <- as.matrix(enrich$result[,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size",
                                                "intersection_size",  "effective_domain_size", "intersection")])
   write.csv(enrich.matrix, 
@@ -400,7 +400,7 @@ do_limma_plots()
 
 ###IMPORTANT NOTE: Species (i.e. used for the experiment) must be defined by user e.g. Homo sapiens --> hsapiens, Mus musculus --> mmusculus. Default is set to mmusculus. 
 ###For information about other organisms please visit https://biit.cs.ut.ee/gprofiler/page/organism-list
-species <- 'mmusculus'
+species <- 'hsapiens'
 uniprot_ids <- get_uniprot_ids()
 run_enrichment_analysis(uniprot_ids,species)
 

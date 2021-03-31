@@ -116,7 +116,7 @@
 			<div class="main_div main_section hidden" id="s3div">
 				<h2>Step 3</h2>
 				<p style="color: #000000">Define the experimental parameters and click <em>Submit</em>.</p>
-				<div class="sectionForm" id="s3expparams" style="height: 380px">
+				<div class="sectionForm" id="s3expparams" style="height: 390px">
 					<table name = "tbl_main_params" id = "tbl_main_params" style="border-spacing: 5px 5px;">
 						<tr>
 							<td id="quantitation_prog_lbl">&#8212 Raw data were quantified with Proteome Discoverer&#8482</td>
@@ -181,7 +181,7 @@
 							<td><select name="expquantfiltlbl" id = "expquantfiltlbl" onclick="onexpquantfiltlblclick()"></select></td>
 						</tr>
 						<tr class='hidden'>
-							<td>&#8212 Type of filtering: Peptide-level (as opposed to protein-level)?</td>
+							<td>&#8212 Type of filtering: Peptide-level (as opposed to protein-level)?</td><td></td>
 							<td><input name="expquantfiltprot" id="expquantfiltprot" type="checkbox"/></td>
 						</tr>
 						<tr id = "s3showdivLabelSwapRow">
@@ -189,6 +189,18 @@
 						</tr>
 						<tr id = "s3showdivAdvancedOptionsRow">
 							<td>&#8212 <u class = "astyle" id="s3showdivAdvancedOptions">Miscellaneous...</u>
+						</tr>
+						<tr id = "s3GOenrichmentcheckboxRow">
+							<td>&#8212 GO enrichment</td>
+							<td></td>
+							<td><input name="GOenrichment" id="GOenrichment" type="checkbox" checked="true" onclick="onGOenrichmentchkboxclick();"/></td>
+						</tr>
+						<tr id = "s3GOorganism">
+							<td valign="top">&#8212 Target organism:</td>
+							<td></td>
+							<td class="autocomplete"><input name="GOorganism" id="GOorganism" type="text" value="Human" autocomplete="off"></td>
+
+							<!-- This is an autocomplete text box that uses the GO enrichment valid organisms as possible values -->
 						</tr>
 					</table>
 					</div>

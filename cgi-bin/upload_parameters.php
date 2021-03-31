@@ -34,6 +34,35 @@
 	$the_parameters["REPLACE18"] = $_POST["RMbrepsRepInRawFiles"];
 	$the_parameters["REPLACE19"] = $_POST["RMtrepsRepInRawFiles"];
 	$the_parameters["REPLACE20"] = $_POST["RMconditionsRepInRawFiles"];
+	$the_parameters["REPLACE21"] = $_POST["GOenrichment"];
+	// Especially for the goorganism parameter we need to maotch the organism description to the corresponding organism ID contained
+	// in the valid_GO_Organisms.txt file. Skim through the text file and find the corresponding ID
+	$the_parameters["REPLACE22"] = "";
+	if($ff = fopen("valid_GO_Organisms.txt", 'r')){
+		while(!feof($ff)) {
+			$line = fgets($ff);
+			$line = rtrim($line);
+			$myarray = explode("\t", $line);
+			if ($myarray[0] == $_POST["GOorganism"])
+			{
+				$the_parameters["REPLACE22"] = '"' . $myarray[1] . '"';
+				break;
+			}
+		}
+		if ($the_parameters["REPLACE22"] == "")
+		{
+			$server_response['msg'] = "No valid organism found!";
+			$server_response['success'] = false;
+			goto end;
+		}
+	}
+	else
+	{
+		$server_response['msg'] = "Could not open the valid GO organisms list file!";
+		$server_response['success'] = false;
+		goto end;
+	}
+	
 	if($_POST["explbl00"] == "T" && isset($_POST["explbl0"]) && strlen($_POST["explbl0"]) > 0){
 		$the_parameters["APPEND0"] = "addLabel(\"" . $_POST["explbl0"] . "\",c(\"\"))";
 	}

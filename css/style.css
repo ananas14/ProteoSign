@@ -497,7 +497,7 @@
 	
 	.tooltip span, .tooltip div, .tooltip2 span, .tooltip2 div
 	{
-		z-index: 10;
+		z-index: 999;
 		display: none;
 		padding: 7px 13px;
 		margin-top: 1.3em;
@@ -517,6 +517,7 @@
 		color: #EEE;
 		background-color: #000;
 		font-size: 90%;
+		
 	}
 	.callout, .callout2 {
 		z-index: 20;
@@ -915,3 +916,44 @@
 		opacity: 0.1;
 		border-radius: 0.25em 0 0 0.25em;
 	}
+	
+
+	.autocomplete-items div {
+	
+
+  cursor: pointer;
+  background-color: #fff; 
+  border-bottom: 1px solid #d4d4d4; 
+  overflow: visible;
+  z-index: 99;
+}
+
+	.autocomplete-items {
+overflow: visible;
+	  border: 2px solid #d4d4d4;
+	  z-index: 99;
+font-size: 12px;
+	}
+	
+	.auto-complete-line:hover {
+		background-color: #D3D3D3;
+	}
+	
+	
+#s3div {
+font-size: 85%;
+overflow: visible;
+}
+
+#s3expparams {
+overflow: visible;
+}
+
+.autocomplete{
+position: absolute;
+	overflow: visible;
+	z-index: 99;
+}
+#s3btnf #s3btnb {
+	z-index: 1;
+}

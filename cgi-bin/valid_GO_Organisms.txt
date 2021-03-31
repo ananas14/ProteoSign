@@ -1,0 +1,1117 @@
+Stickleback	gaculeatus
+Dingo	cldingo
+Ma's night monkey	anancymaae
+Panda	amelanoleuca
+Guppy	preticulata
+Chinese hamster PICR	cgpicr
+Pig - Jinhua	ssjinhua
+Ugandan red Colobus	ptephrosceles
+Cow	btaurus
+Orangutan	pabelii
+Degu	odegus
+Pachon cavefish	ampachon
+C.savignyi	csavignyi
+Pig-tailed macaque	mnemestrina
+Platypus	oanatinus
+Canada lynx	lcanadensis
+Shortfin molly	pmexicana
+C.intestinalis	cintestinalis
+Denticle herring	dclupeoides
+Northern American deer mouse	pmbairdii
+Pig - Pietrain	sspietrain
+Tetraodon	tnigroviridis
+Tiger	ptaltaica
+Sheep (texel)	oaries
+Electric eel	eelectricus
+Gibbon	nleucogenys
+Tropical clawed frog	xtropicalis
+Japanese medaka HSOK	olhsok
+Olive baboon	panubis
+Huchen	hhucho
+Long-tailed chinchilla	clanigera
+Pig - Rongchang	ssrongchang
+Climbing perch	atestudineus
+Burton's mouthbrooder	hburtoni
+Midas cichlid	acitrinellus
+Bonobo	ppaniscus
+Pig - Meishan	ssmeishan
+Pig - Hampshire	sshampshire
+Lamprey	pmarinus
+Human	hsapiens
+Microbat	mlucifugus
+Algerian mouse	mspretus
+Channel bull blenny	cgobio
+Bushbaby	ogarnettii
+Golden-collared manakin	mvitellinus
+Turkey	mgallopavo
+Chinese softshell turtle	psinensis
+Central bearded dragon	pvitticeps
+Saccharomyces cerevisiae	scerevisiae
+Cod	gmorhua
+Pika	oprinceps
+Armadillo	dnovemcinctus
+Channel catfish	ipunctatus
+Tongue sole	csemilaevis
+Northern pike	elucius
+Chicken	ggallus
+Blunt-snouted clingfish	gwilldenowi
+Pig - Largewhite	sslargewhite
+Bolivian squirrel monkey	sbboliviensis
+Mallard	aplatyrhynchos
+Indian medaka	omelastigma
+Chimpanzee	ptroglodytes
+Fugu	trubripes
+Tree Shrew	tbelangeri
+Rat	rnorvegicus
+Squirrel	itridecemlineatus
+Wallaby	neugenii
+Duck	applatyrhynchos
+Greater amberjack	sdumerili
+Drill	mleucophaeus
+Lesser Egyptian jerboa	jjaculus
+Prairie vole	mochrogaster
+Common wombat	vursinus
+Pig - Bamei	ssbamei
+Black snub-nosed monkey	rbieti
+Flycatcher	falbicollis
+Large yellow croaker	lcrocea
+Abingdon island giant tortoise	cabingdonii
+Crab-eating macaque	mfascicularis
+Domestic yak	bgrunniens
+Anole lizard	acarolinensis
+American mink	nvison
+Siamese fighting fish	bsplendens
+Pig - Tibetan	sstibetan
+Gorilla	ggorilla
+Swamp eel	malbus
+Sheepshead minnow	cvariegatus
+Chinese hamster CriGri	cgcrigri
+Donkey	eaasinus
+Drosophila melanogaster	dmelanogaster
+Coelacanth	lchalumnae
+Pig	sscrofa
+Tarsier	csyrichta
+Sooty mangabey	catys
+Pig USMARC	ssusmarc
+Tuatara	spunctatus
+Reedfish	ecalabaricus
+Tiger tail seahorse	hcomes
+Hybrid - Bos Indicus	bihybrid
+Polar bear	umaritimus
+American black bear	uamericanus
+Hyrax	pcapensis
+Golden snub-nosed monkey	rroxellana
+Kangaroo rat	dordii
+Mexican tetra	amexicanus
+Live sharksucker	enaucrates
+Opossum	mdomestica
+Brown trout	strutta
+Bengalese finch	lsdomestica
+Capuchin	ccapucinus
+Emu	dnovaehollandiae
+Common canary	scanaria
+Gilthead seabream	saurata
+Japanese medaka HdrR	olatipes
+Leopard	ppardus
+Spotted gar	loculatus
+Pig - Berkshire	ssberkshire
+Hybrid - Bos Taurus	bthybrid
+Naked mole-rat female	hgfemale
+Alpine marmot	mmmarmota
+Japanese quail	cjaponica
+Argentine black and white tegu	smerianae
+Kakapo	shabroptila
+American bison	bbbison
+Rainbow trout	omykiss
+Upper Galilee mountains blind mole rat	ngalili
+Lesser hedgehog tenrec	etelfairi
+Shrew mouse	mpahari
+Shrew	saraneus
+Ryukyu mouse	mcaroli
+Damara mole rat	fdamarensis
+Common carp	ccarpio
+Megabat	pvampyrus
+Yellowtail amberjack	sldorsalis
+Golden Hamster	mauratus
+Guinea Pig	cporcellus
+Dark-eyed junco	jhyemalis
+Koala	pcinereus
+Zebra mbuna	mzebra
+Mouse Lemur	mmurinus
+Wild yak	bmutus
+Marmoset	cjacchus
+Eastern happy	acalliptera
+Mummichog	fheteroclitus
+Chinese hamster CHOK1GS	cgchok1gshd
+Australian saltwater crocodile	cporosus
+Horse	ecaballus
+Caenorhabditis elegans	celegans
+Barramundi perch	lcalcarifer
+Indian glassy fish	pranga
+Vervet-AGM	csabaeus
+Sailfin molly	platipinna
+Elephant	lafricana
+Goat	chircus
+American beaver	ccanadensis
+Angola colobus	capalliatus
+Ballan wrasse	lbergylta
+Hagfish	eburgeri
+Red-bellied piranha	pnattereri
+Pinecone soldierfish	mmurdjan
+Cat	fcatus
+Dog	clfamiliaris
+Ferret	mpfuro
+Tasmanian devil	sharrisii
+Lyretail cichlid	nbrichardi
+Mouse	mmusculus
+Dolphin	ttruncatus
+Japanese medaka HNI	olhni
+Rabbit	ocuniculus
+Pig - Wuzhishan	sswuzhishan
+Hedgehog	eeuropaeus
+Mongolian gerbil	munguiculatus
+Atlantic herring	charengus
+Zig-zag eel	marmatus
+Blue tilapia	oaureus
+Alpaca	vpacos
+Golden eagle	acchrysaetos
+Zebrafish	drerio
+Arabian camel	cdromedarius
+Macaque	mmulatta
+Nile tilapia	oniloticus
+Painted turtle	cpbellii
+Gelada	tgelada
+Coquerel's sifaka	pcoquereli
+Zebra finch	tguttata
+Budgerigar	mundulatus
+Asian bonytongue	sformosus
+Brazilian guinea pig	caperea
+Makobe Island cichlid	pnyererei
+Amazon molly	pformosa
+Red fox	vvulpes
+Turbot	smaximus
+European seabass	dlabrax
+Greater horseshoe bat	rferrumequinum
+Orbiculate cardinalfish	sorbicularis
+Agassiz's desert tortoise	gagassizii
+Jewelled blenny	sfasciatus
+Atlantic salmon	ssalar
+Pig - Landrace	sslandrace
+Greater bamboo lemur	psimus
+Steppe mouse	mspicilegus
+Sloth	choffmanni
+Naked mole-rat male	hgmale
+Bombyx mori	bmori
+Acyrthosiphon pisum	apisum
+Anopheles coluzzii (Ngousso)	acngousso
+Anopheles albimanus	aalbimanus
+Ixodes scapularis (ISE6)	isise6
+Heliconius melpomene	hmelpomene
+Amphimedon queenslandica	aqueenslandica
+Onchocerca volvulus	ovolvulus
+Drosophila persimilis	dpersimilis
+Helobdella robusta	hrobusta
+Anopheles epiroticus	aepiroticus
+Drosophila erecta	derecta
+Mnemiopsis leidyi	mleidyi
+Daphnia pulex	dpulex
+Drosophila grimshawi	dgrimshawi
+Glossina austeni	gausteni
+Dinothrombium tinctorium	dtinctorium
+Anopheles atroparvus	aatroparvus
+Zootermopsis nevadensis	znevadensis
+Strongyloides ratti	sratti
+Caenorhabditis remanei	cremanei
+Drosophila yakuba	dyakuba
+Tetranychus urticae	turticae
+Glossina fuscipes fuscipes	gfuscipes
+Culicoides sonorensis	csonorensis
+Glossina palpalis	gpalpalis
+Anopheles maculatus	amaculatus
+Drosophila virilis	dvirilis
+Anopheles quadriannulatus	aquadriannulatus
+Anopheles christyi	achristyi
+Belgica antarctica	bantarctica
+Loa loa	lloa
+Lepeophtheirus salmonis	lsalmonis
+Leptotrombidium deliense	ldeliense
+Mayetiola destructor	mdestructor
+Orchesella cincta	ocincta
+Solenopsis invicta	sinvicta
+Lucilia cuprina	lcuprina
+Lottia gigantea	lgigantea
+Drosophila pseudoobscura	dpseudoobscura
+Phlebotomus papatasi	ppapatasi
+Ixodes scapularis	iscapularis
+Anopheles darlingi	adarlingi
+Anopheles funestus	afunestus
+Anopheles melas	amelas
+Rhodnius prolixus	rprolixus
+Anopheles sinensis	asinensis
+Anopheles minimus	aminimus
+Drosophila sechellia	dsechellia
+Strongylocentrotus purpuratus (Spur 01)	spurpuratus
+Biomphalaria glabrata	bglabrata
+Capitella teleta	cteleta
+Culex quinquefasciatus	cquinquefasciatus
+Caenorhabditis brenneri	cbrenneri
+Anopheles stephensi	astephensi
+Strigamia maritima	smaritima
+Aedes aegypti (LVP_AGWG)	aalvpagwg
+Atta cephalotes	acephalotes
+Stegodyphus mimosarum	smimosarum
+Cimex lectularius	clectularius
+Apis mellifera (DH4)	amellifera
+Danaus plexippus	dplexippus
+Anopheles sinensis (China)	aschina
+Anopheles dirus	adirus
+Thelohanellus kitauei	tkitauei
+Drosophila ananassae	dananassae
+Pristionchus pacificus	ppacificus
+Brugia malayi	bmalayi
+Lutzomyia longipalpis	llongipalpis
+Glossina brevipalpis	gbrevipalpis
+Stomoxys calcitrans	scalcitrans
+Trichoplax adhaerens	tadhaerens
+Drosophila willistoni	dwillistoni
+Schistosoma mansoni	smansoni
+Teleopsis dalmanni	tdalmanni
+Adineta vaga	avaga
+Sarcoptes scabiei	sscabiei
+Folsomia candida str. VU population	fcandida
+Lingula anatina	lanatina
+Branchiostoma lanceolatum	blanceolatum
+Bombus impatiens	bimpatiens
+Anopheles stephensi (Indian)	asindian
+Megaselia scalaris	mscalaris
+Tribolium castaneum	tcastaneum
+Hofstenia miamia	hmiamia
+Nasonia vitripennis (AsymCx)	nvitripennis
+Pediculus humanus	phumanus
+Trichinella spiralis	tspiralis
+Glossina morsitans	gmorsitans
+Nematostella vectensis	nvectensis
+Anoplophora glabripennis	aglabripennis
+Daphnia magna	dmagna
+Anopheles arabiensis	aarabiensis
+Glossina pallidipes	gpallidipes
+Dendroctonus ponderosae	dponderosae
+Anopheles coluzzii	acoluzzii
+Anopheles farauti	afarauti
+Melitaea cinxia	mcinxia
+Aedes albopictus	aalbopictus
+Drosophila simulans	dsimulans
+Octopus bimaculoides	obimaculoides
+Anopheles merus	amerus
+Anopheles culicifacies	aculicifacies
+Caenorhabditis briggsae	cbriggsae
+Drosophila mojavensis	dmojavensis
+Bombus terrestris	bterrestris
+Crassostrea gigas	cgigas
+Anopheles gambiae	agambiae
+Schizosaccharomyces pombe	spombe
+Magnaporthe oryzae	moryzae
+Magnaporthe poae	mpoae
+Yarrowia lipolytica	ylipolytica
+Puccinia striiformis f. sp. tritici PST-130 str. Race 130	pstriiformis
+Schizosaccharomyces octosporus	soctosporus
+Puccinia graminis	pgraminis
+Trichoderma virens	tvirens
+Ustilago maydis	umaydis
+Colletotrichum higginsianum	chigginsianum
+Aspergillus nidulans	anidulans
+Fusarium graminearum str. PH-1	fgraminearum
+Puccinia graminis Ug99	pgraminisug99
+Aspergillus fumigatus A1163	afumigatusa1163
+Puccinia triticina	ptriticina
+Beauveria bassiana	bbassiana
+Blumeria graminis	bgraminis
+Ashbya gossypii	agossypii
+Verticillium dahliae	vdahliae
+Fusarium verticillioides	fverticillioides
+Microbotryum violaceum	mviolaceum
+Aspergillus clavatus NRRL 1	aclavatus
+Fusarium fujikuroi	ffujikuroi
+Aspergillus oryzae RIB40	aoryzae
+Sclerotinia sclerotiorum	ssclerotiorum
+Aspergillus niger	aniger
+Cryptococcus neoformans var. neoformans JEC21	cneoformans
+Schizosaccharomyces japonicus	sjaponicus
+Zymoseptoria tritici	ztritici
+Schizosaccharomyces cryophilus	scryophilus
+Aspergillus fumigatus Af293	afumigatus
+Komagataella pastoris	kpastoris
+Melampsora larici-populina	mlaricipopulina
+Aspergillus terreus NIH2624	aterreus
+Phaeosphaeria nodorum	pnodorum
+Fusarium oxysporum	foxysporum
+Tuber melanosporum	tmelanosporum
+Aspergillus fischeri NRRL 181	nfischeri
+Pyrenophora tritici-repentis Pt-1C-BFP	ptriticirepentis
+Dothistroma septosporum	dseptosporum
+Leptosphaeria maculans	lmaculans
+Trichoderma reesei	treesei
+Fusarium pseudograminearum	fpseudograminearum
+Fusarium solani	fsolani
+Colletotrichum orbiculare	corbiculare
+Colletotrichum graminicola	cgraminicola
+Neurospora crassa	ncrassa
+Colletotrichum gloeosporioides	cgloeosporioides
+Botrytis cinerea B05.10	bcinerea
+Gaeumannomyces tritici R3-111a-1	ggraminis
+Fusarium culmorum UK99	fculmorum
+Verticillium dahliae JR2	vdahliaejr2
+Sporisorium reilianum	sreilianum
+Aspergillus flavus NRRL3357	aflavus
+Pyrenophora teres	pteres
+Meloidogyne incognita (PRJNA340324)	meincoprjna340324
+Trichuris trichiura (PRJEB535)	trtricprjeb535
+Schistosoma curassoni (PRJEB519)	sccuraprjeb519
+Dibothriocephalus latus (PRJEB1206)	dilatuprjeb1206
+Parascaris univalens (PRJNA386823)	paunivprjna386823
+Taenia saginata (PRJNA71493)	tasagiprjna71493
+Parastrongyloides trichosuri (PRJEB515)	patricprjeb515
+Enterobius vermicularis (PRJEB503)	envermprjeb503
+Trichinella papuae (PRJNA257433)	trpapuprjna257433
+Trichinella sp. T6 (PRJNA257433)	trt6prjna257433
+Caenorhabditis japonica (PRJNA12591) [WS276]	cajapoprjna12591
+Globodera pallida (PRJEB123)	glpallprjeb123
+Oesophagostomum dentatum (PRJNA72579)	oedentprjna72579
+Trichinella sp. T8 (PRJNA257433)	trt8prjna257433
+Schistosoma margrebowiei (PRJEB522)	scmargprjeb522
+Schmidtea mediterranea (PRJNA12585)	scmediprjna12585
+Trichuris suis (PRJNA208416 - female)	trsuisprjna208416
+Gyrodactylus salaris (PRJNA244375)	gysalaprjna244375
+Trichinella britovi (PRJNA257433)	trbritprjna257433
+Meloidogyne javanica (PRJEB8714)	mejavaprjeb8714
+Dictyocaulus viviparus (PRJNA72587)	diviviprjna72587
+Wuchereria bancrofti (PRJNA275548)	wubancprjna275548
+Brugia pahangi (PRJEB497)	brpahaprjeb497
+Trichinella murrelli (PRJNA257433)	trmurrprjna257433
+Meloidogyne floridensis (PRJNA340324)	meflorprjna340324
+Protopolystoma xenopodis (PRJEB1201)	prxenoprjeb1201
+Brugia timori (PRJEB4663)	brtimoprjeb4663
+Meloidogyne graminicola (PRJNA411966)	megramprjna411966
+Caenorhabditis parvicauda (PRJEB12595)	caparvprjeb12595
+Trichuris muris (PRJEB126) [WS276]	trmuriprjeb126
+Meloidogyne arenaria (PRJEB8714)	mearenprjeb8714
+Angiostrongylus costaricensis (PRJEB494)	ancostprjeb494
+Pristionchus maxplancki (PRJEB27334)	prmaxpprjeb27334
+Trichinella sp. T9 (PRJNA257433)	trt9prjna257433
+Oscheius tipulae (PRJEB15512)	ostipuprjeb15512
+Acanthocheilonema viteae (PRJEB1697)	acviteprjeb1697
+Strongyloides papillosus (PRJEB525)	stpapiprjeb525
+Caenorhabditis latens (PRJNA248912)	calateprjna248912
+Opisthorchis viverrini (PRJNA222628)	opviveprjna222628
+Ancylostoma caninum (PRJNA72585)	ancaniprjna72585
+Panagrolaimus davidi (PRJEB32708)	padaviprjeb32708
+Caenorhabditis sinica (PRJNA194557)	casiniprjna194557
+Strongyloides ratti (PRJEB125) [WS276]	strattprjeb125
+Heligmosomoides polygyrus (PRJEB15396)	hepolyprjeb15396
+Propanagrolaimus ju765 (PRJEB32708)	prju76prjeb32708
+Ascaris lumbricoides (PRJEB4950)	aslumbprjeb4950
+Echinostoma caproni (PRJEB1207)	eccaprprjeb1207
+Elaeophora elaphi (PRJEB502)	elelapprjeb502
+Caenorhabditis angaria (PRJNA51225)	caangaprjna51225
+Fasciola gigantica (PRJNA230515)	fagigaprjna230515
+Onchocerca volvulus (PRJEB513) [WS276]	onvolvprjeb513
+Meloidogyne incognita (PRJEB8714)	meincoprjeb8714
+Caenorhabditis elegans (PRJNA13758) [WS276]	caelegprjna13758
+Schistosoma mansoni (PRJEA36577)	scmansprjea36577
+Taenia multiceps (PRJNA307624)	tamultprjna307624
+Setaria digitata (PRJNA479729)	sedigiprjna479729
+Schistosoma japonicum (PRJEA34885)	scjapoprjea34885
+Echinococcus multilocularis (PRJEB122)	ecmultprjeb122
+Panagrolaimus superbus (PRJEB32708)	pasupeprjeb32708
+Gongylonema pulchrum (PRJEB505)	gopulcprjeb505
+Trichuris suis (PRJNA179528)	trsuisprjna179528
+Hymenolepis microstoma (PRJEB124)	hymicrprjeb124
+Litomosoides sigmodontis (PRJEB3075)	lisigmprjeb3075
+Caenorhabditis zanzibari (PRJEB12596)	cazanzprjeb12596
+Schistocephalus solidus (PRJEB527)	scsoliprjeb527
+Schistosoma haematobium (PRJNA78265)	schaemprjna78265
+Trichinella zimbabwensis (PRJNA257433)	trzimbprjna257433
+Ditylenchus destructor (PRJNA312427)	didestprjna312427
+Wuchereria bancrofti (PRJEB536)	wubancprjeb536
+Pristionchus mayeri (PRJEB27334)	prmayeprjeb27334
+Haemonchus placei (PRJEB509)	haplacprjeb509
+Mesorhabditis belari (PRJEB30104)	mebelaprjeb30104
+Diploscapter coronatus (PRJDB3143)	dicoroprjdb3143
+Caenorhabditis remanei (PRJNA248909)	caremaprjna248909
+Clonorchis sinensis (PRJDA72781)	clsineprjda72781
+Pristionchus fissidentatus (PRJEB27334)	prfissprjeb27334
+Steinernema scapterisci (PRJNA204942)	stscapprjna204942
+Angiostrongylus cantonensis (PRJEB493)	ancantprjeb493
+Teladorsagia circumcincta (PRJNA72569)	tecircprjna72569
+Hymenolepis nana (PRJEB508)	hynanaprjeb508
+Steinernema monticolum (PRJNA205067)	stmontprjna205067
+Dictyocaulus viviparus (PRJEB5116)	diviviprjeb5116
+Haemonchus contortus (PRJEB506)	hacontprjeb506
+Loa loa (PRJNA37757)	loloaprjna37757
+Caenorhabditis brenneri (PRJNA20035) [WS276]	cabrenprjna20035
+Meloidogyne arenaria (PRJNA340324)	mearenprjna340324
+Echinococcus canadensis (PRJEB8992)	eccanaprjeb8992
+Toxocara canis (PRJEB533)	tocaniprjeb533
+Steinernema carpocapsae (PRJNA202318)	stcarpprjna202318
+Pristionchus arcanus (PRJEB27334)	prarcaprjeb27334
+Caenorhabditis sulstoni (PRJEB12601)	casulsprjeb12601
+Syphacia muris (PRJEB524)	symuriprjeb524
+Ditylenchus dipsaci (PRJNA498219)	didipsprjna498219
+Trichinella pseudospiralis (ISS470 PRJNA257433)	iss470prjna257433
+Panagrolaimus ps1159 (PRJEB32708)	paps11prjeb32708
+Hydatigera taeniaeformis (PRJEB534)	hytaenprjeb534
+Onchocerca ochengi (PRJEB1204)	onocheprjeb1204
+Steinernema feltiae (PRJNA204661)	stfeltprjna204661
+Onchocerca flexuosa (PRJEB512)	onflexprjeb512
+Romanomermis culicivorax (PRJEB1358)	roculiprjeb1358
+Caenorhabditis quiockensis (PRJEB11354)	caquioprjeb11354
+Soboliphyme baturini (PRJEB516)	sobatuprjeb516
+Ancylostoma ceylanicum (PRJNA72583)	anceylprjna72583
+Onchocerca ochengi (PRJEB1465)	onocheprjeb1465
+Trichinella patagoniensis (PRJNA257433)	trpataprjna257433
+Taenia solium (PRJNA170813)	tasoliprjna170813
+Trichinella spiralis (PRJNA12603)	trspirprjna12603
+Spirometra erinaceieuropaei (PRJEB1202)	sperinprjeb1202
+Schistosoma rodhaini (PRJEB526)	scrodhprjeb526
+Pristionchus japonicus (PRJEB27334)	prjapoprjeb27334
+Ascaris suum (PRJNA80881)	assuumprjna80881
+Taenia asiatica (PRJEB532)	taasiaprjeb532
+Caenorhabditis uteleia (PRJEB12600)	cautelprjeb12600
+Trichinella nativa (PRJNA257433)	trnatiprjna257433
+Panagrolaimus es5 (PRJEB32708)	paes5prjeb32708
+Caenorhabditis tropicalis (PRJNA53597)	catropprjna53597
+Diploscapter pachys (PRJNA280107)	dipachprjna280107
+Meloidogyne javanica (PRJNA340324)	mejavaprjna340324
+Loa loa (PRJNA24608)	loloaprjna246086
+Fasciola hepatica (PRJEB25283)	fahepaprjeb25283
+Fasciola hepatica (PRJNA179522)	fahepaprjna179522
+Schistosoma japonicum (PRJNA520774)	scjapoprjna520774
+Angiostrongylus cantonensis (PRJNA350391)	ancantprjna350391
+Parascaris equorum (PRJEB514)	paequoprjeb514
+Thelazia callipaeda (PRJEB1205)	thcallprjeb1205
+Echinococcus oligarthrus (PRJEB31222)	ecoligprjeb31222
+Anisakis simplex (PRJEB496)	ansimpprjeb496
+Trichinella pseudospiralis (ISS141 PRJNA257433)	iss141prjna257433
+Steinernema feltiae (PRJNA353610)	stfeltprjna353610
+Heterorhabditis bacteriophora (PRJNA13977)	hebactprjna13977
+Panagrellus redivivus (PRJNA186477)	parediprjna186477
+Dirofilaria immitis (PRJEB1797)	diimmiprjeb1797
+Taenia asiatica (PRJNA299871)	taasiaprjna299871
+Caenorhabditis remanei (PRJNA53967) [WS276]	caremaprjna53967
+Macrostomum lignano (PRJNA284736)	malignprjna284736
+Bursaphelenchus xylophilus (PRJEA64437)	buxyloprjea64437
+Meloidogyne floridensis (PRJEB6016)	meflorprjeb6016
+Ancylostoma ceylanicum (PRJNA231479)	anceylprjna231479
+Clonorchis sinensis (PRJNA386618)	clsineprjna386618
+Meloidogyne hapla (PRJNA29083)	mehaplprjna29083
+Trichinella pseudospiralis (ISS176 PRJNA257433)	iss176prjna257433
+Brugia malayi (PRJNA10729) [WS276]	brmalaprjna10729
+Ancylostoma duodenale (PRJNA72581)	anduodprjna72581
+Caenorhabditis inopinata (PRJDB5687)	cainopprjdb5687
+Caenorhabditis panamensis (PRJEB28259)	capanaprjeb28259
+Caenorhabditis nigoni (PRJNA384657)	canigoprjna384657
+Dracunculus medinensis (PRJEB500)	drmediprjeb500
+Caenorhabditis remanei (PRJNA248911)	caremaprjna248911
+Strongyloides venezuelensis (PRJEB530)	stveneprjeb530
+Caenorhabditis briggsae (PRJNA10731) [WS276]	cabrigprjna10731
+Trichinella nelsoni (PRJNA257433)	trnelsprjna257433
+Onchocerca flexuosa (PRJNA230512)	onflexprjna230512
+Opisthorchis felineus (PRJNA413383)	opfeliprjna413383
+Paragonimus westermani (PRJNA454344)	pawestprjna454344
+Trichobilharzia regenti (PRJEB4662)	trregeprjeb4662
+Necator americanus (PRJNA72135)	neamerprjna72135
+Trichinella nativa (PRJNA179527)	trnatiprjna179527
+Trichinella pseudospiralis (ISS13 PRJNA257433)	iss13prjna257433
+Trichuris suis (PRJNA208415 - male)	trsuisprjna208415
+Steinernema glaseri (PRJNA204943)	stglasprjna204943
+Globodera rostochiensis (PRJEB13504)	glrostprjeb13504
+Nippostrongylus brasiliensis (PRJEB511)	nibrasprjeb511
+Mesocestoides corti (PRJEB510)	mecortprjeb510
+Schistosoma bovis (PRJNA451066)	scboviprjna451066
+Hymenolepis diminuta (PRJEB507)	hydimiprjeb507
+Toxocara canis (PRJNA248777)	tocaniprjna248777
+Pristionchus entomophagus (PRJEB27334)	prentoprjeb27334
+Strongyloides stercoralis (PRJEB528)	ststerprjeb528
+Pristionchus exspectatus (PRJEB24288)	prexspprjeb24288
+Macrostomum lignano (PRJNA371498)	malignprjna371498
+Rhabditophanes sp. KR3021 (PRJEB1297)	rhkr30prjeb1297
+Haemonchus contortus (PRJNA205202)	hacontprjna205202
+Steinernema carpocapsae (v1 PRJNA202318)	stcav1prjna202318
+Plectus sambesii (PRJNA390260)	plsambprjna390260
+Caenorhabditis tribulationis (PRJEB12608)	catribprjeb12608
+Meloidogyne arenaria (PRJNA438575)	mearenprjna438575
+Meloidogyne enterolobii (PRJNA340324)	meenteprjna340324
+Caenorhabditis waitukubuli (PRJEB12602)	cawaitprjeb12602
+Halicephalobus mephisto (PRJNA528747)	hamephprjna528747
+Trichinella pseudospiralis (ISS588 PRJNA257433)	iss588prjna257433
+Ascaris suum (PRJNA62057)	assuumprjna62057
+Echinococcus granulosus (PRJNA182977)	ecgranprjna182977
+Parapristionchus giblindavisi (PRJEB27334)	pagiblprjeb27334
+Heterodera glycines (PRJNA381081)	heglycprjna381081
+Pristionchus pacificus (PRJNA12644) [WS276]	prpaciprjna12644
+Heligmosomoides polygyrus (PRJEB1203)	hepolyprjeb1203
+Strongylus vulgaris (PRJEB531)	stvulgprjeb531
+Schmidtea mediterranea (PRJNA379262)	scmediprjna379262
+Echinococcus granulosus (PRJEB121)	ecgranprjeb121
+Micoletzkya japonica (PRJEB27334)	mijapoprjeb27334
+Trichinella spiralis (PRJNA257433)	trspirprjna257433
+Caenorhabditis becei (PRJEB28243)	cabeceprjeb28243
+Schistosoma mattheei (PRJEB523)	scmattprjeb523
+Cylicostephanus goldi (PRJEB498)	cygoldprjeb498
+Caenorhabditis bovis (PRJEB34497)	caboviprjeb34497
+Hymenolepis diminuta (PRJEB30942)	hydimiprjeb30942
+Acrobeloides nanus (PRJEB26554)	acnanuprjeb26554
+Vigna angularis	vangularis
+Olea europaea var. sylvestris	oesylvestris
+Solanum tuberosum	stuberosum
+Manihot esculenta	mesculenta
+Oryza rufipogon	orufipogon
+Leersia perrieri	lperrieri
+Zea mays	zmays
+Eutrema salsugineum	esalsugineum
+Eragrostis tef	etef
+Brassica napus	bnapus
+Oryza glaberrima	oglaberrima
+Vigna radiata	vradiata
+Triticum aestivum Robigus	tarobigus
+Dioscorea rotundata	drotundata
+Helianthus annuus	hannuus
+Triticum aestivum Claire	taclaire
+Citrus clementina	cclementina
+Trifolium pratense	tpratense
+Arabidopsis halleri	ahalleri
+Triticum turgidum	tturgidum
+Oryza glumipatula	oglumipatula
+Lupinus angustifolius	langustifolius
+Triticum aestivum Paragon	taparagon
+Panicum hallii HAL2	phhal2
+Populus trichocarpa	ptrichocarpa
+Cannabis sativa female	csfemale
+Cynara cardunculus	ccardunculus
+Triticum aestivum Weebill	taweebil
+Arabis alpina	aalpina
+Galdieria sulphuraria	gsulphuraria
+Nicotiana attenuata	nattenuata
+Chlamydomonas reinhardtii	creinhardtii
+Kalanchoe fedtschenkoi	kfedtschenkoi
+Chara braunii	cbraunii
+Brassica oleracea	boleracea
+Marchantia polymorpha	mpolymorpha
+Capsicum annuum	cannuum
+Solanum lycopersicum	slycopersicum
+Chondrus crispus	ccrispus
+Saccharum spontaneum	sspontaneum
+Arabidopsis lyrata	alyrata
+Coffea canephora	ccanephora
+Theobroma cacao Belizian Criollo B97-61/B2	tccriollo
+Theobroma cacao Matina 1-6	tcmatina
+Cucumis melo	cmelo
+Selaginella moellendorffii	smoellendorffii
+Sorghum bicolor	sbicolor
+Oryza longistaminata	olongistaminata
+Ananas comosus	acomosus
+Amborella trichopoda	atrichopoda
+Actinidia chinensis	achinensis
+Triticum aestivum	taestivum
+Hordeum vulgare	hvulgare
+Oryza punctata	opunctata
+Setaria viridis	sviridis
+Triticum aestivum Cadenza	tacadenza
+Medicago truncatula	mtruncatula
+Oryza barthii	obarthii
+Gossypium raimondii	graimondii
+Oryza sativa Japonica Group	osativa
+Nymphaea colorata	ncolorata
+Eragrostis curvula	ecurvula
+Oryza nivara	onivara
+Triticum dicoccoides	tdicoccoides
+Setaria italica	sitalica
+Ostreococcus lucimarinus	olucimarinus
+Triticum urartu	turartu
+Glycine max	gmax
+Quercus lobata	qlobata
+Physcomitrella patens	ppatens
+Cyanidioschyzon merolae	cmerolae
+Hordeum vulgare GoldenPromise	hvgoldenpromise
+Corchorus capsularis	ccapsularis
+Prunus avium	pavium
+Oryza brachyantha	obrachyantha
+Vitis vinifera	vvinifera
+Phaseolus vulgaris	pvulgaris
+Ipomoea triloba	itriloba
+Brachypodium distachyon	bdistachyon
+Pistacia vera	pvera
+Camelina sativa	csativa
+Citrullus lanatus	clanatus
+Arabidopsis thaliana	athaliana
+Prunus_dulcis	pdulcis
+Brassica rapa	brapa
+Oryza meridionalis	omeridionalis
+Prunus persica	ppersica
+Beta vulgaris	bvulgaris
+Malus domestica Golden	mdgolden
+Cucumis sativus	csativus
+Panicum hallii FIL2	phfil2
+Daucus carota	dcarota
+Musa acuminata	macuminata
+Aegilops tauschii	atauschii
+Oryza sativa Indica Group	oindica
+Rosa chinensis	rchinensis
+Hyaloperonospora arabidopsidis	harabidopsidis
+Emiliania huxleyi	ehuxleyi
+Plasmodium falciparum 3D7	pfalciparum
+Dictyostelium discoideum	ddiscoideum
+Pythium irregulare	pirregulare
+Pythium arrhenomanes	parrhenomanes
+Phytophthora kernoviae	pkernoviae
+Pythium vexans	pvexans
+Toxoplasma gondii ME49	tgondii
+Giardia lamblia	glamblia
+Entamoeba histolytica	ehistolytica
+Phytophthora ramorum	pramorum
+Bigelowiella natans	bnatans
+Pythium iwayamai	piwayamai
+Thalassiosira pseudonana	tpseudonana
+Trypanosoma brucei	tbrucei
+Plasmodium chabaudi	pchabaudi
+Plasmodium berghei	pberghei
+Phytophthora sojae	psojae
+Phytophthora infestans	pinfestans
+Guillardia theta CCMP2712	gtheta
+Albugo laibachii	alaibachii
+Plasmodium knowlesi	pknowlesi
+Tetrahymena thermophila	tthermophila
+Phaeodactylum tricornutum	ptricornutum
+Pythium aphanidermatum	paphanidermatum
+Paramecium tetraurelia	ptetraurelia
+Phytophthora lateralis	plateralis
+Pythium ultimum	pultimum
+Pseudo-nitzschia multistriata	pmultistriata
+Leishmania major	lmajor
+Plasmodium vivax	pvivax
+Phytophthora parasitica	pparasitica
+Gasterosteus aculeatus	gaculeatus
+Canis lupus dingo	cldingo
+Aotus nancymaae	anancymaae
+Ailuropoda melanoleuca	amelanoleuca
+Poecilia reticulata	preticulata
+Cricetulus griseus	cgpicr
+Sus scrofa	ssjinhua
+Piliocolobus tephrosceles	ptephrosceles
+Bos taurus	btaurus
+Pongo abelii	pabelii
+Octodon degus	odegus
+Astyanax mexicanus	ampachon
+Ciona savignyi	csavignyi
+Macaca nemestrina	mnemestrina
+Ornithorhynchus anatinus	oanatinus
+Lynx canadensis	lcanadensis
+Poecilia mexicana	pmexicana
+Ciona intestinalis	cintestinalis
+Denticeps clupeoides	dclupeoides
+Peromyscus maniculatus bairdii	pmbairdii
+Tetraodon nigroviridis	tnigroviridis
+Panthera tigris altaica	ptaltaica
+Ovis aries	oaries
+Electrophorus electricus	eelectricus
+Nomascus leucogenys	nleucogenys
+Xenopus tropicalis	xtropicalis
+Oryzias latipes	olhsok
+Papio anubis	panubis
+Hucho hucho	hhucho
+Chinchilla lanigera	clanigera
+Anabas testudineus	atestudineus
+Haplochromis burtoni	hburtoni
+Amphilophus citrinellus	acitrinellus
+Pan paniscus	ppaniscus
+Petromyzon marinus	pmarinus
+Homo sapiens	hsapiens
+Myotis lucifugus	mlucifugus
+Mus spretus	mspretus
+Cottoperca gobio	cgobio
+Otolemur garnettii	ogarnettii
+Manacus vitellinus	mvitellinus
+Meleagris gallopavo	mgallopavo
+Pelodiscus sinensis	psinensis
+Pogona vitticeps	pvitticeps
+Gadus morhua	gmorhua
+Ochotona princeps	oprinceps
+Dasypus novemcinctus	dnovemcinctus
+Ictalurus punctatus	ipunctatus
+Cynoglossus semilaevis	csemilaevis
+Esox lucius	elucius
+Gallus gallus	ggallus
+Gouania willdenowi	gwilldenowi
+Saimiri boliviensis boliviensis	sbboliviensis
+Anas platyrhynchos	aplatyrhynchos
+Oryzias melastigma	omelastigma
+Pan troglodytes	ptroglodytes
+Takifugu rubripes	trubripes
+Tupaia belangeri	tbelangeri
+Rattus norvegicus	rnorvegicus
+Ictidomys tridecemlineatus	itridecemlineatus
+Notamacropus eugenii	neugenii
+Anas platyrhynchos platyrhynchos	applatyrhynchos
+Seriola dumerili	sdumerili
+Mandrillus leucophaeus	mleucophaeus
+Jaculus jaculus	jjaculus
+Microtus ochrogaster	mochrogaster
+Vombatus ursinus	vursinus
+Rhinopithecus bieti	rbieti
+Ficedula albicollis	falbicollis
+Larimichthys crocea	lcrocea
+Chelonoidis abingdonii	cabingdonii
+Macaca fascicularis	mfascicularis
+Bos grunniens	bgrunniens
+Anolis carolinensis	acarolinensis
+Neovison vison	nvison
+Betta splendens	bsplendens
+Gorilla gorilla gorilla	ggorilla
+Monopterus albus	malbus
+Cyprinodon variegatus	cvariegatus
+Equus asinus asinus	eaasinus
+Latimeria chalumnae	lchalumnae
+Carlito syrichta	csyrichta
+Cercocebus atys	catys
+Sphenodon punctatus	spunctatus
+Erpetoichthys calabaricus	ecalabaricus
+Hippocampus comes	hcomes
+Bos indicus x Bos taurus	bihybrid
+Ursus maritimus	umaritimus
+Ursus americanus	uamericanus
+Procavia capensis	pcapensis
+Rhinopithecus roxellana	rroxellana
+Dipodomys ordii	dordii
+Echeneis naucrates	enaucrates
+Monodelphis domestica	mdomestica
+Salmo trutta	strutta
+Lonchura striata domestica	lsdomestica
+Cebus imitator	ccapucinus
+Dromaius novaehollandiae	dnovaehollandiae
+Serinus canaria	scanaria
+Sparus aurata	saurata
+Panthera pardus	ppardus
+Lepisosteus oculatus	loculatus
+Heterocephalus glaber	hgfemale
+Marmota marmota marmota	mmmarmota
+Coturnix japonica	cjaponica
+Salvator merianae	smerianae
+Strigops habroptila	shabroptila
+Bison bison bison	bbbison
+Oncorhynchus mykiss	omykiss
+Nannospalax galili	ngalili
+Echinops telfairi	etelfairi
+Mus pahari	mpahari
+Sorex araneus	saraneus
+Mus caroli	mcaroli
+Fukomys damarensis	fdamarensis
+Cyprinus carpio	ccarpio
+Pteropus vampyrus	pvampyrus
+Seriola lalandi dorsalis	sldorsalis
+Mesocricetus auratus	mauratus
+Cavia porcellus	cporcellus
+Junco hyemalis	jhyemalis
+Phascolarctos cinereus	pcinereus
+Maylandia zebra	mzebra
+Microcebus murinus	mmurinus
+Bos mutus	bmutus
+Callithrix jacchus	cjacchus
+Astatotilapia calliptera	acalliptera
+Fundulus heteroclitus	fheteroclitus
+Crocodylus porosus	cporosus
+Equus caballus	ecaballus
+Lates calcarifer	lcalcarifer
+Parambassis ranga	pranga
+Chlorocebus sabaeus	csabaeus
+Poecilia latipinna	platipinna
+Loxodonta africana	lafricana
+Capra hircus	chircus
+Castor canadensis	ccanadensis
+Colobus angolensis palliatus	capalliatus
+Labrus bergylta	lbergylta
+Eptatretus burgeri	eburgeri
+Pygocentrus nattereri	pnattereri
+Myripristis murdjan	mmurdjan
+Felis catus	fcatus
+Canis lupus familiaris	clfamiliaris
+Mustela putorius furo	mpfuro
+Sarcophilus harrisii	sharrisii
+Neolamprologus brichardi	nbrichardi
+Mus musculus	mmusculus
+Tursiops truncatus	ttruncatus
+Oryctolagus cuniculus	ocuniculus
+Erinaceus europaeus	eeuropaeus
+Meriones unguiculatus	munguiculatus
+Clupea harengus	charengus
+Mastacembelus armatus	marmatus
+Oreochromis aureus	oaureus
+Vicugna pacos	vpacos
+Aquila chrysaetos chrysaetos	acchrysaetos
+Danio rerio	drerio
+Camelus dromedarius	cdromedarius
+Macaca mulatta	mmulatta
+Oreochromis niloticus	oniloticus
+Chrysemys picta bellii	cpbellii
+Theropithecus gelada	tgelada
+Propithecus coquereli	pcoquereli
+Taeniopygia guttata	tguttata
+Melopsittacus undulatus	mundulatus
+Scleropages formosus	sformosus
+Cavia aperea	caperea
+Pundamilia nyererei	pnyererei
+Poecilia formosa	pformosa
+Vulpes vulpes	vvulpes
+Scophthalmus maximus	smaximus
+Dicentrarchus labrax	dlabrax
+Rhinolophus ferrumequinum	rferrumequinum
+Sphaeramia orbicularis	sorbicularis
+Gopherus agassizii	gagassizii
+Salarias fasciatus	sfasciatus
+Salmo salar	ssalar
+Prolemur simus	psimus
+Mus spicilegus	mspicilegus
+Choloepus hoffmanni	choffmanni
+Glossina palpalis gambiensis	gpalpalis
+Drosophila pseudoobscura pseudoobscura	dpseudoobscura
+Strongylocentrotus purpuratus	spurpuratus
+Aedes aegypti	aalvpagwg
+Apis mellifera	amellifera
+Folsomia candida	fcandida
+Nasonia vitripennis	nvitripennis
+Pediculus humanus corporis	phumanus
+Glossina morsitans morsitans	gmorsitans
+Schizosaccharomyces pombe 972h-	spombe
+Pyricularia oryzae 70-15	moryzae
+Magnaporthiopsis poae ATCC 64411	mpoae
+Yarrowia lipolytica CLIB122	ylipolytica
+Puccinia striiformis f. sp. tritici PST-130	pstriiformis
+Schizosaccharomyces octosporus yFS286	soctosporus
+Puccinia graminis f. sp. tritici CRL 75-36-700-3	pgraminis
+Trichoderma virens Gv29-8	tvirens
+Ustilago maydis 521	umaydis
+Aspergillus nidulans FGSC A4	anidulans
+Fusarium graminearum	fgraminearum
+Puccinia graminis f. sp. tritici 04KEN156/4	pgraminisug99
+Puccinia triticina 1-1 BBBD Race 1	ptriticina
+Blumeria graminis f. sp. hordei DH14	bgraminis
+Eremothecium gossypii ATCC 10895	agossypii
+Verticillium dahliae VdLs.17	vdahliae
+Fusarium verticillioides 7600	fverticillioides
+Microbotryum lychnidis-dioicae p1A1 Lamole	mviolaceum
+Sclerotinia sclerotiorum 1980 UF-70	ssclerotiorum
+Schizosaccharomyces japonicus yFS275	sjaponicus
+Zymoseptoria tritici IPO323	ztritici
+Schizosaccharomyces cryophilus OY26	scryophilus
+Komagataella phaffii GS115	kpastoris
+Melampsora larici-populina 98AG31	mlaricipopulina
+Parastagonospora nodorum SN15	pnodorum
+Fusarium oxysporum f. sp. lycopersici 4287	foxysporum
+Tuber melanosporum Mel28	tmelanosporum
+Dothistroma septosporum NZE10	dseptosporum
+Leptosphaeria maculans JN3	lmaculans
+Trichoderma reesei QM6a	treesei
+Fusarium pseudograminearum CS3096	fpseudograminearum
+Fusarium vanettenii 77-13-4	fsolani
+Colletotrichum orbiculare MAFF 240422	corbiculare
+Colletotrichum graminicola M1.001	cgraminicola
+Neurospora crassa OR74A	ncrassa
+Colletotrichum fructicola Nara gc5	cgloeosporioides
+Fusarium culmorum CS7071	fculmorum
+Sporisorium reilianum SRZ2	sreilianum
+Pyrenophora teres f. teres 0-1	pteres
+Meloidogyne incognita	meincoprjna340324
+Trichuris trichiura	trtricprjeb535
+Schistosoma curassoni	sccuraprjeb519
+Dibothriocephalus latus	dilatuprjeb1206
+Parascaris univalens	paunivprjna386823
+Taenia saginata	tasagiprjna71493
+Parastrongyloides trichosuri	patricprjeb515
+Enterobius vermicularis	envermprjeb503
+Trichinella papuae	trpapuprjna257433
+Trichinella sp. T6	trt6prjna257433
+Caenorhabditis japonica	cajapoprjna12591
+Globodera pallida	glpallprjeb123
+Oesophagostomum dentatum	oedentprjna72579
+Trichinella sp. T8	trt8prjna257433
+Schistosoma margrebowiei	scmargprjeb522
+Schmidtea mediterranea	scmediprjna12585
+Trichuris suis	trsuisprjna208416
+Gyrodactylus salaris	gysalaprjna244375
+Trichinella britovi	trbritprjna257433
+Meloidogyne javanica	mejavaprjeb8714
+Dictyocaulus viviparus	diviviprjna72587
+Wuchereria bancrofti	wubancprjna275548
+Brugia pahangi	brpahaprjeb497
+Trichinella murrelli	trmurrprjna257433
+Meloidogyne floridensis	meflorprjna340324
+Protopolystoma xenopodis	prxenoprjeb1201
+Brugia timori	brtimoprjeb4663
+Meloidogyne graminicola	megramprjna411966
+Caenorhabditis sp. 21 LS-2015	caparvprjeb12595
+Trichuris muris	trmuriprjeb126
+Meloidogyne arenaria	mearenprjeb8714
+Angiostrongylus costaricensis	ancostprjeb494
+Pristionchus maxplancki	prmaxpprjeb27334
+Trichinella sp. T9	trt9prjna257433
+Oscheius tipulae	ostipuprjeb15512
+Acanthocheilonema viteae	acviteprjeb1697
+Strongyloides papillosus	stpapiprjeb525
+Caenorhabditis latens	calateprjna248912
+Opisthorchis viverrini	opviveprjna222628
+Ancylostoma caninum	ancaniprjna72585
+Panagrolaimus davidi	padaviprjeb32708
+Caenorhabditis sinica	casiniprjna194557
+Heligmosomoides polygyrus	hepolyprjeb15396
+Panagrolaimus sp. JU765	prju76prjeb32708
+Ascaris lumbricoides	aslumbprjeb4950
+Echinostoma caproni	eccaprprjeb1207
+Elaeophora elaphi	elelapprjeb502
+Caenorhabditis angaria	caangaprjna51225
+Fasciola gigantica	fagigaprjna230515
+Taenia multiceps	tamultprjna307624
+Setaria digitata	sedigiprjna479729
+Schistosoma japonicum	scjapoprjea34885
+Echinococcus multilocularis	ecmultprjeb122
+Panagrolaimus superbus	pasupeprjeb32708
+Gongylonema pulchrum	gopulcprjeb505
+Hymenolepis microstoma	hymicrprjeb124
+Litomosoides sigmodontis	lisigmprjeb3075
+Caenorhabditis sp. 26 LS-2015	cazanzprjeb12596
+Schistocephalus solidus	scsoliprjeb527
+Schistosoma haematobium	schaemprjna78265
+Trichinella zimbabwensis	trzimbprjna257433
+Ditylenchus destructor	didestprjna312427
+Pristionchus mayeri	prmayeprjeb27334
+Haemonchus placei	haplacprjeb509
+Mesorhabditis belari	mebelaprjeb30104
+Diploscapter coronatus	dicoroprjdb3143
+Clonorchis sinensis	clsineprjda72781
+Pristionchus fissidentatus	prfissprjeb27334
+Steinernema scapterisci	stscapprjna204942
+Angiostrongylus cantonensis	ancantprjeb493
+Teladorsagia circumcincta	tecircprjna72569
+Rodentolepis nana	hynanaprjeb508
+Steinernema monticolum	stmontprjna205067
+Haemonchus contortus	hacontprjeb506
+Echinococcus canadensis	eccanaprjeb8992
+Toxocara canis	tocaniprjeb533
+Steinernema carpocapsae	stcarpprjna202318
+Pristionchus arcanus	prarcaprjeb27334
+Caenorhabditis sp. 32 LS-2015	casulsprjeb12601
+Syphacia muris	symuriprjeb524
+Ditylenchus dipsaci	didipsprjna498219
+Trichinella pseudospiralis	iss470prjna257433
+Panagrolaimus sp. PS1159	paps11prjeb32708
+Hydatigera taeniaeformis	hytaenprjeb534
+Onchocerca ochengi	onocheprjeb1204
+Steinernema feltiae	stfeltprjna204661
+Onchocerca flexuosa	onflexprjeb512
+Romanomermis culicivorax	roculiprjeb1358
+Caenorhabditis sp. 38 MB-2015	caquioprjeb11354
+Soboliphyme baturini	sobatuprjeb516
+Ancylostoma ceylanicum	anceylprjna72583
+Trichinella patagoniensis	trpataprjna257433
+Taenia solium	tasoliprjna170813
+Spirometra erinaceieuropaei	sperinprjeb1202
+Schistosoma rodhaini	scrodhprjeb526
+Pristionchus japonicus	prjapoprjeb27334
+Ascaris suum	assuumprjna80881
+Taenia asiatica	taasiaprjeb532
+Caenorhabditis sp. 31 LS-2015	cautelprjeb12600
+Trichinella nativa	trnatiprjna257433
+Panagrolaimus sp. ES5	paes5prjeb32708
+Caenorhabditis tropicalis	catropprjna53597
+Diploscapter pachys	dipachprjna280107
+Fasciola hepatica	fahepaprjeb25283
+Parascaris equorum	paequoprjeb514
+Thelazia callipaeda	thcallprjeb1205
+Echinococcus oligarthrus	ecoligprjeb31222
+Anisakis simplex	ansimpprjeb496
+Heterorhabditis bacteriophora	hebactprjna13977
+Panagrellus redivivus	parediprjna186477
+Dirofilaria immitis	diimmiprjeb1797
+Macrostomum lignano	malignprjna284736
+Bursaphelenchus xylophilus	buxyloprjea64437
+Meloidogyne hapla	mehaplprjna29083
+Ancylostoma duodenale	anduodprjna72581
+Caenorhabditis inopinata	cainopprjdb5687
+Caenorhabditis panamensis	capanaprjeb28259
+Caenorhabditis nigoni	canigoprjna384657
+Dracunculus medinensis	drmediprjeb500
+Strongyloides venezuelensis	stveneprjeb530
+Trichinella nelsoni	trnelsprjna257433
+Opisthorchis felineus	opfeliprjna413383
+Paragonimus westermani	pawestprjna454344
+Trichobilharzia regenti	trregeprjeb4662
+Necator americanus	neamerprjna72135
+Steinernema glaseri	stglasprjna204943
+Globodera rostochiensis	glrostprjeb13504
+Nippostrongylus brasiliensis	nibrasprjeb511
+Mesocestoides corti	mecortprjeb510
+Schistosoma bovis	scboviprjna451066
+Hymenolepis diminuta	hydimiprjeb507
+Pristionchus entomophagus	prentoprjeb27334
+Strongyloides stercoralis	ststerprjeb528
+Pristionchus exspectatus	prexspprjeb24288
+Rhabditophanes sp. KR3021	rhkr30prjeb1297
+Plectus sambesii	plsambprjna390260
+Caenorhabditis sp. 40 LS-2015	catribprjeb12608
+Meloidogyne enterolobii	meenteprjna340324
+Caenorhabditis sp. 39 LS-2015	cawaitprjeb12602
+Halicephalobus sp. WB-2010a	hamephprjna528747
+Echinococcus granulosus	ecgranprjna182977
+Parapristionchus giblindavisi	pagiblprjeb27334
+Heterodera glycines	heglycprjna381081
+Strongylus vulgaris	stvulgprjeb531
+Micoletzkya japonica	mijapoprjeb27334
+Caenorhabditis becei	cabeceprjeb28243
+Schistosoma mattheei	scmattprjeb523
+Cylicostephanus goldi	cygoldprjeb498
+Caenorhabditis bovis	caboviprjeb34497
+Acrobeloides nanus	acnanuprjeb26554
+Vigna radiata var. radiata	vradiata
+Dioscorea cayenensis subsp. rotundata	drotundata
+Arabidopsis halleri subsp. gemmifera	ahalleri
+Triticum turgidum subsp. durum	tturgidum
+Panicum hallii var. hallii	phhal2
+Cannabis sativa	csfemale
+Cynara cardunculus var. scolymus	ccardunculus
+Brassica oleracea var. oleracea	boleracea
+Arabidopsis lyrata subsp. lyrata	alyrata
+Theobroma cacao	tccriollo
+Actinidia chinensis var. chinensis	achinensis
+Hordeum vulgare subsp. vulgare	hvulgare
+Ostreococcus lucimarinus CCE9901	olucimarinus
+Physcomitrium patens	ppatens
+Cyanidioschyzon merolae strain 10D	cmerolae
+Prunus dulcis	pdulcis
+Beta vulgaris subsp. vulgaris	bvulgaris
+Malus domestica	mdgolden
+Panicum hallii	phfil2
+Daucus carota subsp. sativus	dcarota
+Musa acuminata subsp. malaccensis	macuminata
+Aegilops tauschii subsp. strangulata	atauschii
+Hyaloperonospora arabidopsidis Emoy2	harabidopsidis
+Emiliania huxleyi CCMP1516	ehuxleyi
+Dictyostelium discoideum AX4	ddiscoideum
+Globisporangium irregulare DAOM BR486	pirregulare
+Pythium arrhenomanes ATCC 12531	parrhenomanes
+Phytophthora kernoviae 00238/432	pkernoviae
+Phytopythium vexans DAOM BR484	pvexans
+Giardia lamblia ATCC 50803	glamblia
+Entamoeba histolytica HM-1:IMSS	ehistolytica
+Bigelowiella natans CCMP2755	bnatans
+Globisporangium iwayamae DAOM BR242034	piwayamai
+Thalassiosira pseudonana CCMP1335	tpseudonana
+Plasmodium chabaudi chabaudi	pchabaudi
+Plasmodium berghei ANKA	pberghei
+Phytophthora infestans T30-4	pinfestans
+Albugo laibachii Nc14	alaibachii
+Plasmodium knowlesi strain H	pknowlesi
+Tetrahymena thermophila SB210	tthermophila
+Phaeodactylum tricornutum CCAP 1055/1	ptricornutum
+Pythium aphanidermatum DAOM BR444	paphanidermatum
+Phytophthora lateralis MPF4	plateralis
+Globisporangium ultimum DAOM BR144	pultimum
+Leishmania major strain Friedlin	lmajor
+Phytophthora parasitica P1569	pparasitica

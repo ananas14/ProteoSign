@@ -222,6 +222,14 @@
 	var stepRM2initialized = false;
 	var stepRM3initialized = false;
 	
+	// === GO enrichment variables ===
+	
+	// GO enrichment can be achieved using the online tool gprofiler only if the experiment's target organism is specified
+	// The text box GOorganism may accept only specific descriptions of the organisms that are valid in gprofiler
+	// Thus, an array is populated when initializing ProteoSign by downloading it from the server. The array is validOrganisms
+	// This array is used for input validation andto autocomplete the text box to aid the user in typing a valid organism description
+	var validOrganisms = [];
+	
 	
 //}
 //--------------------------------------
@@ -1235,8 +1243,13 @@
 			// is checked or not:
 			$("#s3advparams input[name='expquantfilt']").on("click", onclickQuantitationFilteringChkBox);
 			
-			// Reset CSS when losing focus (because some required fields might have been highlighted)
-			$("#s3expparams input[data-required]").on("focusout", resetCssStyles(this));
+			// Reset CSS when losing or getting focus (because some required fields might have been highlighted)
+			$("#s3expparams input[data-required]").on("focusout", function () {resetCssStyles(this);});
+			$("#s3expparams input[data-required]").on("focus", function () {resetCssStyles(this);});
+			
+			// Reset CSS on focus or focus out of GO organism text box
+			$("#GOorganism").on("focusout", function () {resetCssStyles(this);});
+			$("#GOorganism").on("focus", function () {resetCssStyles(this);});
 			
 			// Display chopped long raw file names on datatable on a tooltip
 			$('#rawfiles_tbl_allfiles').delegate('td', 'mouseenter', longRawFileNameDisplay);
@@ -1354,6 +1367,16 @@
 			
 			// Bind function to user feedback text box value change
 			$("#userFeedback").on('change keyup paste', onuserFeedbackchange);
+			
+			// Bind close autocomplete list to click event in the whole document
+			document.addEventListener("click", function (e) {
+				closeAllLists(e.target);
+			});
+			
+			// Add autocomplete functionality to GO organism
+			// First get all valid organism descriptions from the server, the following function stores them in the lobal variable validOrganisms
+			postGetOrganismDescs();
+			// After its success, posGetOrganismDescs will populate the validOganisms array and run the autoComplete function to bind functions to GOorganisms text box events
 			
 			// Initialize the test datasets:
 			
@@ -1566,7 +1589,7 @@
 			}
 			
 			// In case the user has selected quantitation filtering make sure that the
-			// lael he chose for quant filtering is valid (it appears in conditions list)
+			// label he chose for quant filtering is valid (it appears in conditions list)
 			var found_cond = false;
 			if ($("#expquantfilt").prop("checked") == true)
 			{
@@ -1587,6 +1610,34 @@
 			else
 			{
 				found_cond = true;
+			}
+			
+			// Validate that the go enrichment organism is vlid
+			
+			var found_org = false;
+			
+			if ($("#GOenrichment").prop("checked") == true)
+			{
+				var my_text = $("#GOorganism").val();
+				// Check if the text of the selected organism is contained in the valid organisms list
+				for (var i = 0; i < validOrganisms.length; i++)
+				{
+					if (my_text == validOrganisms[i])
+					{
+						found_org = true;
+						break;
+					}
+				}
+				
+				// If the organism was not found in the valid organisms list mark the border red
+				if (found_org == false)
+				{
+					setItemAttrColor("#GOorganism", "border", "#E60000");
+				}
+			}
+			else
+			{
+				found_org = true;
 			}
 			
 			// Inform the user if a condition has invalid characters
@@ -1610,7 +1661,7 @@
 			}
 			
 			// If all parameters are valid return true
-			return (nInvalid == 0 && tmp_i > 1 && found_cond);
+			return (nInvalid == 0 && tmp_i > 1 && found_cond && found_org);
 	}
 	
 	
@@ -2060,6 +2111,59 @@
 	}
 	
 	
+	var autoComplete = function(inp, arr) {
+	
+		// This function is based on w3 schools example to autocomplete a list of suggested values of organisms for the GO enrichment (https://www.w3schools.com/howto/howto_js_autocomplete.asp)
+		// it is bound to "GOorganism" text box while initiating PS
+		var currentFocus;
+		/*execute a function when someone writes in the text field:*/
+		inp.addEventListener("input", function(e) {
+			var a, b, i, val = this.value;
+			/*close any already open lists of autocompleted values*/
+			closeAllLists();
+			if (!val) { return false;}
+			currentFocus = -1;
+			/*create a DIV element that will contain the items (values):*/
+			a = document.createElement("DIV");
+			a.setAttribute("id", this.id + "autocomplete-list");
+			a.setAttribute("class", "autocomplete-items");
+			/*append the DIV element as a child of the autocomplete container:*/
+			this.parentNode.appendChild(a);
+			/*for each item in the array...*/
+			var mycounter = 0;
+			for (i = 0; i < arr.length; i++) {
+				if (arr[i].toUpperCase().includes(val.toUpperCase())) {
+					/*create a DIV element for each matching element:*/
+					b = document.createElement("DIV");
+					b.setAttribute("class", "auto-complete-line");
+					/*make the matching letters bold:*/
+					
+					var n = arr[i].toUpperCase().indexOf(val.toUpperCase());
+					b.innerHTML = arr[i].substr(0, n);
+					b.innerHTML += "<strong>" + arr[i].substr(n, val.length) + "</strong>";
+					b.innerHTML += arr[i].substr(n + val.length);
+					/*insert a input field that will hold the current array item's value:*/
+					b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+					/*execute a function when someone clicks on the item value (DIV element):*/
+					b.addEventListener("click", function(e) {
+						/*insert the value for the autocomplete text field:*/
+						inp.value = this.getElementsByTagName("input")[0].value;
+						/*close the list of autocompleted values,
+						(or any other open lists of autocompleted values:*/
+						closeAllLists();
+					});
+					a.appendChild(b);
+					mycounter++;
+					if (mycounter > 14)
+					{
+						break;
+					}
+				}
+			}
+		});
+	}
+	
+	
 	var CarefulBack = function() {
 		// CarefulBack warns the user that they might lose changes if they move one stepo back in PS
 		// In case of step 2 and step 4 - after analysis completion, the user must be warned
@@ -2220,6 +2324,16 @@
 		
 	}
 	
+	
+	function closeAllLists(elmnt) {
+		/*close all autocomplete lists in the document,
+		except the one passed as an argument:*/
+		var x = document.getElementsByClassName("autocomplete-items");
+		for (var i = 0; i < x.length; i++) {
+
+			x[i].parentNode.removeChild(x[i]);
+		}
+	}
 	
 	function conditionsMergeCMenuInit() {
 		
@@ -2449,6 +2563,20 @@
 					myval = "F";
 				}
 				mytext += myval + "\n";
+				
+				// GO enrichment
+				mytext += "GO_enrichment\n";
+				if($("#GOenrichment").prop("checked") == true)
+				{
+					myval = "T";
+				}
+				else
+				{
+					myval = "F";
+				}
+				mytext += myval + "\n";
+				mytext += "GO_organism\n";
+				mytext += $("#GOorganism").val() + "\n";
 				
 				// Advanced options
 				mytext += "LeastBRep\n";
@@ -3304,7 +3432,7 @@
 					// most of these are self explanatory
 					if (setvar == "")
 					{
-						if (myparamline == "isLabelFree" || myparamline == "isIsobaricLabel" || myparamline == "procprogram" || myparamline == "rawfiles_structure" || myparamline == "expid" || myparamline == "exptpoint" || myparamline == "conditions_to_compare" || myparamline == "quantitation_filtering" || myparamline == "filtering_label" || myparamline == "peptide_level_filtering" || myparamline == "LeastBRep" || myparamline == "LeastPep" || myparamline == "Pthreshold" || myparamline == "LFQconditions" || myparamline == "!Rename" || myparamline == "!LS_Array" || myparamline == "!LS_c_p_Add" || myparamline == "!Select_Labels" || myparamline == "!RMrawfilesdata" || myparamline == "!RMtagsdata" || myparamline == "!RMbrepsRepInRawFiles" || myparamline == "!RMtrepsRepInRawFiles" || myparamline == "!RMconditionsRepInRawFiles" || myparamline == "!RMisused")
+						if (myparamline == "isLabelFree" || myparamline == "isIsobaricLabel" || myparamline == "procprogram" || myparamline == "rawfiles_structure" || myparamline == "expid" || myparamline == "exptpoint" || myparamline == "conditions_to_compare" || myparamline == "quantitation_filtering" || myparamline == "filtering_label" || myparamline == "peptide_level_filtering" || myparamline == "LeastBRep" || myparamline == "LeastPep" || myparamline == "Pthreshold" || myparamline == "LFQconditions" || myparamline == "!Rename" || myparamline == "!LS_Array" || myparamline == "!LS_c_p_Add" || myparamline == "!Select_Labels" || myparamline == "!RMrawfilesdata" || myparamline == "!RMtagsdata" || myparamline == "!RMbrepsRepInRawFiles" || myparamline == "!RMtrepsRepInRawFiles" || myparamline == "!RMconditionsRepInRawFiles" || myparamline == "!RMisused" || myparamline == "GO_enrichment" || myparamline == "GO_organism")
 						{
 							setvar = myparamline;
 						}
@@ -3582,6 +3710,23 @@
 								set_RMisused(false, false);
 							}
 						}
+						else if (setvar == "GO_enrichment")
+						{
+							if (myparamline == 'T')
+							{
+								$("#GOenrichment").prop("checked", true);
+								onGOenrichmentchkboxclick();
+							}
+							else
+							{
+								$("#GOenrichment").prop("checked", false);
+								onGOenrichmentchkboxclick();
+							}
+						}
+						else if (setvar == "GO_organism")
+						{
+							$("#GOorganism").val(myparamline);
+						}
 						setvar = "";
 					}
 				});
@@ -3842,6 +3987,22 @@
 			}).fail(function (jqXHR, textStatus, errorThrown){
 			msgbox("<p>An error occured! Please try again.</p>");
 		});
+	}
+	
+	
+	var onGOenrichmentchkboxclick = function () {
+		// Toggles the visibility of Go enrichment organism depending on whether the go enrichment check box is checked or not
+		
+		if ($("#GOenrichment").prop('checked')) {
+			$("#s3GOorganism").removeClass("hidden");
+			var parentdiv = $(this).closest("div");
+			parentdiv.scrollTop(parentdiv.prop("scrollHeight"));
+		}
+		else
+		{
+			$("#s3GOorganism").addClass("hidden");
+		}
+		
 	}
 	
 	
@@ -4577,6 +4738,28 @@
 		});
 	}
 	
+	
+	var postGetOrganismDescs = function() {
+		// Gets a list of valid gprofiler GO enrichment organisms from the server
+		var thedata = new FormData();
+		thedata.append('session_id', sessionid);
+		$.ajax({
+			url: cgi_bin_path + 'get_valid_organisms.php',
+			type: 'POST',
+			// Form data
+			data: thedata,
+			//Options to tell jQuery not to worry about content-type.
+			processData: false,
+			cache: false,
+			contentType: false,
+			beforeSend: function (jqXHR, settings) {
+			}}).done(function (data, textStatus, jqXHR) {
+				validOrganisms = data.validOrganisms;
+				// Add the autocomplete functionality
+				autoComplete(document.getElementById("GOorganism"), validOrganisms);
+			}).fail(function (jqXHR, textStatus, errorThrown) {
+		});
+	}
 	
 	var postTestDatasetsInfo = function () {
 		
@@ -7049,7 +7232,7 @@
 		}
 	}
 	
-	
+
 //}
 //--------------------------------------
 // HELPER ROUTINES __ END

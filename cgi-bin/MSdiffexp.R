@@ -4,10 +4,10 @@ options(warn=1)
 # WARNING: Make sure to install the following packages as administrator/root (for them to be available to all users)
 # ======================================
 DEBUG <- FALSE;
-# source("http://www.bioconductor.org/biocLite.R")
-# latest limma version might not be compatible!! limma 3.18.13 suits best for PS
-# if(!require("limma")){ biocLite("limma") }
-# if(!require("statmod")){ biocLite("statmod") }
+# # latest limma version might not be compatible!! limma 3.18.13 suits best for PS
+# if (!requireNamespace("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
+# BiocManager::install("limma")
+# if(!require("statmod")){ install.packages("statmod") }
 # if(!require("ggplot2")){ install.packages("ggplot2", repos="http://cran.fhcrc.org") }
 # if(!require("stringr")){ install.packages("stringr", repos="http://cran.fhcrc.org") }
 # if(!require("reshape")){ install.packages("reshape", repos="http://cran.fhcrc.org") }
@@ -18,8 +18,8 @@ DEBUG <- FALSE;
 # if(!require("data.table")){ install.packages("data.table", repos="http://cran.fhcrc.org") }
 # if(!require("outliers")){ install.packages("outliers", repos="http://cran.fhcrc.org") }
 # if(!require("pryr")){ install.packages("pryr", repos="http://cran.fhcrc.org") }
-# #if(!require("devtools")){ { install.packages("devtools", repos="http://cran.fhcrc.org") }
-# #if(!require("lineprof")){ devtools::install_github("hadley/lineprof") }
+# if(!require("gprofiler2")){  install.packages("gprofiler2") }
+
 
 library(limma)
 library(statmod)
@@ -32,6 +32,7 @@ library(gtools)
 library(data.table)
 library(outliers)
 library(pryr)
+library(gprofiler2)
 #library(devtools)
 #library(lineprof)
 
@@ -1709,6 +1710,52 @@ clearMods<-function(){
   nMods<<-length(conditions.Mods)
   levellog("", change=-1)
 }
+
+# the following functions are for GO analysis
+
+
+# Pattern of uniprot IDs
+my_grep <- function(x){
+  #uniprot IDs pattern
+  grep('^[OPQ][0-9][A-Z0-9]{3}[0-9]|^[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}',x, value=TRUE)
+}
+
+# Get the UNIPROT IDs from the protein names
+get_uniprot_ids <- function(results, cond1, cond2){
+  #get p values associated to DE proteins
+  col_desc_<-paste("P-value adjusted ",paste(cond2,"/",cond1,sep=""),sep="")
+  #find DE proteins in results file
+  ind_diffexp_tmp<-which(results[,col_desc_]<pThreshold)
+  DE_prot <- rownames(results)[ind_diffexp_tmp]
+  
+  uniprot_ids <- c()
+  
+  # Get the uniprot ID for each one of the DE proteins
+  
+  for(i in 1:length(DE_prot)){
+    a = results[ind_diffexp_tmp, "X"][i]
+    b = strsplit(strsplit(a,"\\[")[[1]][1], ";")
+    
+    # uniprot_ids_iter has the uniprot ID of the specific DE protein
+    
+    uniprot_ids_iter <-lapply(b, my_grep)[[1]]
+    uniprot_ids <- c(uniprot_ids, uniprot_ids_iter[1])
+    
+  }
+  return(uniprot_ids)
+}
+
+# Run the enrichment analysis
+run_enrichment_analysis <- function(UniProtList, myGOorganism, cond1, cond2)
+{
+  # Enrichment analysis utilizing gprofiler2 R package
+  enrich <- gost(query= UniProtList, organism = myGOorganism, domain_scope = "annotated", significant = T, evcodes = TRUE)
+  enrich.matrix <- as.matrix(enrich$result[,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size",
+                                               "intersection_size",  "effective_domain_size", "intersection")])
+  write.table(enrich.matrix, paste(outputFigsPrefix,"enrichment_results_" , cond2, ".", cond1 , ".txt",sep=""), row.names=FALSE, sep = "\t")
+}
+
+
 # ======= INITIALIZATION =======
 unlabeled_peptide_regex<-"^$"
 clearLabels()
@@ -1938,6 +1985,26 @@ perform_analysis<-function(){
 
   
   results<-do_results_plots(norm.median.intensities, time.point, exportFormat="pdf", outputFigsPrefix=outputFigsPrefix)
+  
+  # The last step is to perform the GO analysis using the R package gprofiler
+  levellog("Perfrom enrichment analysis.")
+  
+  # First get the uniprot IDs of the Differentially expressed proteins for each combination of conditions
+  ratio_combs<-combinations(nConditions,2,1:nConditions)
+  for(i in 1:nrow(ratio_combs))
+  {
+    result<-tryCatch({
+      # In this line conditions.labels[ratio_combs[i, 1]] and conditions.labels[ratio_combs[i, 2]] have the names of the conditions to compare
+      uniprot_ids <- get_uniprot_ids(results, conditions.labels[ratio_combs[i, 1]], conditions.labels[ratio_combs[i, 2]])
+      # Since uniprot_ids contain the IDs of the DE expressed proteins lets run a GO analysis for them
+      run_enrichment_analysis(uniprot_ids,GOorganism, conditions.labels[ratio_combs[i, 1]], conditions.labels[ratio_combs[i, 2]])
+    }, error = function(err){
+      levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions.labels[ratio_combs[i, 1]], " and ", conditions.labels[ratio_combs[i, 2]], " failed (", GOorganism, " was selected as target organism)"))
+    })
+  }
+  
+  
+  
   setwd("..")
   levellog("",change=-1)
   levellog("Data analysis finished.")

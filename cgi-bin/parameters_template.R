@@ -36,3 +36,5 @@ RMisused<-REPLACE17
 RMbrepsinrawfiles<-REPLACE18
 RMtrepsinrawfiles<-REPLACE19
 RMconditionsinrawfiles<-REPLACE20
+GOenrichment<-REPLACE21
+GOorganism<-REPLACE22
