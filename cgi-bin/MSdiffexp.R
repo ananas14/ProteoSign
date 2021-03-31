@@ -1750,9 +1750,10 @@ run_enrichment_analysis <- function(UniProtList, myGOorganism, cond1, cond2)
 {
   # Enrichment analysis utilizing gprofiler2 R package
   enrich <- gost(query= UniProtList, organism = myGOorganism, domain_scope = "annotated", significant = T, evcodes = TRUE)
-  enrich.matrix <- as.matrix(enrich$result[,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size",
-                                               "intersection_size",  "effective_domain_size", "intersection")])
-  write.table(enrich.matrix, paste(outputFigsPrefix,"enrichment_results_" , cond2, ".", cond1 , ".txt",sep=""), row.names=FALSE, sep = "\t")
+  enrich.matrix <- as.matrix(enrich$result[enrich$result$p_value < 0.05,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size", "intersection_size", "intersection")])
+  colnames(enrich.matrix) = c("Data Source", "Function", "Term ID", "p-Value", "Term size", "Query size", "Intersection Size", "Intersection")
+  
+  write.table(enrich.matrix, paste(outputFigsPrefix,"enrichment_results_" , cond2, ".", cond1 , ".txt",sep=""), row.names=FALSE, sep = "\t", dec = ".", quote = F)
 }
 
 
@@ -1986,23 +1987,25 @@ perform_analysis<-function(){
   
   results<-do_results_plots(norm.median.intensities, time.point, exportFormat="pdf", outputFigsPrefix=outputFigsPrefix)
   
-  # The last step is to perform the GO analysis using the R package gprofiler
-  levellog("Perfrom enrichment analysis.")
-  
-  # First get the uniprot IDs of the Differentially expressed proteins for each combination of conditions
-  ratio_combs<-combinations(nConditions,2,1:nConditions)
-  for(i in 1:nrow(ratio_combs))
+  if (GOenrichment)
   {
-    result<-tryCatch({
-      # In this line conditions.labels[ratio_combs[i, 1]] and conditions.labels[ratio_combs[i, 2]] have the names of the conditions to compare
-      uniprot_ids <- get_uniprot_ids(results, conditions.labels[ratio_combs[i, 1]], conditions.labels[ratio_combs[i, 2]])
-      # Since uniprot_ids contain the IDs of the DE expressed proteins lets run a GO analysis for them
-      run_enrichment_analysis(uniprot_ids,GOorganism, conditions.labels[ratio_combs[i, 1]], conditions.labels[ratio_combs[i, 2]])
-    }, error = function(err){
-      levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions.labels[ratio_combs[i, 1]], " and ", conditions.labels[ratio_combs[i, 2]], " failed (", GOorganism, " was selected as target organism)"))
-    })
+    # The last step is to perform the GO analysis using the R package gprofiler
+    levellog("Perform enrichment analysis.")
+    
+    # First get the uniprot IDs of the Differentially expressed proteins for each combination of conditions
+    ratio_combs<-combinations(nConditions,2,1:nConditions)
+    for(i in 1:nrow(ratio_combs))
+    {
+      result<-tryCatch({
+        # In this line conditions.labels[ratio_combs[i, 1]] and conditions.labels[ratio_combs[i, 2]] have the names of the conditions to compare
+        uniprot_ids <- get_uniprot_ids(results, conditions.labels[ratio_combs[i, 1]], conditions.labels[ratio_combs[i, 2]])
+        # Since uniprot_ids contain the IDs of the DE expressed proteins lets run a GO analysis for them
+        run_enrichment_analysis(uniprot_ids,GOorganism, conditions.labels[ratio_combs[i, 1]], conditions.labels[ratio_combs[i, 2]])
+      }, error = function(err){
+        levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions.labels[ratio_combs[i, 1]], " and ", conditions.labels[ratio_combs[i, 2]], " failed (", GOorganism, " was selected as target organism)"))
+      })
+    }
   }
-  
   
   
   setwd("..")
