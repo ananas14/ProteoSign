@@ -376,7 +376,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   # Thus, in case the first line contains one fewer header than the columns, the file will be loaded succesfully and the first column will be considered row names correctly
   # If - though - the first line has a blank first header and the headers are as much as the columns, the first column will be considered as an unnamed column
   # that **will be named "X" while loading** and an index will be applied as row names. To deal with this we will search for a possible blank first header
-  # (that will be a \t leading character in the file) and if this is the cas ewe will load the file with row.names argument = "X". Otherwise we will simply load the file
+  # (that will be a \t leading character in the file) and if this is the case we will load the file with row.names argument = "X". Otherwise we will simply load the file
   
   # Search for the leading tab character
   
@@ -1273,15 +1273,30 @@ do_limma_analysis<-function(working_pgroups,time.point,exp_design_fname,exportFo
   
   # Notice that write.fit output will give us a table with average log2 intensity (A), fold changes for each comparison between conditions, p-values and adjusted p-values, F and F p values for each protein (the protein names are not displayed in this file)
   # Warning! latest releases of limma have changed the way the columns are displayed! this might not work in latest limma version! 3.18.13 suits best for PS
-  # if (packageVersion("limma") > "3.30.0" & nConditions == 2)
-  # {
-  #   results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "")
-  #   colnames(results)[2] <- "Coef"
-  #   colnames(results)[3] <- "t"
-  #   colnames(results)[4] <- "p.value"
-  #   colnames(results)[5] <- "p.value.adj"
-  #   write.table(results, file=paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), sep = "\t", quote = FALSE)
-  # }
+  if (packageVersion("limma") > "3.30.0" & nConditions == 2)
+  {
+    
+    # Opening the results file might not be trivial, see the comment in do results plot for more infomation
+    # and why it will be opened in such a complicated manner:
+    
+    FileHandle <- file(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""),"r")
+    first_line <- readLines(FileHandle,n=1)
+    hasLeadingTab <- (substr(first_line, 0, 1) == "\t")
+    close(FileHandle)
+    if (hasLeadingTab)
+    {
+      results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "", row.names = "X")
+    } else {
+      results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "")
+    }
+    
+    colnames(results)[1] <- "A"
+    colnames(results)[2] <- "Coef"
+    colnames(results)[3] <- "t"
+    colnames(results)[4] <- "p.value"
+    colnames(results)[5] <- "p.value.adj"
+    write.table(results, file=paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), sep = "\t", quote = FALSE)
+  }
   return(norm.median.intensities)
 }
 
