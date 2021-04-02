@@ -476,7 +476,7 @@
 	}
 	
 	
-	.tooltip, .tooltip2 {
+	.tooltip, .tooltip2, .tooltip3 {
 		background-color: #8AB8E6;
 		box-shadow: 0 0.1em 0.5em #333333;
 		border-radius: 0.15em;
@@ -486,7 +486,7 @@
 		padding-right: 0.25em;
 	}
 	
-	.tooltip strong, .tooltip2 strong {
+	.tooltip strong, .tooltip2 strong, .tooltip3 strong{
 		line-height: 30px;
 	}
 	.tooltip:hover, .tooltip2:hover {
@@ -495,7 +495,7 @@
 	}
 	
 	
-	.tooltip span, .tooltip div, .tooltip2 span, .tooltip2 div
+	.tooltip span, .tooltip div, .tooltip2 span, .tooltip2 div, .tooltip3 span, .tooltip3 div
 	{
 		z-index: 999;
 		display: none;
@@ -510,7 +510,7 @@
 		max-width: 50%;
 	}	
 
-	.tooltip:hover span, .tooltip:hover div, .tooltip2:hover span, .tooltip2:hover div{
+	.tooltip:hover span, .tooltip:hover div, .tooltip2:hover span, .tooltip2:hover div, .tooltip3:hover span, .tooltip3:hover div{
 		display: block;
 		position: absolute;
 		border: 2px solid #FFF;

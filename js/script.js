@@ -126,6 +126,8 @@
 	var rawfiles_tbl_allfiles_DT;
 	var main_context_menu;
 	var label_context_menu;
+	var myGOtable;
+	var GOtabledata = [];
 	
 	// === Turning gear variables ===
 	
@@ -690,6 +692,29 @@
 						}
 					}); // END for each data.results_preview
 					$("#server_feedback").css("box-shadow", "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)")
+					
+				// Also check if there are any GO analysis result text files in the server, if so populate the corresponding select otherwise hide all respective elements
+				
+				if(data.GO_files.length > 0)
+				{
+					if($("#GO_analysis_container").hasClass("hidden"))
+					{
+						$("#GO_analysis_container").removeClass("hidden")
+					}
+					$.each(data.GO_files, function (idx, GOfile)
+					{
+						var myIndex = GOfile.indexOf("enrichment_results");
+						var description = GOfile.substring(myIndex + 19);
+						description = description.substring(0, description.length - 4);
+						$("#GO_combinations").append('<option value=' + GOfile + '>' + description + '</option>');
+					});
+					onGOcombinationsChange();
+				}
+				else
+				{
+					$("#GO_analysis_container").addClass("hidden")
+				}
+				
 			}
 			else
 			{
@@ -1314,7 +1339,10 @@
 				$(".callout2").css({"left": 0});
 			});
 			
-			
+			$(".tooltip3").hover(function () {
+				$(".tooltip3 span").css({"margin-left": 490});
+				$(".callout3").css({"left": 0});
+			});
 			// Bind test datasets dialog buttons' events to functions
 			$("#dlgTestDatasetsBtnOK").on("click", datasetDialogOK);
 			
@@ -1377,6 +1405,71 @@
 			// First get all valid organism descriptions from the server, the following function stores them in the lobal variable validOrganisms
 			postGetOrganismDescs();
 			// After its success, posGetOrganismDescs will populate the validOganisms array and run the autoComplete function to bind functions to GOorganisms text box events
+			
+			// Initialize the Tabulator table for GO analysis results
+			
+			var tabledata = [
+				{id:1, source:"-", function:"-", term_id:"-", p_value:"-", term_size:"-", query_size:"-", intersection_size:"-", intersection:"-",}
+			 ];
+			
+			var customFormatter = function(cell, formatterParams, onRendered){
+
+				//set font size
+				cell.getElement().style.fontSize = "11px";
+
+				return cell.getValue();
+			}
+			
+			var customRowFormatter = function(cell, formatterParams, onRendered){
+
+				//set font size
+				cell.getElement().style.fontSize = "11px";
+
+				return true;
+			}
+			
+			myGOtable = new Tabulator("#GO-table",
+			{
+				height:205,
+				tooltips:true,
+				data:GOtabledata, //assign data to table
+				layout:"fitColumns", //fit columns to width of table (optional)
+				columns:[ //Define Table Columns
+					{title:"Source", field:"source", titleFormatter:customFormatter},
+					{title:"Function", field:"function", titleFormatter:customFormatter},
+					{title:"Term Id", field:"term_id", titleFormatter:customFormatter},
+					{title:"p-Value", field:"p_value", titleFormatter:customFormatter},
+					{title:"Term Size", field:"term_size", titleFormatter:customFormatter},
+					{title:"Query Size", field:"query_size", titleFormatter:customFormatter},
+					{title:"Intersection Size", field:"intersection_size", titleFormatter:customFormatter},
+					{title:"Intersection", field:"intersection", titleFormatter:customFormatter},
+				],
+				rowFormatter:customRowFormatter,
+				rowDblClick:function(e, row){
+					if (row.getData().source == "KEGG")
+					{
+						window.open("https://www.genome.jp/dbget-bin/www_bget?map" + row.getData().term_id.substring(5));
+					}
+					else if (row.getData().source == "REAC")
+					{
+						window.open("https://reactome.org/content/detail/" + row.getData().term_id.substring(5));
+					}
+					else if (row.getData().source == "WP")
+					{
+						window.open("https://www.wikipathways.org/index.php/Pathway:" + row.getData().term_id.substring(3));
+					}
+					else if (row.getData().source == "HPA")
+					{
+						const regex = /;.*$/;
+						window.open("https://www.proteinatlas.org/search/" + encodeURI(row.getData().function.replace(regex, "")));
+					}
+					else if (row.getData().source.substring(0,2) == "GO")
+					{
+						window.open("http://amigo.geneontology.org/amigo/term/" + row.getData().term_id);
+					}
+					
+				},
+			});
 			
 			// Initialize the test datasets:
 			
@@ -3989,6 +4082,42 @@
 		});
 	}
 	
+	
+	var onGOcombinationsChange = function() {
+		
+		// This function is called when the user changes the selection from the go combinations dropdown list
+		// and expects to see the gi analysis results for another cmbination. Call read_GO_results.php for this to happen
+		
+		var thedata = new FormData();
+		thedata.append('GOfile', $("#GO_combinations").val());
+		thedata.append('session_id', sessionid);
+				$.ajax({
+			url: cgi_bin_path + 'read_GO_results.php', //Server script to send the feedback
+			type: 'POST',
+			// Form data
+			data: thedata,
+			// Options to tell jQuery not to worry about content-type.
+			processData: false,
+			cache: false,
+			contentType: false,
+			}).done(function (data, textStatus, jqXHR) {
+				// Reformat the data coming from php to make them valid for Tabulator
+				var data_to_tabulator = [];
+				$.each(data.GOdata, function (idx, row)
+				{
+					if (row[0].source != "" || row[0].function != "")
+					{
+						data_to_tabulator.push(row[0]);
+					}
+				});
+				GOtabledata = data_to_tabulator;
+				myGOtable.clearData();
+				myGOtable.addData(GOtabledata);
+				myGOtable.redraw();
+			}).fail(function (jqXHR, textStatus, errorThrown){
+			msgbox("Could not load the results for GO analysis!");
+		});
+	}
 	
 	var onGOenrichmentchkboxclick = function () {
 		// Toggles the visibility of Go enrichment organism depending on whether the go enrichment check box is checked or not

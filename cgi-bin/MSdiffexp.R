@@ -2147,6 +2147,12 @@ get_uniprot_ids <- function(results, cond1, cond2){
   ind_diffexp_tmp<-which(results[,col_desc_]<pThreshold)
   DE_prot <- rownames(results)[ind_diffexp_tmp]
   
+  if (length(DE_prot) == 0)
+  {
+    uniprot_ids <- c()
+    return(uniprot_ids)
+  }
+  
   uniprot_ids <- c()
   
   # Get the uniprot ID for each one of the DE proteins
@@ -2177,7 +2183,7 @@ get_uniprot_ids <- function(results, cond1, cond2){
 run_enrichment_analysis <- function(UniProtList, myGOorganism, cond1, cond2)
 {
   # Enrichment analysis utilizing gprofiler2 R package
-  enrich <- gost(query= UniProtList, organism = myGOorganism, domain_scope = "annotated", significant = T, evcodes = TRUE)
+  enrich <- gost(query= UniProtList, organism = myGOorganism, domain_scope = "annotated", significant = T, evcodes = TRUE, sources = c("GO", "KEGG", "REAC", "HPA", "WP"))
   enrich.matrix <- as.matrix(enrich$result[enrich$result$p_value < 0.05,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size", "intersection_size", "intersection")])
   colnames(enrich.matrix) = c("Data Source", "Function", "Term ID", "p-Value", "Term size", "Query size", "Intersection Size", "Intersection")
   
@@ -2450,7 +2456,13 @@ perform_analysis<-function(){
     {
       result<-tryCatch({
         # In this line conditions.labels[ratio_combs[i, 1]] and conditions.labels[ratio_combs[i, 2]] have the names of the conditions to compare
+        uniprot_ids <- c()
         uniprot_ids <- get_uniprot_ids(results, conditions.labels[ratio_combs[j, 1]], conditions.labels[ratio_combs[j, 2]])
+        if(length(uniprot_ids) == 0)
+        {
+          levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions.labels[ratio_combs[j, 1]], " and ", conditions.labels[ratio_combs[j, 2]], " failed (", GOorganism, " was selected as target organism) because no UNIprot IDs were found for the differentially expressed proteins (if any)"))
+          next;
+        }
         # Since uniprot_ids contain the IDs of the DE expressed proteins lets run a GO analysis for them
         run_enrichment_analysis(uniprot_ids,GOorganism, conditions.labels[ratio_combs[j, 1]], conditions.labels[ratio_combs[j, 2]])
       }, error = function(err){
