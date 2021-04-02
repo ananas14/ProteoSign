@@ -2160,6 +2160,14 @@ get_uniprot_ids <- function(results, cond1, cond2){
     uniprot_ids_iter <-lapply(b, my_grep)[[1]]
     uniprot_ids <- c(uniprot_ids, uniprot_ids_iter)
     
+    # MQ store their UniProt IDs differently
+    c = str_extract(a, "SWISS-PROT:([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2})")
+    if (!is.na(c))
+    {
+      d = strsplit(c,":")[[1]][2]
+      uniprot_ids <- c(uniprot_ids, d)
+    }
+    
   }
   return(uniprot_ids)
 }
@@ -2172,7 +2180,7 @@ run_enrichment_analysis <- function(UniProtList, myGOorganism, cond1, cond2)
   enrich.matrix <- as.matrix(enrich$result[enrich$result$p_value < 0.05,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size", "intersection_size", "intersection")])
   colnames(enrich.matrix) = c("Data Source", "Function", "Term ID", "p-Value", "Term size", "Query size", "Intersection Size", "Intersection")
   
-  write.table(enrich.matrix, paste(outputFigsPrefix,"enrichment_results_" , cond2, ".", cond1 , ".txt",sep=""), row.names=FALSE, sep = "\t", dec = ".", quote = F)
+  write.table(enrich.matrix, paste(outputFigsPrefix,"_enrichment_results_" , cond2, ".", cond1 , ".txt",sep=""), row.names=FALSE, sep = "\t", dec = ".", quote = F)
 }
 
 
