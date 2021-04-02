@@ -2169,6 +2169,7 @@ get_uniprot_ids <- function(results, cond1, cond2){
     }
     
   }
+  uniprot_ids <- trimws(uniprot_ids)
   return(uniprot_ids)
 }
 
