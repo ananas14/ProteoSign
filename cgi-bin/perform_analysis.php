@@ -23,6 +23,7 @@ $server_response['dump'] = "";
 $server_response['ret_session'] = $_POST["session_id"];
 $server_response['UserInfo'] = "";
 $server_response['DebugInfo'] = "";
+$server_response['GO_files'] = [];
 
 $session_folder = $_POST["session_id"];
 $document_root = dirname(__DIR__);
@@ -183,6 +184,10 @@ if ($R_logfile) {
    }
 }
 
+foreach (glob("msdiffexp_out/*enrichment_results*.txt") as $filename) 
+{
+	array_push($server_response['GO_files'], substr($filename, 14));
+}
 
 if (!file_exists("msdiffexp_out"))
 {
@@ -208,7 +213,7 @@ if ($server_response['R_success']) {
 $server_response['success'] = $server_response['R_success'];
 if ($server_response['success']) {
    
-   $server_response['results_url'] = str_replace($document_root, '/ProteoSign', $upload_dir . "/proteosign.zip");
+   $server_response['results_url'] = str_replace($document_root, '/ProteoSign_v2', $upload_dir . "/proteosign.zip");
    $server_response['results_preview'] = [];
    if (file_exists(getcwd() . "/msdiffexp_wd"))
    {
