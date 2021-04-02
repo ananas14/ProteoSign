@@ -697,9 +697,9 @@
 				
 				if(data.GO_files.length > 0)
 				{
-					if($("#GO_analysis_container").hasClass("hidden"))
+					if($("#GOcontainerforborder").hasClass("hidden"))
 					{
-						$("#GO_analysis_container").removeClass("hidden")
+						$("#GOcontainerforborder").removeClass("hidden")
 					}
 					$.each(data.GO_files, function (idx, GOfile)
 					{
@@ -712,7 +712,7 @@
 				}
 				else
 				{
-					$("#GO_analysis_container").addClass("hidden")
+					$("#GOcontainerforborder").addClass("hidden")
 				}
 				
 			}
