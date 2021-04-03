@@ -1139,6 +1139,10 @@
 											var my_val = data.queryres.opt_value[i];
 											my_lbls_toselect = my_val.split("|");
 											break;
+											case "GOorganism":
+											var my_val = data.queryres.opt_value[i];
+											$("#GOorganism").val(my_val);
+											break;
 										}
 									}
 								}

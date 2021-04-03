@@ -2323,7 +2323,13 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   # correspond to this biorep
   
   col_idxs <- sapply(all_brep_indices, function(x) grep(paste0("b", x), colnames(Quant_bool_per_rep)))
-  colnames(col_idxs) <- sapply(all_brep_indices, function(x) paste0("b", x))
+  
+  # If all breps have only 1 trep the col_idxs will be a single dimensional vector
+  
+  if (is.matrix(col_idxs))
+  {
+    colnames(col_idxs) <- sapply(all_brep_indices, function(x) paste0("b", x))
+  }
   
   # e.g of col_idxs
   #     b1 b2 b3
@@ -2331,10 +2337,16 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   # [2,]  2  4  6
   
   # Now feed all columns of a biorep one at a time to any function to merge the desired columns
+  # if the col_idxs is a vector then there is no need to merge anything
   
-  Quant_bool_per_bio_rep <- apply(col_idxs, 2, function(x) apply(Quant_bool_per_rep[, x], 1, any))
+  if (is.matrix(col_idxs))
+  {
+    Quant_bool_per_bio_rep <- apply(col_idxs, 2, function(x) apply(Quant_bool_per_rep[, x], 1, any))
+  } else {
+    Quant_bool_per_bio_rep <- Quant_bool_per_rep
+  }
   
-  # Quant_bool_per_bio_rep contains one column per biorep and TRUE/FALSE vlues showing if the protein ws overally
+  # Quant_bool_per_bio_rep contains one column per biorep and TRUE/FALSE values showing if the protein ws overally
   # quantified in a biorep
   
   #e.g.:
@@ -2369,7 +2381,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   
   # Now simply create a VennDiagram for these data
   
-  if (length(colnames(col_idxs))>5)
+  if (n_bioreps>5)
   {
     levellog(paste0("Warn User: Overall biological Replicates Venn diagram failed, too many bioreps to plot"))
   } else {
@@ -2377,10 +2389,17 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
     result <- tryCatch({
       png(paste("../",outputFigsPrefix,"_Venn_for_bio_reps_",time.point,".png",sep=""),  width = 1000, height = 1000)
       
-      names(lst_prots_per_brep_quantified) = colnames(col_idxs)
+      
+      if (is.matrix(col_idxs))
+      {
+        names(lst_prots_per_brep_quantified) = colnames(col_idxs)
+      } else {
+        names(lst_prots_per_brep_quantified) = names(col_idxs)
+      }
+      
       VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
       g <- grid.newpage()
-      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:n_bioreps], lwd=1, col=VennPalette[1:n_bioreps], margin = 0.07, cex=2.5, cat.cex=2.5)
       g <- grid.draw(venn.plot)
       g <- grid.text("Venn diagram for all Biological Replicates", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
       
@@ -2390,7 +2409,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
       
       pdf(paste(outputFigsPrefix,"_Venn_for_bio_reps_",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
       g <- grid.newpage()
-      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:n_bioreps], lwd=1, col=VennPalette[1:n_bioreps], margin = 0.07, cex=2.5, cat.cex=2.5)
       g <- grid.draw(venn.plot)
       g <- grid.text("Venn diagram for all Biological Replicates", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
       dev.off()
@@ -2424,7 +2443,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   lst_prots_per_cond_quantified <- lapply(1:ncol(Quant_bool_per_condition), function(x) rownames(Quant_bool_per_condition)[Quant_bool_per_condition[,x] == T])
   if (length(colnames(col_idxs))>5)
   {
-    levellog(paste0("Warn User: Conditions Venn diagram failed, too mny conditions to plot"))
+    levellog(paste0("Warn User: Conditions Venn diagram failed, too many conditions to plot"))
   } else {
     
     result <- tryCatch({
