@@ -16,10 +16,128 @@ if(!require("gtools"))
   install.packages("gtools", repos="http://cran.fhcrc.org")
   library(gtools)
 }
-if(!require("gprofiler2"))
+
+if(!require("VennDiagram"))
 {
-  install.packages("gprofiler2")
-  library(gprofiler2)
+  install.packages("VennDiagram", repos="http://cran.fhcrc.org")
+  library(VennDiagram)
+}
+
+if(!require("stringr"))
+{
+  install.packages("stringr", repos="http://cran.fhcrc.org")
+  library(stringr)
+}
+
+# Generate Venn Diagram produces the Venn Diagrams between bio replicates, conditions and tech replicates per bioreplicate
+
+
+generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
+  
+  # This is a simplified version of generate_Venn_diagrams simply to be part of Plot Generator R script
+  # for more information please read the comments of MSdiffexp.R with more information on how this function works
+  
+  # Data preparation
+  futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
+  results_intensities <- !(is.na(results_intensities))
+  nRep<-length(replicate_descs)
+  nCond<-length(conditions.labels)
+  mymap <- sapply(c(1:nRep), function(x) (c(0:(nCond-1)) * nRep) + x)
+  rownames(mymap) = conditions.labels
+  colnames(mymap) = replicate_descs
+  Quant_bool_per_rep <- sapply(c(1:nRep), function(x) apply(results_intensities[,mymap[,x]], 1, any))
+  colnames(Quant_bool_per_rep) <- replicate_descs
+  all_brep_indices <- unique(sapply(1:nRep, function(x) str_extract(str_extract(colnames(Quant_bool_per_rep)[x], "b\\d+?[t$]"), "\\d+")))
+  
+  # Open pdf output
+  pdf(paste(outputFigsPrefix,"_Venn_for_all_bioreps_separately",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
+  
+  for(i in as.numeric(all_brep_indices))
+  {
+    col_idxs_of_a_biorep <- grep(paste0("b", i), colnames(Quant_bool_per_rep))
+    lst_prots_per_rep_quantified <- c()
+    lst_prots_per_rep_quantified <- lapply(col_idxs_of_a_biorep, function(x) rownames(Quant_bool_per_rep)[Quant_bool_per_rep[,x] == T])
+    
+    # In case the experiment has more than 5 bio reps the Venn can not be created since it will be no informative at all
+    
+    # Abort plot drawing in such a case
+    
+    if (length(col_idxs_of_a_biorep)>5)
+    {
+      print(paste0("Biological Replicate ", i , " Venn diagram failed - too many technical replicates"))
+      next
+    }
+    
+    #Create the diagram
+    names(lst_prots_per_rep_quantified) = colnames(Quant_bool_per_rep)[col_idxs_of_a_biorep]
+    VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
+    
+    # Alter the options in the lines below to suit your needs
+    g <- grid.newpage()
+    venn.plot <- venn.diagram(lst_prots_per_rep_quantified, NULL , fill=VennPalette[1:length(col_idxs_of_a_biorep)], lwd=1, col=VennPalette[1:length(col_idxs_of_a_biorep)], margin = 0.03, cex=2.5, cat.cex=2.5)
+    g <- grid.draw(venn.plot)
+    g <- grid.text(paste0("Venn diagram for Biological Replicate ", i), x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+    
+  }
+  
+  dev.off() # Close the pdf dev
+  
+  # Now create the same plot for reproducibility between bioreps
+  
+  # Data preparation
+  col_idxs <- sapply(all_brep_indices, function(x) grep(paste0("b", x), colnames(Quant_bool_per_rep)))
+  colnames(col_idxs) <- sapply(all_brep_indices, function(x) paste0("b", x))
+  Quant_bool_per_bio_rep <- apply(col_idxs, 2, function(x) apply(Quant_bool_per_rep[, x], 1, any))
+  lst_prots_per_brep_quantified <- c()
+  lst_prots_per_brep_quantified <- lapply(1:ncol(Quant_bool_per_bio_rep), function(x) rownames(Quant_bool_per_bio_rep)[Quant_bool_per_bio_rep[,x] == T])
+  
+  # Now simply create a VennDiagram for these data
+  
+  if (length(colnames(col_idxs))>5)
+  {
+    print(paste0("Overall biological Replicates Venn diagram failed, too many bioreps to plot"))
+  } else {
+    
+    names(lst_prots_per_brep_quantified) = colnames(col_idxs)
+    VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
+    
+    
+    
+    # Alter the options to suit your needs:
+    pdf(paste(outputFigsPrefix,"_Venn_for_bio_reps_",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
+    g <- grid.newpage()
+    venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+    g <- grid.draw(venn.plot)
+    g <- grid.text("Venn diagram for all Biological Replicates", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+    dev.off()
+    
+  }
+  
+  # The last Venn to produce would be a Venn between conditions.
+  col_idxs <- sapply(conditions.labels, function(x) grep(paste0("^", x, " "), colnames(results_intensities)))
+  Quant_bool_per_condition <- apply(col_idxs, 2, function(x) apply(results_intensities[, x], 1, any))
+  lst_prots_per_cond_quantified <- c()
+  lst_prots_per_cond_quantified <- lapply(1:ncol(Quant_bool_per_condition), function(x) rownames(Quant_bool_per_condition)[Quant_bool_per_condition[,x] == T])
+  
+  # Create the diagram:
+  if (length(colnames(col_idxs))>5)
+  {
+    print(paste0("Conditions Venn diagram failed, too mny conditions to plot"))
+  } else {
+    
+    names(lst_prots_per_cond_quantified) = colnames(col_idxs)
+    VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
+    
+    
+    # Alter the options to suit your needs:
+    pdf(paste(outputFigsPrefix,"_Venn_for_conditions_",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
+    g <- grid.newpage()
+    venn.plot <- venn.diagram(lst_prots_per_cond_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+    g <- grid.draw(venn.plot)
+    g <- grid.text("Venn diagram for all Conditions", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+    dev.off()
+    
+  }
 }
 
 
@@ -35,10 +153,9 @@ do_results_plots<-function(){
   # cbPalette will be used in creating the plots
   # the default one is a customized colorblind-friendly palette from http://wiki.stdout.org/rcookbook/Graphs/Colors%20(ggplot2)/
   cbPalette <- c("#999999", "#D55E00", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#CC79A7")
-    
+  
   #Plot generation:
   for(i in 1:nrow(ratio_combs)){
-    #######ismini edit
     i=1
     #Prepare the combination:
     print(paste("Generating plots for combination #",i," ..."),change=1,after=T)
@@ -58,15 +175,14 @@ do_results_plots<-function(){
     }, error = function(err){
       print(paste0("Warning! ", ratio_i_str, " combination preparation failed!"))
     })
-	####ismini
     head(tmp1)
     # 1 - volcano - -log10 P-value vs log ratio
     result <- tryCatch({
       print("Making volcano plot ...")
-	  #Customize the filename and the plot size by editing the following two lines:
+      #Customize the filename and the plot size by editing the following two lines:
       figsuffix<-paste("_",ratio_i_str,"-volcano","_",sep="")
       pdf(file=paste(outputFigsPrefix,figsuffix,time.point,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
-	  #Data preparation:
+      #Data preparation:
       ratio_i_p.value.adj<-paste("p.value.adj.",paste(conditions.labels[ratio_combs[i,2]],".",conditions.labels[ratio_combs[i,1]],sep=""),sep="")
       ratio_i_avg_col<-paste("log2.avg.",ratio_i_str,sep="")
       mlog10_ratio_i_p.value.adj<-paste("mlog10_",ratio_i_p.value.adj,sep="")
@@ -97,7 +213,7 @@ do_results_plots<-function(){
       myxlab <- gsub("\\.", "/", myxlab)
       
       # p is a plot created by the ggplot library
-	  # Change the next command to suit your needs:
+      # Change the next command to suit your needs:
       p<-ggplot(data=results, aes_string(x=ratio_i_avg_col, y=mlog10_ratio_i_p.value.adj, colour=diffexp_ratio_i)) +
         geom_point(alpha=0.7, size=1.75) +
         theme(legend.position = "none", axis.title.y=element_text(vjust=0.2), axis.title.x=element_text(vjust=0), plot.title = element_text(vjust=1.5, lineheight=.8, face="bold")) +
@@ -114,7 +230,7 @@ do_results_plots<-function(){
     # 2 - value-ordered - log ratio
     result <- tryCatch({
       print("Making value-ordered plot ...")
-	  #Customize the filename and the plot size by editing the following two lines:
+      #Customize the filename and the plot size by editing the following two lines:
       figsuffix<-paste("_",ratio_i_str,"-value-ordered-log-ratio","_",sep="")
       pdf(file=paste(outputFigsPrefix,figsuffix,time.point,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
       #Data preparation:
@@ -141,7 +257,7 @@ do_results_plots<-function(){
       myylab <- gsub("\\.", "/", myylab)
       
       # p is a plot created by the ggplot library
-	  # Change the next command to suit your needs:
+      # Change the next command to suit your needs:
       p<-ggplot(data=results, aes_string(x="nID", y=ratio_i_avg_col, colour=diffexp_ratio_i)) +
         geom_point(alpha=0.7, size=1.5) +
         geom_errorbar(aes_string(ymin=ratio_i_avg_col_ymin, ymax=ratio_i_avg_col_ymax), width=1.5) +
@@ -157,7 +273,7 @@ do_results_plots<-function(){
     # 3 - MA plot
     result <- tryCatch({
       print("Making MA plot ...")
-	  #Customize the filename and the plot size by editing the following two lines:
+      #Customize the filename and the plot size by editing the following two lines:
       figsuffix<-paste("_",ratio_i_str,"-MA","_",sep="")
       ratio_i_avgI_col<-paste("log2.avg.I.",ratio_i_str,sep="")
       pdf(file=paste(outputFigsPrefix,figsuffix,time.point,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
@@ -178,7 +294,7 @@ do_results_plots<-function(){
       myylab <- gsub("\\.", "/", myylab)
       
       # p is a plot created by the ggplot library
-	  # Change the next command to suit your needs:
+      # Change the next command to suit your needs:
       p<-ggplot(data=results, aes_string(x=ratio_i_avgI_col, y=ratio_i_avg_col, colour=diffexp_ratio_i)) +
         geom_point(alpha=0.7, size=1.75) +
         theme(legend.position = "none", axis.title.y=element_text(vjust=0.2), axis.title.x=element_text(vjust=0), plot.title = element_text(vjust=1.5, lineheight=.8, face="bold")) +
@@ -193,7 +309,7 @@ do_results_plots<-function(){
     # 4 - Reproducibility plots & histograms
     result <- tryCatch({
       print("Making reproducibility plot ...")
-	  #Customize the filename suffix by editing the following line:
+      #Customize the filename suffix by editing the following line:
       figsuffix<-paste("_",ratio_i_str,"-reproducibility","_",sep="")
       allratios<-results[,colnames(results)[grep(paste0(ratio_i_, " "),colnames(results))]]
       #The following lines optimize the plot's y-label in specific dataset types
@@ -210,7 +326,7 @@ do_results_plots<-function(){
         }
       }
       colnames(allratios) <- gsub("\\.", "/", colnames(allratios))
-	  #Customize the filename and the size of the plot by editing the following line:
+      #Customize the filename and the size of the plot by editing the following line:
       pdf(file=paste(outputFigsPrefix,figsuffix,time.point,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
       pairs.panels(allratios,scale=T,lm=T)
       dev.off()
@@ -351,41 +467,6 @@ pairs.panels <- function (x,y,smooth=TRUE,scale=FALSE,lm=FALSE){
   }
 }
 
-#pattern of uniprot IDs
-my_grep <- function(x){
-  #uniprot IDs pattern
-  grep('^[OPQ][0-9][A-Z0-9]{3}[0-9]|^[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}',x, value=TRUE)
-  }
-
-get_uniprot_ids <- function(){
-  #get p values associated to DE proteins
-  col_desc_<-paste("p.value.adj",paste(conditions.labels[2],".",conditions.labels[1],sep=""),sep=".")
-  #find DE proteins in results file
-  ind_diffexp_tmp<-which(results[,col_desc_]<pThreshold)
-  DE_prot <- rownames(results)[ind_diffexp_tmp]
-  
-  uniprot_ids <- c()
-  
-  for(i in 1:length(DE_prot)){
-    a = rownames(results)[ind_diffexp_tmp][i]
-    b = strsplit(strsplit(a,"\\[")[[1]][1], ";")
-    
-    uniprot_ids_iter <-lapply(b, my_grep)[[1]]
-    uniprot_ids <- c(uniprot_ids, uniprot_ids_iter)
-    
-  }
-  return(uniprot_ids)
-}
-
-run_enrichment_analysis <- function(x,y){
-  ###Enrichment analysis utilizing gprofiler2 R package
-  enrich <- gost(query= x, organism = y, domain_scope = "annotated", significant = T, evcodes = TRUE)
-  enrich.matrix <- as.matrix(enrich$result[,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size",
-                                               "intersection_size",  "effective_domain_size", "intersection")])
-  write.csv(enrich.matrix, 
-            paste(outputFigsPrefix,"enrichment_results",".csv",sep=""), row.names=FALSE)
-}
-
 #MAIN proccess:
 
 #Load the necessary variables: the file Plot_Generator.RData must be contained in the same folder with this script
@@ -396,13 +477,12 @@ do_results_plots()
 # Draw the limma plots:
 do_limma_plots()
 
-# Perform enrichment analysis on differentially expressed proteins
-
-###IMPORTANT NOTE: Species (i.e. used for the experiment) must be defined by user e.g. Homo sapiens --> hsapiens, Mus musculus --> mmusculus. Default is set to mmusculus. 
-###For information about other organisms please visit https://biit.cs.ut.ee/gprofiler/page/organism-list
-species <- 'hsapiens'
-uniprot_ids <- get_uniprot_ids()
-run_enrichment_analysis(uniprot_ids,species)
+# Draw the Venn Diagrams:
+intensity_cols_idxs <- sapply(conditions.labels, function(x) grep(paste0("^", x, " \\d+"), colnames(results)))
+tmp_vector <- expdesign[expdesign[,"Category"] == conditions.labels[1],"Sample"]
+tmp_vector <- substr(tmp_vector, str_length(conditions.labels[1]) + 2, str_length(tmp_vector))
+rownames(intensity_cols_idxs) <- tmp_vector
+generate_Venn_diagrams(results[,as.vector(intensity_cols_idxs)], rownames(intensity_cols_idxs))
 
 print("Procedure finished")
 

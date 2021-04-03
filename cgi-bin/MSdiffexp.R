@@ -1,10 +1,19 @@
+
+
+# PROTEOSIGN - MSdiffexp.R
+# Main Back-end R script for Proteosign: An end-user online differential proteomics statistical analysis platform.
+# Reference:
+# Efstathiou G., Antonakis A. N., Theodosiou T., Pavlopoulos G. A., Divanach P., Trudgian D. C., Thomas B., Papanikolaou N., Aivaliotis M., Acuto O. and Iliopoulos I.
+# https://www.ncbi.nlm.nih.gov/pubmed/28520987
+
+
 options(warn=1)
 # DEPLOYMENT VERSION
 # ======================================
 # WARNING: Make sure to install the following packages as administrator/root (for them to be available to all users)
 # ======================================
 DEBUG <- FALSE;
-# # latest limma version might not be compatible!! limma 3.18.13 suits best for PS
+
 # if (!requireNamespace("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
 # BiocManager::install("limma")
 # if(!require("statmod")){ install.packages("statmod") }
@@ -19,7 +28,7 @@ DEBUG <- FALSE;
 # if(!require("outliers")){ install.packages("outliers", repos="http://cran.fhcrc.org") }
 # if(!require("pryr")){ install.packages("pryr", repos="http://cran.fhcrc.org") }
 # if(!require("gprofiler2")){  install.packages("gprofiler2") }
-
+# if(!require("VennDiagram")){  install.packages("VennDiagram") }
 
 library(limma)
 library(statmod)
@@ -33,8 +42,8 @@ library(data.table)
 library(outliers)
 library(pryr)
 library(gprofiler2)
-#library(devtools)
-#library(lineprof)
+library(VennDiagram)
+
 
 
 # DEBUGGING log flag/level (0 translates to no debugging log at all)
@@ -560,7 +569,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   # Save the results and other parameters to a RData file, this binary copy of data will be used by PlotGenerator, an other Rscript given to the user
   # to help him rerun a part of the analysis (specifically the procedures below to create the plots) customized as needed
   
-  save(results, pThreshold, quantitated_items_lbl, nConditions, calcRowStats, time.point, outputFigsPrefix, conditions.labels, IsobaricLabel, PDdata, log.intensities, norm.intensities, fit2.coefficients, file = "Plot_Generator.RData")
+  save(results, pThreshold, quantitated_items_lbl, nConditions, calcRowStats, time.point, outputFigsPrefix, conditions.labels, IsobaricLabel, PDdata, log.intensities, norm.intensities, fit2.coefficients, expdesign, file = "Plot_Generator.RData")
   
   # Now the results data frame has all the necessary information to create all target plots, notice that results will be expanded
   # even more while generating the plots, go to the comments after plot generation to see the new columns
@@ -2190,6 +2199,263 @@ run_enrichment_analysis <- function(UniProtList, myGOorganism, cond1, cond2)
   write.table(enrich.matrix, paste(outputFigsPrefix,"_enrichment_results_" , cond2, ".", cond1 , ".txt",sep=""), row.names=FALSE, sep = "\t", dec = ".", quote = F)
 }
 
+generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
+  
+  # First of all suppress the log file from Venn Diagram package
+  futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
+  
+  # This function gets the results data frame (only the columns that show the intensities per replicate) and a
+  # vector that matches an index to the respective replicate description like: "b1t1" "b1t2" "b2t1" "b2t2" "b3t1" "b3t2"
+  # in venn production we only care if a protein was quantified or not so get the results_intensities and wherevere we see
+  # an NA value set it to FALSE (not quantified) and set the rest to TRUE
+  results_intensities <- !(is.na(results_intensities))
+
+  nRep<-length(replicate_descs)
+  nCond<-length(conditions.labels)
+  
+  # The following formula produces a matrix that match a condition and a replicate to a results_intensities column
+  mymap <- sapply(c(1:nRep), function(x) (c(0:(nCond-1)) * nRep) + x)
+  rownames(mymap) = conditions.labels
+  colnames(mymap) = replicate_descs
+  
+  #example of mymap:
+  
+  #    b1t1 b1t2 b2t1 b2t2 b3t1 b3t2
+  # H    1    2    3    4    5    6
+  # L    7    8    9   10   11   12
+  
+  # since we care if a protein was overally quantified in a replicate but do not care in which condition it was quantified
+  # merge the columns of same replicate and different condition
+  
+  Quant_bool_per_rep <- sapply(c(1:nRep), function(x) apply(results_intensities[,mymap[,x]], 1, any))
+  colnames(Quant_bool_per_rep) <- replicate_descs
+  
+  # this data frame has now nRep columns showing if the proteins are present in each replicate
+  # To understand the concept of the Venn diagrams lets assume we want to see the reproducibility between 2 bio reps that
+  # have no technical replication. Then Quant_bool_per_rep will have two columns b1t1 and b2t1. To construct the venn diagram the only
+  # needed information is how many proteins where quantified in each one of the bioreps and how many in both (only 3 numbers)
+  # To generalize this we will search for all the columns in Quant_bool_per_rep that match a specific biorep, the following lines
+  # do exactly that
+  
+  # first get all the biorep indices
+  
+  all_brep_indices <- unique(sapply(1:nRep, function(x) str_extract(str_extract(colnames(Quant_bool_per_rep)[x], "b\\d+?[t$]"), "\\d+")))
+  
+  # for example if the descriptions of the replicates are b1t1 b2t1 b4t1 all_brep_indices is "1" "2" "4"
+  
+  # Now get all the columns that refer to a specific biorep and compute which proteins where quantified in each column
+  
+  pdf(paste(outputFigsPrefix,"_Venn_for_all_bioreps_separately",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
+  
+  for(i in as.numeric(all_brep_indices))
+  {
+    # First get the columns in Quant_bool_per_rep that are respective to a specific biorep
+    col_idxs_of_a_biorep <- grep(paste0("b", i), colnames(Quant_bool_per_rep))
+    
+    lst_prots_per_rep_quantified <- c()
+    # The following gets a list of the names of all proteins quantified in each techrep of this current biorep
+    lst_prots_per_rep_quantified <- lapply(col_idxs_of_a_biorep, function(x) rownames(Quant_bool_per_rep)[Quant_bool_per_rep[,x] == T])
+    
+    # for two treps of a specific biorep the result could be:
+    # lst_prots_per_rep_quantified[[1]] (truncated for preview reasons)
+    
+    # [1] "H-INV:HIT000007749;Q58E" "H-INV:HIT000038585;P220" "H-INV:HIT000013642;Q96M" "H-INV:HIT000029498;Q135" "SWISS-PROT:P55265-4;E7E"
+    # [6] "H-INV:HIT000037112;P467" "H-INV:HIT000195837;P010" "H-INV:HIT000196945;Q010" "REFSEQ:NP_002096;P16104" "H-INV:HIT000063977;Q135"
+    # [11] "REFSEQ:NP_001008;P62277" "F5H2A4;H-INV:HIT0003245" "REFSEQ:NP_001518;J3KPW7" "H-INV:HIT000038368;P390" "TREMBL:Q59GA1;REFSEQ:NP"
+    # [16] "H-INV:HIT000262212;P158" "H-INV:HIT000301385;P300" "H-INV:HIT000032127;Q132" "H0YK46;H0YN88;H-INV:HIT" "H-INV:HIT000032918;P381"
+    
+    # and for the lst_prots_per_rep_quantified[[2]] (second trep)
+    
+    # [1] "H-INV:HIT000007749;Q58E" "H-INV:HIT000038585;P220" "H-INV:HIT000013642;Q96M" "H-INV:HIT000029498;Q135" "SWISS-PROT:P55265-4;E7E"
+    # [6] "H-INV:HIT000037112;P467" "H-INV:HIT000195837;P010" "REFSEQ:NP_055644;Q7L014" "REFSEQ:NP_002096;P16104" "H-INV:HIT000063977;Q135"
+    # [11] "H-INV:HIT000288710;P073" "F5H2A4;H-INV:HIT0003245" "REFSEQ:NP_001518;J3KPW7" "H-INV:HIT000038368;P390" "TREMBL:Q59GA1;REFSEQ:NP"
+    # [16] "H-INV:HIT000262212;P158" "H-INV:HIT000301385;P300" "H0YK46;H0YN88;H-INV:HIT" "H-INV:HIT000032918;P381" "REFSEQ:NP_001035807;NP_"
+    
+    # Notice that some proteins are quantified only in one trep but some are in both
+    # this is the only list that VennDiagram package needs to create our Venn Diagram
+    
+    # In case the experiment has more than 5 bio reps the Venn can not be created since it will be no informative at all
+    
+    # Abort plot drawing in such a case
+    
+    if (length(col_idxs_of_a_biorep)>5)
+    {
+      levellog(paste0("Warn User: Biological Replicate ", i , " Venn diagram failed - too many technical replicates"))
+      next
+    }
+    
+    #Create the diagram
+    
+    result <- tryCatch({
+      png(paste("../",outputFigsPrefix,"_Venn_for_bio_rep_", i, "_",time.point,".png",sep=""),  width = 1000, height = 1000)
+      
+      names(lst_prots_per_rep_quantified) = colnames(Quant_bool_per_rep)[col_idxs_of_a_biorep]
+      VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
+      g <- grid.newpage()
+      venn.plot <- venn.diagram(lst_prots_per_rep_quantified, NULL , fill=VennPalette[1:length(col_idxs_of_a_biorep)], lwd=1, col=VennPalette[1:length(col_idxs_of_a_biorep)], margin = 0.03, cex=2.5, cat.cex=2.5)
+      g <- grid.draw(venn.plot)
+      g <- grid.text(paste0("Venn diagram for Biological Replicate ", i), x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      
+      dev.off()
+      
+      # The followig lines print to the pdf dev
+      g <- grid.newpage()
+      venn.plot <- venn.diagram(lst_prots_per_rep_quantified, NULL , fill=VennPalette[1:length(col_idxs_of_a_biorep)], lwd=1, col=VennPalette[1:length(col_idxs_of_a_biorep)], margin = 0.03, cex=2.5, cat.cex=2.5)
+      g <- grid.draw(venn.plot)
+      g <- grid.text(paste0("Venn diagram for Biological Replicate ", i), x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      
+      
+    }, error = function(err){
+      levellog(paste0("Warn User: Biological Replicate ", i , " Venn diagram failed"))
+    })
+    
+  }
+  
+  dev.off() # Close the pdf dev
+  
+  # Now create the same plot for reproducibility between bioreps
+  
+  # Merge the columns that refer to the same biorep
+  # e.g. if we have the columns "b1t1" "b1t2" "b2t1" "b2t2" "b3t1" "b3t2" merge b1t1 with b1t2 to see if a protein was overally
+  # quantified in b1 etc. The final data frame will have nBioRep columns
+  
+  # First create a matrix where columns correspond to bioreps and its contents are the column idxs in Quant_bool_per_rep that
+  # correspond to this biorep
+  
+  col_idxs <- sapply(all_brep_indices, function(x) grep(paste0("b", x), colnames(Quant_bool_per_rep)))
+  colnames(col_idxs) <- sapply(all_brep_indices, function(x) paste0("b", x))
+  
+  # e.g of col_idxs
+  #     b1 b2 b3
+  # [1,]  1  3  5
+  # [2,]  2  4  6
+  
+  # Now feed all columns of a biorep one at a time to any function to merge the desired columns
+  
+  Quant_bool_per_bio_rep <- apply(col_idxs, 2, function(x) apply(Quant_bool_per_rep[, x], 1, any))
+  
+  # Quant_bool_per_bio_rep contains one column per biorep and TRUE/FALSE vlues showing if the protein ws overally
+  # quantified in a biorep
+  
+  #e.g.:
+  
+  # +-------------------------------------------------------------------------------------------------------------------------------------+------+------+-------+
+  # |                                                                                                                                     | b1   | b2   | b3    |
+  # +-------------------------------------------------------------------------------------------------------------------------------------+------+------+-------+
+  # | H-INV:HIT000007749;Q58EX7;REFSEQ:NP_001123203;  [Pleckstrin homology domain-containing family G mem ...]                            | TRUE | TRUE | FALSE |
+  # +-------------------------------------------------------------------------------------------------------------------------------------+------+------+-------+
+  # | H-INV:HIT000038585;P22087;ENSEMBL:ENSP00000339522;ENSP00000397121;A6NHQ2   [34 kDa nucleolar scleroderma antigen;rRNA 2-O-meth ...] | TRUE | TRUE | TRUE  |
+  # +-------------------------------------------------------------------------------------------------------------------------------------+------+------+-------+
+  # | H-INV:HIT000013642;Q96ME7;ENSEMBL:ENSP00000369040;   [Zinc finger protein 512;cDNA FLJ52441, highly simi ...]                       | TRUE | TRUE | FALSE |
+  # +-------------------------------------------------------------------------------------------------------------------------------------+------+------+-------+
+  # | H-INV:HIT000029498;Q13547;F5GXM1;TREMBL:B4DSK9;   [Histone deacetylase 1;cDNA FLJ51764, highly simila ...]                          | TRUE | TRUE | FALSE |
+  # +-------------------------------------------------------------------------------------------------------------------------------------+------+------+-------+
+  # | SWISS-PROT:P55265-4;E7ENU4;REFSEQ:NP_001102; [136 kDa double-stranded RNA-binding protein;Double ...]                               | TRUE | TRUE | TRUE  |
+  # +-------------------------------------------------------------------------------------------------------------------------------------+------+------+-------+
+  # | H-INV:HIT000037112;P46782 [40S ribosomal   protein S5;40S ribosomal protein S5, ...]                                                | TRUE | TRUE | TRUE  |
+  # +-------------------------------------------------------------------------------------------------------------------------------------+------+------+-------+
+  # | H-INV:HIT000195837;P01031;TREMBL:Q59GS8   [C3 and PZP-like alpha-2-macroglobulin domain-conta ...]                                  | TRUE | TRUE | FALSE |
+  # +-------------------------------------------------------------------------------------------------------------------------------------+------+------+-------+
+  # 
+  
+  # Create a list of all protein names quantified in each biorep
+  
+  
+  lst_prots_per_brep_quantified <- c()
+  # The following gets a list of the names of all proteins quantified in each techrep of this current biorep
+  lst_prots_per_brep_quantified <- lapply(1:ncol(Quant_bool_per_bio_rep), function(x) rownames(Quant_bool_per_bio_rep)[Quant_bool_per_bio_rep[,x] == T])
+  
+  
+  
+  # Now simply create a VennDiagram for these data
+  
+  if (length(colnames(col_idxs))>5)
+  {
+    levellog(paste0("Warn User: Overall biological Replicates Venn diagram failed, too many bioreps to plot"))
+  } else {
+    
+    result <- tryCatch({
+      png(paste("../",outputFigsPrefix,"_Venn_for_bio_reps_",time.point,".png",sep=""),  width = 1000, height = 1000)
+      
+      names(lst_prots_per_brep_quantified) = colnames(col_idxs)
+      VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
+      g <- grid.newpage()
+      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+      g <- grid.draw(venn.plot)
+      g <- grid.text("Venn diagram for all Biological Replicates", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      
+      dev.off()
+      
+      # The following lines print to the pdf dev
+      
+      pdf(paste(outputFigsPrefix,"_Venn_for_bio_reps_",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
+      g <- grid.newpage()
+      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+      g <- grid.draw(venn.plot)
+      g <- grid.text("Venn diagram for all Biological Replicates", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      dev.off()
+      
+      
+    }, error = function(err){
+      levellog(paste0("Warn User: Overall biological Replicates Venn diagram failed"))
+    })
+  }
+  # The last Venn to produce would be a Venn between conditions. We will go back to results_intensities to merge all columns
+  # refering to the same condition - the procedure is similarto what we did for the overall bre veVn
+  col_idxs <- sapply(conditions.labels, function(x) grep(paste0("^", x, " "), colnames(results_intensities)))
+  
+  
+  # e.g of col_idxs
+  #      H  L
+  # [1,] 1  7
+  # [2,] 2  8
+  # [3,] 3  9
+  # [4,] 4 10
+  # [5,] 5 11
+  # [6,] 6 12
+  
+  Quant_bool_per_condition <- apply(col_idxs, 2, function(x) apply(results_intensities[, x], 1, any))
+  # Notice that this Venn Diagram may not have any meaning in precursor ion experiments or any experiment where proteins are labelled
+  # thus if a protein is detected it is then quantified to all possible conditions. In this case the Venn diagram will show all
+  # circles being totally overlapped
+  
+  lst_prots_per_cond_quantified <- c()
+  
+  lst_prots_per_cond_quantified <- lapply(1:ncol(Quant_bool_per_condition), function(x) rownames(Quant_bool_per_condition)[Quant_bool_per_condition[,x] == T])
+  if (length(colnames(col_idxs))>5)
+  {
+    levellog(paste0("Warn User: Conditions Venn diagram failed, too mny conditions to plot"))
+  } else {
+    
+    result <- tryCatch({
+      png(paste("../",outputFigsPrefix,"_Venn_for_conditions_",time.point,".png",sep=""),  width = 1000, height = 1000)
+      
+      names(lst_prots_per_cond_quantified) = colnames(col_idxs)
+      VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
+      g <- grid.newpage()
+      venn.plot <- venn.diagram(lst_prots_per_cond_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+      g <- grid.draw(venn.plot)
+      g <- grid.text("Venn diagram for all Conditions", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      
+      dev.off()
+      
+      # The following lines print to the pdf dev
+      
+      pdf(paste(outputFigsPrefix,"_Venn_for_conditions_",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
+      g <- grid.newpage()
+      venn.plot <- venn.diagram(lst_prots_per_cond_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+      g <- grid.draw(venn.plot)
+      g <- grid.text("Venn diagram for all Conditions", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      dev.off()
+      
+      
+    }, error = function(err){
+      levellog(paste0("Warn User: Conditions Venn diagram failed"))
+    })
+  }
+  
+  
+}
 
 # ======= INITIALIZATION =======
 unlabeled_peptide_regex<-"^$"
@@ -2418,6 +2684,7 @@ perform_analysis<-function(){
   
   levellog("Generating analysis plots ...")
   
+  .GlobalEnv[["expdesign"]]<-expdesign
   
   results<-do_results_plots(norm.median.intensities, time.point, exportFormat="pdf", outputFigsPrefix=outputFigsPrefix)
   
@@ -2486,6 +2753,35 @@ perform_analysis<-function(){
   # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
   
   # Which describes the Function detected per line, the term ID etc and all information relative to a GO enrichment analysis
+  
+  levellog("Create Venn Diagrams.")
+  
+  # Venn diagrams can be very useful for visualising the reproducibility of the experiment. In general two replicates
+  # of the experiment should not have great differences in the amount of proteins quantified. The Venn diagram might
+  # show these possible differences between biological replicates, or technical replicates of the same biorep
+  # the following function gets the experimental structure and the columns of the protein intensities across all replicates
+  
+  # First lets build a matrix with columns the different conditions, rows the replicate descriptions (b1t1, b1t2 etc..)
+  # and values the indices of the respective columns in results dataframe that store the intensities for the specific
+  # condition - replicate pair
+  
+  intensity_cols_idxs <- sapply(conditions.labels, function(x) grep(paste0("^", x, " \\d+"), colnames(results)))
+  
+  # the following lines adds the description of the replicates as rownames:
+  tmp_vector <- expdesign[expdesign[,"Category"] == conditions.labels[1],"Sample"]
+  tmp_vector <- substr(tmp_vector, str_length(conditions.labels[1]) + 2, str_length(tmp_vector))
+  rownames(intensity_cols_idxs) <- tmp_vector
+  # an example of intensity_cols_idxs is:
+  
+  #       H  L
+  # b1t1  8 14
+  # b1t2  9 15
+  # b2t1 10 16
+  # b2t2 11 17
+  # b3t1 12 18
+  # b3t2 13 19
+  
+  generate_Venn_diagrams(results[,as.vector(intensity_cols_idxs)], rownames(intensity_cols_idxs))
   
   # Return to the main working directory and log the completion of the procedure
   setwd("..")

@@ -213,7 +213,7 @@ if ($server_response['R_success']) {
 $server_response['success'] = $server_response['R_success'];
 if ($server_response['success']) {
    
-   $server_response['results_url'] = str_replace($document_root, '/ProteoSign_v2', $upload_dir . "/proteosign.zip");
+   $server_response['results_url'] = str_replace($document_root, '/ProteoSign', $upload_dir . "/proteosign.zip");
    $server_response['results_preview'] = [];
    if (file_exists(getcwd() . "/msdiffexp_wd"))
    {
