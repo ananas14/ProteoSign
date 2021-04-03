@@ -2399,9 +2399,9 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
       
       VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
       g <- grid.newpage()
-      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:n_bioreps], lwd=1, col=VennPalette[1:n_bioreps], margin = 0.03, cex=2.5, cat.cex=2.5)
+      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:n_bioreps], lwd=1, col=VennPalette[1:n_bioreps], margin = 0.08, cex=2.5, cat.cex=2.5)
       g <- grid.draw(venn.plot)
-      g <- grid.text("Venn diagram for all Biological Replicates", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      g <- grid.text("Venn diagram for all Biological Replicates", x = unit(0.5, "npc"), y = unit(0.97, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
       
       dev.off()
       
@@ -2409,9 +2409,9 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
       
       pdf(paste(outputFigsPrefix,"_Venn_for_bio_reps_",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
       g <- grid.newpage()
-      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:n_bioreps], lwd=1, col=VennPalette[1:n_bioreps], margin = 0.03, cex=2.5, cat.cex=2.5)
+      venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:n_bioreps], lwd=1, col=VennPalette[1:n_bioreps], margin = 0.08, cex=2.5, cat.cex=2.5)
       g <- grid.draw(venn.plot)
-      g <- grid.text("Venn diagram for all Biological Replicates", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      g <- grid.text("Venn diagram for all Biological Replicates", x = unit(0.5, "npc"), y = unit(0.97, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
       dev.off()
       
       
@@ -2452,9 +2452,9 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
       names(lst_prots_per_cond_quantified) = colnames(col_idxs)
       VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
       g <- grid.newpage()
-      venn.plot <- venn.diagram(lst_prots_per_cond_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+      venn.plot <- venn.diagram(lst_prots_per_cond_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.08, cex=2.5, cat.cex=2.5)
       g <- grid.draw(venn.plot)
-      g <- grid.text("Venn diagram for all Conditions", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      g <- grid.text("Venn diagram for all Conditions", x = unit(0.5, "npc"), y = unit(0.97, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
       
       dev.off()
       
@@ -2462,9 +2462,9 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
       
       pdf(paste(outputFigsPrefix,"_Venn_for_conditions_",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
       g <- grid.newpage()
-      venn.plot <- venn.diagram(lst_prots_per_cond_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.07, cex=2.5, cat.cex=2.5)
+      venn.plot <- venn.diagram(lst_prots_per_cond_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.08, cex=2.5, cat.cex=2.5)
       g <- grid.draw(venn.plot)
-      g <- grid.text("Venn diagram for all Conditions", x = unit(0.5, "npc"), y = unit(0.95, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
+      g <- grid.text("Venn diagram for all Conditions", x = unit(0.5, "npc"), y = unit(0.97, "npc"), gp = gpar(cex=2.5), draw = TRUE, vp = NULL)
       dev.off()
       
       
