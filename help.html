@@ -123,7 +123,7 @@
               </figure>
             </dd>
             <dt><h3>Advanced Options (continued): Label swap</h3>
-              In the case of experiments where <i>label swap</i> is utilized,  the user should declare the swap by pressing <i>Label swap options...</i> as shown on the figure. Then, from within the popup window titled <i>Label Swap Assignment</i>, the user should specify the biological and technical replicates involved as well as the labels swapped and press the <i>Add</i> button. The list on the top-right shows the relevant raw files and the list at the bottom the declared label swaps.
+              In the case of experiments where <i>label swap</i> is utilized, the user should declare the swap by pressing <i>Label swap options...</i> as shown on the figure. Then, from within the popup window titled <i>Label Swap Assignment</i>, the user should specify the biological and technical replicates involved as well as the labels swapped and press the <i>Add</i> button. The list on the top-right shows the relevant raw files and the list at the bottom the declared label swaps.
             </dt>
             <dd>
               <figure style="width: 800px">
@@ -134,7 +134,24 @@
                 <img src="images/scrshotan7_help.PNG" style="width: 100%;"/>
                 <figcaption style="text-align: center;"></figcaption>
               </figure>
-            </dd>	      
+            </dd>	
+
+            <dt><h3>Advanced Options (continued): Functional Enrichment analysis</h3>
+				<i>ProteoSign</i> applies a <strong>functional enrichment analysis</strong> for all differentially expressed proteins. <strong>Functional Enrichment</strong> is enabled by default, requiring the experiment's target organism name (or scientific name) to be typed into the respective text box. A list of <i>suggestions</i> will appear as the user starts typing in the box to help in submitting valid values.
+            </dt>
+            <dd>
+              <figure style="width: 800px">
+                <img src="images/scrshot_enrichment_help.PNG" style="width: 100%;"/>
+                <figcaption style="text-align: center;"></figcaption>
+              </figure>
+              <figure style="width: 800px; margin-top: 30px">
+                <img src="images/scrshot_enrichment_2_help.PNG" style="width: 100%;"/>
+                <figcaption style="text-align: center;"></figcaption>
+              </figure>
+            </dd>
+
+
+			
             <dt><h3>Statistical analysis wait page</h3>
               Here the user waits for the software to finish the statistical analysis, while presented with current <i>Nature Methods</i> articles hyperlinks. When the analysis is finished, the user is navigated automatically to the next page (see below).
             </dt>
@@ -144,7 +161,7 @@
             </dt>
             <dd><img src="images/scrshot8_help.PNG"/></dd>
             <dt><h3>Final page</h3>
-              Here the user can click on the <i>proteosign.zip</i> hyperlink to download the entire software output, comprising the aforementioned data plots, other diagnostic plots and various data tables in the form of text files (see below).
+              Here the user can click on the <i>proteosign.zip</i> hyperlink to download the entire software output, comprising the aforementioned data plots, other diagnostic plots and various data tables in the form of text files (see below). Also, they can preview the results of the <i>functional enrichment analysis</i> in the form of a table. Each row corresponds to a protein function, double clicking on a function redirects the user to a web page with more information. Since the enrichment analysis is applies to each pair of conditions compared, the user can choose which condition-pair respective analysis to preview by selecting it from the drop down list.
             </dt>
             <dd><img src="images/scrshot9_help.PNG"/></dd>
             <dt><h3>Sofware output files</h3>
@@ -202,6 +219,13 @@
               A trimmed version of the aforementioned results file comprising only the statistically significant results (differentially expressed proteins).
             </dt>
             <dd><img src="images/scrshot19_help.PNG"/></dd>
+			
+			<dt><h3>Plot_Generator.R file</h3>
+              An R script that produces all plots (getting the pre-computed data from the file Plot_Generator.RData contained in the same folder) so that the user can easily modify them.
+            </dt>
+            <dd><img src="images/scrshot29_help.PNG"/></dd>
+			
+			
             <dt><h3>Pre-normalization intensities PDF file</h3>
               Box plots of log2 protein intensities before quantile normalization for each replicate and condition.
             </dt>
@@ -230,6 +254,11 @@
               Plot of average log2 protein intensity ratio against -log10 p-value (also known as volcano plot) .
             </dt>
             <dd><img src="images/scrshot28_help.PNG"/></dd>
+			
+			<dt><h3>Venn Diagrams</h3>
+              Venn Diagrams help in evluating the reproducibility of the experiment. ProteoSign creates 3 PDF files containg Venn diagrams. One showing the amount of quantified proteins accross the experiment's conditions, one accross its biological replicates and one across the technical replicates of each biological replicate.
+            </dt>
+            <dd><img src="images/scrshot30_help.PNG"/></dd>
         </dl>
       </div>
    </body>
