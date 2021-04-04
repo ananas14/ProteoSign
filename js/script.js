@@ -684,14 +684,18 @@
 				patt = new RegExp("limma\-graphs");
 				
 				// Populate server_feedback division with thumbnails of the result images, data.results_preview store their server paths
+				// Organise them in a nice looking table to deal with wrapping and other appeareance issues
+				$("#server_feedback").append("<table><tr>");
 				$.each(data.results_preview, function (idx, path_to_img_i)
 					{
 						var img_i = path_to_img_i.substr(data.results_url.lastIndexOf("/") + 1);
 						if (!patt.test(img_i)) {
-							$("#server_feedback").append("<div class='resimg'><a href='" + path_to_img_i + "' target='_blank'><img src='" + path_to_img_i + "' width='120'></img></a></div>");
+							$("#server_feedback").append("<td style='display:inline-block'><div class='resimg'><a href='" + path_to_img_i + "' target='_blank'><img src='" + path_to_img_i + "' width='120'></img></a></div></td>");
 						}
 					}); // END for each data.results_preview
-					$("#server_feedback").css("box-shadow", "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)")
+				$("#server_feedback").append("</tr></table>");
+				$("#server_feedback").css("box-shadow", "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)");
+				$("#server_feedback").css("text-align", "left");
 					
 				// Also check if there are any GO analysis result text files in the server, if so populate the corresponding select otherwise hide all respective elements
 				
