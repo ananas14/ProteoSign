@@ -1,5 +1,6 @@
 
 
+
 # PROTEOSIGN - MSdiffexp.R
 # Main Back-end R script for Proteosign: An end-user online differential proteomics statistical analysis platform.
 # Reference:
@@ -12,7 +13,7 @@ options(warn=1)
 # ======================================
 # WARNING: Make sure to install the following packages as administrator/root (for them to be available to all users)
 # ======================================
-DEBUG <- FALSE;
+DEBUG <- FALSE; 
 
 # if (!requireNamespace("BiocManager", quietly = TRUE)) {install.packages("BiocManager")}
 # BiocManager::install("limma")
@@ -30,21 +31,25 @@ DEBUG <- FALSE;
 # if(!require("gprofiler2")){  install.packages("gprofiler2") }
 # if(!require("VennDiagram")){  install.packages("VennDiagram") }
 
-library(limma)
-library(statmod)
-library(stringr)
-library(reshape)
-library(plyr)
-library(ggplot2)
-library(labeling)
-library(gtools)
-library(data.table)
-library(outliers)
-library(pryr)
-library(gprofiler2)
-library(VennDiagram)
+cat("\nStarting ProteoSign...\n")
+cat("=== Loading dependencies... ===\n\n")
 
 
+library(limma, quietly = T, warn.conflicts = F, verbose = F)
+library(statmod, quietly = T, warn.conflicts = F, verbose = F)
+library(stringr, quietly = T, warn.conflicts = F, verbose = F)
+library(reshape, quietly = T, warn.conflicts = F, verbose = F)
+library(plyr, quietly = T, warn.conflicts = F, verbose = F)
+library(ggplot2, quietly = T, warn.conflicts = F, verbose = F)
+library(labeling, quietly = T, warn.conflicts = F, verbose = F)
+library(gtools, quietly = T, warn.conflicts = F, verbose = F)
+library(data.table, quietly = T, warn.conflicts = F, verbose = F)
+library(outliers, quietly = T, warn.conflicts = F, verbose = F)
+library(pryr, quietly = T, warn.conflicts = F, verbose = F)
+library(gprofiler2, quietly = T, warn.conflicts = F, verbose = F)
+library(VennDiagram, quietly = T, warn.conflicts = F, verbose = F)
+
+cat("\n=== Dependencies successfully loaded... ===\n\n")
 
 # DEBUGGING log flag/level (0 translates to no debugging log at all)
 debuglog <- 10
@@ -313,7 +318,7 @@ calcRowStats<-function(x,conds_cols_idxs,ratio_combs){
 }
 
 # Produces Reproducibility, Volcano plot, MA plot and Scatterplot (matrix). Called by do_limma_analysis subroutine.
-do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf",outputFigsPrefix=""){
+do_results_plots<-function(norm.median.intensities,exp_desc,exportFormat="pdf",outputFigsPrefix=""){
   levellog("",change=1)
   
   ratio_combs<-combinations(nConditions,2,1:nConditions)
@@ -389,15 +394,15 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   
   # Search for the leading tab character
   
-  FileHandle <- file(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""),"r")
+  FileHandle <- file(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",exp_desc,".txt",sep=""),"r")
   first_line <- readLines(FileHandle,n=1)
   hasLeadingTab <- (substr(first_line, 0, 1) == "\t")
   close(FileHandle)
   if (hasLeadingTab)
   {
-    results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "", row.names = "X")
+    results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",exp_desc,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "", row.names = "X")
   } else {
-    results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "")
+    results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",exp_desc,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "")
   }
   
   
@@ -405,7 +410,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   
   if (nrow(ratio_combs) == 1) {
     # limma does not indicate the conditions compared in case only two conditions are compared in the column names so if ratio_combs = 1 add the conditions manually to the colnames of results
-    colnames(results)[grep("p\\.value\\.adj",colnames(results), ignore.case = T)]<-paste("p.value.adj.",conditions.labels[2],".",conditions.labels[1],sep="")
+    colnames(results)[grep("p\\.value\\.adj",colnames(results), ignore.case = T)]<-paste("p.value.adj.",conditions[2],".",conditions[1],sep="")
   }
   
   
@@ -415,7 +420,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   if (.GlobalEnv[["replicate_mismatch"]] == F) {
     # Here each column is renamed to "<condition> index" for example if the columns where Light.b1t1, Light.b1t2, Heavy.b1t1... they will be renamed to Light 1, Light 2, Heavy 1...
     nsamples<-length(colnames(tmp))/nConditions
-    colnames(tmp)<-apply(data.frame(cbind(rep(conditions.labels,each=nsamples),rep(1:nsamples))),1,function(x) paste(x['X1'],x['X2']))
+    colnames(tmp)<-apply(data.frame(cbind(rep(conditions,each=nsamples),rep(1:nsamples))),1,function(x) paste(x['X1'],x['X2']))
   } else {
     # in case not all conditions have the same amount of replicates a special way to achieve the desirable renaming should be performed:
     # first get all colnames of tmp and then make the replacement as needed
@@ -442,7 +447,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   levellog("Filtering data based on P-value(s) ...")
   signTruth<-rep(FALSE,nrow(results))
   for(i in 1:nrow(ratio_combs)){
-    col_desc_<-paste("p.value.adj.",paste(conditions.labels[ratio_combs[i,2]],".",conditions.labels[ratio_combs[i,1]],sep=""),sep="")
+    col_desc_<-paste("p.value.adj.",paste(conditions[ratio_combs[i,2]],".",conditions[ratio_combs[i,1]],sep=""),sep="")
     na_indexes<-which(is.na(results[,col_desc_]))
     if(length(na_indexes)>0){
       results[na_indexes,col_desc_]<-1
@@ -458,19 +463,19 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   conds_cols_idxs <- c()
   if (.GlobalEnv[["replicate_mismatch"]] == F) {
     # when there is not replicate mismatch creating conds_cols_idxs is easy:
-    for (lbl_i in conditions.labels) {
+    for (lbl_i in conditions) {
       conds_cols_idxs <- rbind(conds_cols_idxs, grep(paste("^", lbl_i, sep = ""), colnames(results)))
     }
   } else {
     # when there is replicate mismatch not all conditions match all replicates, that means that some replicate - condition combinations should have an NA value in conds_cols_idxs
     maxcols <- 0
-    for (lbl_i in conditions.labels) {
+    for (lbl_i in conditions) {
       if (length(grep(paste("^", lbl_i, sep = ""), colnames(results))) > maxcols) {
         maxcols = length(grep(paste("^", lbl_i, " ", sep = ""), colnames(results)))
       }
     }
     nsamples <- maxcols
-    for (lbl_i in conditions.labels) {
+    for (lbl_i in conditions) {
       row_to_add <- grep(paste("^", lbl_i, sep = ""), colnames(results))
       row_to_add_2 <- rep(NA, maxcols)
       for (row_index in row_to_add) {
@@ -485,7 +490,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   # in case there is only one replicate for one condition the statistics for the proteins can not be calculated, in this case warn the user that plots concerning this conditiojn can not be calculated since R uses the std formula with "n-1" as denominator, so all standard deviations can not be calculated
   for (i in 1:nrow(conds_cols_idxs)) {
     if (sum(!is.na(conds_cols_idxs[i, ])) == 1) {
-      levellog(paste0("Warn User: Condition ", conditions.labels[i], " was found replicated just once, plots displaying comparisons between this condition and others might not be available!"))
+      levellog(paste0("Warn User: Condition ", conditions[i], " was found replicated just once, plots displaying comparisons between this condition and others might not be available!"))
     }
   }
   
@@ -523,7 +528,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   # d contains all calculated statistics for ratios calculated by calcrowstats. the columns will be renamed to a more informative name. For a specific combination of conditions the columns contain the following info: mean/standard deviation/number of ratios calculated/average of log2 quant data/the rest of the columns are ratios calculated (one per replicate)
   # the first columns are standard:
   for(i in 1:nrow(ratio_combs)){
-    ratio_i_str<-paste(conditions.labels[ratio_combs[i,2]],".",conditions.labels[ratio_combs[i,1]],sep="")
+    ratio_i_str<-paste(conditions[ratio_combs[i,2]],".",conditions[ratio_combs[i,1]],sep="")
     colnames_d_<-rbind(colnames_d_, c(
       paste("log2.avg.",ratio_i_str,sep=""),
       paste("log2.sd.",ratio_i_str,sep=""),
@@ -535,7 +540,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   
   # the following columns are named depending on the experimental structure
   for(i in 1:nrow(ratio_combs)){
-    ratio_i_str<-paste(conditions.labels[ratio_combs[i,2]],".",conditions.labels[ratio_combs[i,1]],sep="") # for example Heavy.Light
+    ratio_i_str<-paste(conditions[ratio_combs[i,2]],".",conditions[ratio_combs[i,1]],sep="") # for example Heavy.Light
     colnames_d_<-c(colnames_d_, paste(paste("log2.",ratio_i_str,sep=""),1:nsamples))
   }
   
@@ -569,7 +574,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   # Save the results and other parameters to a RData file, this binary copy of data will be used by PlotGenerator, an other Rscript given to the user
   # to help him rerun a part of the analysis (specifically the procedures below to create the plots) customized as needed
   
-  save(results, pThreshold, quantitated_items_lbl, nConditions, calcRowStats, time.point, outputFigsPrefix, conditions.labels, IsobaricLabel, PDdata, log.intensities, norm.intensities, fit2.coefficients, expdesign, file = "Plot_Generator.RData")
+  save(results, pThreshold, quantitated_items_lbl, nConditions, calcRowStats, exp_desc, outputFigsPrefix, conditions, IsobaricLabel, PDdata, log.intensities, norm.intensities, fit2.coefficients, expdesign, file = "Plot_Generator.RData")
   
   # Now the results data frame has all the necessary information to create all target plots, notice that results will be expanded
   # even more while generating the plots, go to the comments after plot generation to see the new columns
@@ -593,14 +598,14 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   # Plot generation:
   for(i in 1:nrow(ratio_combs)){
     levellog(paste("Generating plots for combination #",i," ..."),change=1,after=T)
-    ratio_i_str <- paste(conditions.labels[ratio_combs[i, 2]], ".", conditions.labels[ratio_combs[i, 1]], sep = "") # for example H.L
+    ratio_i_str <- paste(conditions[ratio_combs[i, 2]], ".", conditions[ratio_combs[i, 1]], sep = "") # for example H.L
     
     # 1 - Volcano plot (-log10 P-value vs log ratio)
     result <- tryCatch({
       levellog("Making volcano plot ...")
       figsuffix<-paste("_",ratio_i_str,"-volcano","_",sep="")
       if(exportFormat == "pdf"){
-        pdf(file=paste(outputFigsPrefix,figsuffix,time.point,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
+        pdf(file=paste(outputFigsPrefix,figsuffix,exp_desc,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
       }
       
       ratio_i_<-paste("log2.",ratio_i_str,sep="")
@@ -670,7 +675,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
       panel.hist.breaks<<-(-ratiolim:ratiolim)
       
       
-      ratio_i_p.value.adj<-paste("p.value.adj.",paste(conditions.labels[ratio_combs[i,2]],".",conditions.labels[ratio_combs[i,1]],sep=""),sep="")
+      ratio_i_p.value.adj<-paste("p.value.adj.",paste(conditions[ratio_combs[i,2]],".",conditions[ratio_combs[i,1]],sep=""),sep="")
       ratio_i_avg_col<-paste("log2.avg.",ratio_i_str,sep="")
       mlog10_ratio_i_p.value.adj<-paste("mlog10_",ratio_i_p.value.adj,sep="")
       diffexp_ratio_i<-paste("diffexp_",ratio_i_str,sep="")
@@ -720,10 +725,10 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
       
       print(p)
       if(exportFormat == "emf"){
-        savePlot(filename=paste(outputFigsPrefix,figsuffix,time.point,".emf",sep=""),type="emf")
+        savePlot(filename=paste(outputFigsPrefix,figsuffix,exp_desc,".emf",sep=""),type="emf")
       }
       dev.off()
-      png(paste("../",outputFigsPrefix,figsuffix,time.point,".png",sep=""), width = 1500, height = 1050)
+      png(paste("../",outputFigsPrefix,figsuffix,exp_desc,".png",sep=""), width = 1500, height = 1050)
       
       p<-ggplot(data=results, aes_string(x=ratio_i_avg_col, y=mlog10_ratio_i_p.value.adj, colour=diffexp_ratio_i)) +
         geom_point(alpha=0.7, size=4.25) +
@@ -744,7 +749,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
       figsuffix<-paste("_",ratio_i_str,"-value-ordered-log-ratio","_",sep="")
       
       if(exportFormat == "pdf"){
-        pdf(file=paste(outputFigsPrefix,figsuffix,time.point,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
+        pdf(file=paste(outputFigsPrefix,figsuffix,exp_desc,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
       }
       
       # The value ordered plot plots the average log ratio of the proteins for the specific condition pair(a measure of how much the protein is overexpressed in L compared to H)
@@ -786,9 +791,9 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
         ylim(c(-ratiolim, ratiolim)) + scale_colour_manual(values=cbPalette) +
         xlab(paste(quantitated_items_lbl,"ID")) + ylab(myylab) + ggtitle("Value-ordered fold change")
       print(p)
-      ggsave(paste(outputFigsPrefix,figsuffix,time.point,".png",sep=""), plot = p, device = "png", path = "..")
+      ggsave(paste(outputFigsPrefix,figsuffix,exp_desc,".png",sep=""), plot = p, device = "png", path = "..")
       if(exportFormat == "emf"){
-        savePlot(filename=paste(outputFigsPrefix,figsuffix,time.point,".emf",sep=""),type="emf")
+        savePlot(filename=paste(outputFigsPrefix,figsuffix,exp_desc,".emf",sep=""),type="emf")
       }
       dev.off()    
     }, error = function(err){
@@ -809,7 +814,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
       ratio_i_avgI_col<-paste("log2.avg.I.",ratio_i_str,sep="")
       
       if(exportFormat == "pdf"){
-        pdf(file=paste(outputFigsPrefix,figsuffix,time.point,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
+        pdf(file=paste(outputFigsPrefix,figsuffix,exp_desc,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
       }
       
       if(!IsobaricLabel)
@@ -833,10 +838,10 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
         ylim(c(-ratiolim, ratiolim)) + scale_colour_manual(values=cbPalette) +
         xlab("M (average log2 Intensity)") + ylab(myylab) + ggtitle("MA plot")
       print(p)
-      ggsave(paste(outputFigsPrefix,figsuffix,time.point,".png",sep=""), plot = p, device = "png", path = "..")
+      ggsave(paste(outputFigsPrefix,figsuffix,exp_desc,".png",sep=""), plot = p, device = "png", path = "..")
       
       if(exportFormat == "emf"){
-        savePlot(filename=paste(outputFigsPrefix,figsuffix,time.point,".emf",sep=""),type="emf")
+        savePlot(filename=paste(outputFigsPrefix,figsuffix,exp_desc,".emf",sep=""),type="emf")
       }
       dev.off()
     }, error = function(err){
@@ -898,14 +903,14 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
       # Call pairs.panels to generate the plot. See the comments in pairs.panel for more information
       
       if(exportFormat == "pdf"){
-        pdf(file=paste(outputFigsPrefix,figsuffix,time.point,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
+        pdf(file=paste(outputFigsPrefix,figsuffix,exp_desc,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
       }
       pairs.panels(allratios,scale=T,lm=T)
       dev.off()
-      png(paste("../",outputFigsPrefix,figsuffix,time.point,".png",sep=""), width = 1500, height = 1050)
+      png(paste("../",outputFigsPrefix,figsuffix,exp_desc,".png",sep=""), width = 1500, height = 1050)
       pairs.panels(allratios,scale=T,lm=T)
       if(exportFormat == "emf"){
-        savePlot(filename=paste(outputFigsPrefix,figsuffix,time.point,".emf",sep=""),type="emf")
+        savePlot(filename=paste(outputFigsPrefix,figsuffix,exp_desc,".emf",sep=""),type="emf")
       }
       dev.off()
     }, error = function(err){
@@ -935,7 +940,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   
   colnames(results)<-gsub("[\\.]"," ",colnames(results))
   for(i in 1:nrow(ratio_combs)){
-    ratio_i_str<-paste("(",conditions.labels[ratio_combs[i,2]],") (",conditions.labels[ratio_combs[i,1]],")",sep="")
+    ratio_i_str<-paste("(",conditions[ratio_combs[i,2]],") (",conditions[ratio_combs[i,1]],")",sep="")
     colnames(results)<-gsub(ratio_i_str,"\\1/\\2",colnames(results))
   }
   colnames(results)<-gsub("p value adj","P-value adjusted",colnames(results))
@@ -961,17 +966,17 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
     quant_species<-"peptides"
   }  
   
-  levellog(paste("do_results_plots: Quantified ",quant_species,": ",nrow(results)," (",time.point,")",sep=""))
+  levellog(paste("do_results_plots: Quantified ",quant_species,": ",nrow(results)," (",exp_desc,")",sep=""))
   
-  conditions.labels <- gsub("\\.", " ", conditions.labels)
+  conditions <- gsub("\\.", " ", conditions)
   
   
   # Log amount of differentially expressed proteins
   
   for(i in 1:nrow(ratio_combs)){
-    col_desc_<-paste("P-value adjusted ",paste(conditions.labels[ratio_combs[i,2]],"/",conditions.labels[ratio_combs[i,1]],sep=""),sep="")
+    col_desc_<-paste("P-value adjusted ",paste(conditions[ratio_combs[i,2]],"/",conditions[ratio_combs[i,1]],sep=""),sep="")
     ndiffexp_tmp<-length(which(results[,col_desc_]<pThreshold))
-    levellog(paste("do_results_plots: Differentially expressed for ",conditions.labels[ratio_combs[i,2]]," vs ",conditions.labels[ratio_combs[i,1]]," : ",ndiffexp_tmp,sep=""))
+    levellog(paste("do_results_plots: Differentially expressed for ",conditions[ratio_combs[i,2]]," vs ",conditions[ratio_combs[i,1]]," : ",ndiffexp_tmp,sep=""))
   }
   
   if(nrow(ratio_combs) > 1){
@@ -1046,7 +1051,7 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   colnames(diffexp) <- newcolumns
   
   # Write the DE proteins from diffexp to a table
-  write.table(diffexp[signTruth,],dec=dec,file=paste(outputFigsPrefix,"_diffexp_",time.point,".txt",sep=""),sep="\t",row.names=F,quote=F)
+  write.table(diffexp[signTruth,],dec=dec,file=paste(outputFigsPrefix,"_diffexp_",exp_desc,".txt",sep=""),sep="\t",row.names=F,quote=F)
   
   colnames(diffexp) <- oldcolumns
   
@@ -1055,14 +1060,14 @@ do_results_plots<-function(norm.median.intensities,time.point,exportFormat="pdf"
   diffexp<-merge(diffexp,results[,-grep("^(avg log2|P-value adjusted)",colnames(results))],by.x=c(quantitated_items_lbl),by.y=c("ID"),all.x=T)
   
   # Save this information to a file
-  write.table(diffexp,dec=dec,file=paste(outputFigsPrefix,"_results_",time.point,".txt",sep=""),sep="\t",row.names=F,quote=F)
+  write.table(diffexp,dec=dec,file=paste(outputFigsPrefix,"_results_",exp_desc,".txt",sep=""),sep="\t",row.names=F,quote=F)
   
   levellog("",change=-1)
   return(results)
 }
 
 # Performs the differential expression analysis through limma, after quantile normalization.
-do_limma_analysis<-function(working_pgroups,time.point,exp_design_fname,exportFormat="pdf",outputFigsPrefix=""){
+do_limma_analysis<-function(working_pgroups,exp_desc,exp_design_fname,exportFormat="pdf",outputFigsPrefix=""){
   levellog("",change=1)
   levellog("Preparing limma input data frame ...")
   # Read the sample key
@@ -1087,7 +1092,7 @@ do_limma_analysis<-function(working_pgroups,time.point,exp_design_fname,exportFo
   
   log.intensities  <- log2(prot.intensities)
   
-  setwd(limma_output)
+  setwd(limma_out_dir)
   
   #rename the column names to their original ones to display to the graph
   names(log.intensities) <- rownames(sample.key)
@@ -1107,7 +1112,7 @@ do_limma_analysis<-function(working_pgroups,time.point,exp_design_fname,exportFo
   write.table(working_pgroups,file=paste(outputFigsPrefix,"_limma-input_",quantitated_items_lbl,"Groups.txt",sep=""),sep="\t",row.names = T, col.names=NA)
   colnames(working_pgroups) <- oldcolumns
   if(exportFormat == "pdf"){
-    pdf(file=paste(outputFigsPrefix,"_limma-graphs_",time.point,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
+    pdf(file=paste(outputFigsPrefix,"_limma-graphs_",exp_desc,".pdf",sep=""),width=10, height=7, family = "Helvetica", pointsize=8)
   }
   
   #Remove infinite records
@@ -1214,7 +1219,7 @@ do_limma_analysis<-function(working_pgroups,time.point,exp_design_fname,exportFo
   ratio_combs<-combinations(nConditions,2,1:nConditions)
   contrasts<-c()
   for(i in 1:nrow(ratio_combs)){
-    contrasts<-c(contrasts,paste(conditions.labels[ratio_combs[i,2]],"-",conditions.labels[ratio_combs[i,1]],sep=""))
+    contrasts<-c(contrasts,paste(conditions[ratio_combs[i,2]],"-",conditions[ratio_combs[i,1]],sep=""))
   }
   contrasts <- makeContrasts(contrasts=contrasts, levels=design)
   write.table(contrasts,file=paste(outputFigsPrefix,"_limma-contrasts-matrix_",quantitated_items_lbl,"Groups.txt",sep=""),sep="\t",row.names = T, col.names=NA)  
@@ -1227,58 +1232,58 @@ do_limma_analysis<-function(working_pgroups,time.point,exp_design_fname,exportFo
   
   # Plot a Histogram of co-efficients (log2 ratio)
   for(i in 1:nrow(ratio_combs)){
-    ratio_i_str<-paste(conditions.labels[ratio_combs[i,2]],"/",conditions.labels[ratio_combs[i,1]],sep="")
+    ratio_i_str<-paste(conditions[ratio_combs[i,2]],"/",conditions[ratio_combs[i,1]],sep="")
     hist(fit2$coefficients[,i],main=paste("Log2 Fold Change ",ratio_i_str,sep=""), xlab="Log2 Fold Change", breaks=50 )
   }   
   fit2.coefficients <<- fit2$coefficients
   if(exportFormat == "emf"){
-    savePlot(filename=paste(outputFigsPrefix,"_limma-graphs_",time.point,"_hist.emf",sep=""),type="emf")
+    savePlot(filename=paste(outputFigsPrefix,"_limma-graphs_",exp_desc,"_hist.emf",sep=""),type="emf")
   }
   
   dev.off()
   
   
   #save the graphs to pngs
-  png(paste("../",outputFigsPrefix,"_limma-graphs_",time.point,"_intensities-before-normalization.png",sep=""), width = 1500, height = 1050)
+  png(paste("../",outputFigsPrefix,"_limma-graphs_",exp_desc,"_intensities-before-normalization.png",sep=""), width = 1500, height = 1050)
   boxplot(log.intensities)
   title(main="Intensities Before Normalisation")
   
   dev.off()
   
-  png(paste("../",outputFigsPrefix,"_limma-graphs_",time.point,"_intensities-after-normalization.png",sep=""), width = 1500, height = 1050)
+  png(paste("../",outputFigsPrefix,"_limma-graphs_",exp_desc,"_intensities-after-normalization.png",sep=""), width = 1500, height = 1050)
   boxplot(norm.intensities)
   title(main="Intensities After Normalisation")
   
   dev.off()
   
-  tmp_conditions.labels <- conditions.labels
+  tmp_conditions <- conditions
   if (IsobaricLabel)
   {
     if(!PDdata){
-      conditions.labels <- sub("Reporter\\.intensity\\.", "Reporter.", conditions.labels)
+      conditions <- sub("Reporter\\.intensity\\.", "Reporter.", conditions)
     }else{
-      conditions.labels <- sub('X([[:digit:]])', "\\1", conditions.labels)
+      conditions <- sub('X([[:digit:]])', "\\1", conditions)
     }
   }
   
   for(i in 1:nrow(ratio_combs)){
-    ratio_i_str<-paste(conditions.labels[ratio_combs[i,2]],"/",conditions.labels[ratio_combs[i,1]],sep="")
-    ratio_i_str_with_dash <-paste(conditions.labels[ratio_combs[i,2]],"-",conditions.labels[ratio_combs[i,1]],sep="")
-    png(paste("../",outputFigsPrefix,"_limma-graphs_",time.point,"_log2-fold-change-histogram", ratio_i_str_with_dash ,".png",sep=""), width = 1500, height = 1050)
+    ratio_i_str<-paste(conditions[ratio_combs[i,2]],"/",conditions[ratio_combs[i,1]],sep="")
+    ratio_i_str_with_dash <-paste(conditions[ratio_combs[i,2]],"-",conditions[ratio_combs[i,1]],sep="")
+    png(paste("../",outputFigsPrefix,"_limma-graphs_",exp_desc,"_log2-fold-change-histogram", ratio_i_str_with_dash ,".png",sep=""), width = 1500, height = 1050)
     hist(fit2$coefficients[,i],main=paste("Log2 Fold Change ",ratio_i_str,sep=""), xlab="Log2 Fold Change", breaks=50 )
     dev.off()
   } 
   
   if (IsobaricLabel)
   {
-    conditions.labels <- tmp_conditions.labels
+    conditions <- tmp_conditions
   }
   
   # Output analysis details to file
   # adjust="BH" means adjust the calculated p-values for multiple testing using
   # the Benjamini Hochberg method (FDR)
   levellog("Saving analysis results to file ...")
-  write.fit(fit2, file=paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), adjust="BH")
+  write.fit(fit2, file=paste(outputFigsPrefix,"_condition-i_vs_condition-j_",exp_desc,".txt",sep=""), adjust="BH")
   
   # Notice that write.fit output will give us a table with average log2 intensity (A), fold changes for each comparison between conditions, p-values and adjusted p-values, F and F p values for each protein (the protein names are not displayed in this file)
   # Warning! latest releases of limma have changed the way the columns are displayed! this might not work in latest limma version! 3.18.13 suits best for PS
@@ -1288,15 +1293,15 @@ do_limma_analysis<-function(working_pgroups,time.point,exp_design_fname,exportFo
     # Opening the results file might not be trivial, see the comment in do results plot for more infomation
     # and why it will be opened in such a complicated manner:
     
-    FileHandle <- file(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""),"r")
+    FileHandle <- file(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",exp_desc,".txt",sep=""),"r")
     first_line <- readLines(FileHandle,n=1)
     hasLeadingTab <- (substr(first_line, 0, 1) == "\t")
     close(FileHandle)
     if (hasLeadingTab)
     {
-      results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "", row.names = "X")
+      results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",exp_desc,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "", row.names = "X")
     } else {
-      results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "")
+      results<-read.table(paste(outputFigsPrefix,"_condition-i_vs_condition-j_",exp_desc,".txt",sep=""), header = T, sep = "\t",quote='',stringsAsFactors=F,comment.char = "")
     }
     
     colnames(results)[1] <- "A"
@@ -1304,12 +1309,12 @@ do_limma_analysis<-function(working_pgroups,time.point,exp_design_fname,exportFo
     colnames(results)[3] <- "t"
     colnames(results)[4] <- "p.value"
     colnames(results)[5] <- "p.value.adj"
-    write.table(results, file=paste(outputFigsPrefix,"_condition-i_vs_condition-j_",time.point,".txt",sep=""), sep = "\t", quote = FALSE)
+    write.table(results, file=paste(outputFigsPrefix,"_condition-i_vs_condition-j_",exp_desc,".txt",sep=""), sep = "\t", quote = FALSE)
   }
   return(norm.median.intensities)
 }
 
-read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
+read.pgroups_v3<-function(fname,evidence_fname,exp_desc){
   levellog("",change=1)
   levellog("Reading data file ...");
   evidence<-read.table(evidence_fname, header = T, sep = "\t",quote="",stringsAsFactors=F,comment.char = "")
@@ -1382,7 +1387,7 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
       evidence$Intensity <- NULL
       varcolnames <- grep("^Reporter.intensity.[[:digit:]]", colnames(evidence), value = TRUE)
       evidence <- reshape(evidence, varying = varcolnames, v.names = "Intensity", timevar = "Labeling.State", times = varcolnames, direction = "long", new.row.names=sequence(prod(length(varcolnames), nrow(evidence))))
-      conditions.labels<<-sub("^X", "Reporter.intensity.", conditions.labels)
+      conditions<<-sub("^X", "Reporter.intensity.", conditions)
       if (AllowLabelRename == T)
       {
         Rename_Array$old_label <- sub("^([[:digit:]]*[[:alpha:]]?)$", "Reporter.intensity.\\1", Rename_Array$old_label)
@@ -1424,11 +1429,11 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
     }
   }
   # #Erase all rows in rename_array that try to rename a label to an already existing
-  # mi<-which(Rename_Array$new_label %in% conditions.labels)
+  # mi<-which(Rename_Array$new_label %in% conditions)
   # Rename_Array <- Rename_Array[-mi,]
   # Rename_Array <<- Rename_Array
   
-  levellog(paste0("read.pgroups_v3: Identified proteins: ",length(unique(evidence$Protein.IDs))," (",time.point,")"))
+  levellog(paste0("read.pgroups_v3: Identified proteins: ",length(unique(evidence$Protein.IDs))," (",exp_desc,")"))
   
   n1<-nrow(evidence)
   evidence<-evidence[nchar(evidence$Protein.IDs) > 0,]
@@ -1487,7 +1492,7 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
     } else {
       evidence <- merge(evidence, RMtagsdata[, c('name', 'cond')], by.x = cond_spec_col, by.y = 'name')
     }
-    #the conditions.labels array is already set from the front end
+    #the conditions array is already set from the front end
     #Now we will initialize the new_raw_file column that will contain pseudo-raw files describing our bioreps, techreps and fracs
     colnames(RMrawfilesdata)[3:5] <- c('new_brep', 'new_trep', 'new_frac')
     colnames(RMtagsdata)[3:5] <- c('new_brep', 'new_trep', 'new_frac')
@@ -1568,14 +1573,14 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   evidence$label_<-NA
   background_species_lbl<-NA
   
-  for(i in 1:length(conditions.labels)){
+  for(i in 1:length(conditions)){
     if(PDdata){
       if(LabelFree){
         if(!IsobaricLabel)
         {
-          mi<-which(grepl(conditions.labels[i], LFQ_conds[, "condition"]))
+          mi<-which(grepl(conditions[i], LFQ_conds[, "condition"]))
           mi2<-which(grepl(paste(LFQ_conds[mi,]$raw_file, collapse="|"), evidence[, cond_spec_col]))
-          evidence[mi2,]$label_<-conditions.labels[i]
+          evidence[mi2,]$label_<-conditions[i]
         }
         else
         {
@@ -1587,9 +1592,9 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
     }else{
       if(LabelFree){
         if(!IsobaricLabel){
-          mi<-which(grepl(conditions.labels[i], LFQ_conds[, "condition"]))
+          mi<-which(grepl(conditions[i], LFQ_conds[, "condition"]))
           mi2<-which(grepl(paste(LFQ_conds[mi,]$raw_file, collapse="|"), evidence[, cond_spec_col]))
-          evidence[mi2,]$label_<-conditions.labels[i]
+          evidence[mi2,]$label_<-conditions[i]
         }
         else{
           evidence$label_<-evidence$Labeling.State
@@ -1599,12 +1604,12 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
         # MQ nomenclature for labels: 0 the first label, 1 the second etc ...
         # Since the user might opted for excluding some labels
         # find the index of the included labels and parse them to the label_ column
-        mi0<-which(All_MQ_Labels == conditions.labels[i])
+        mi0<-which(All_MQ_Labels == conditions[i])
         mi<-which(grepl((mi0[1]-1), evidence[, cond_spec_col]))
-        evidence[mi,]$label_<-conditions.labels[i]
+        evidence[mi,]$label_<-conditions[i]
       }
     }
-    levellog(paste0("read.pgroups_v3: Assigned label '", conditions.labels[i],"'."))
+    levellog(paste0("read.pgroups_v3: Assigned label '", conditions[i],"'."))
   }
   #Rename any labels if necessary
   if (AllowLabelRename == T)
@@ -1636,27 +1641,27 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
             evidence[mi, paste0(prefix, Rename_Array$new_label[i])] <- evidence[mi,  paste0(prefix, Rename_Array$old_label[i])]
           }
           evidence$label_[mi] <- Rename_Array$new_label[i]
-          mi<-which(conditions.labels == Rename_Array$old_label[i])
+          mi<-which(conditions == Rename_Array$old_label[i])
           if (length(mi) > 0)
           {
-            conditions.labels <- conditions.labels[-mi]
+            conditions <- conditions[-mi]
           }
-          mi<-which(conditions.labels == Rename_Array$new_label[i])
+          mi<-which(conditions == Rename_Array$new_label[i])
           if (length(mi) == 0)
           {
-            conditions.labels <- c(conditions.labels, Rename_Array$new_label[i])
+            conditions <- c(conditions, Rename_Array$new_label[i])
           }
         }
       } 
-      conditions.labels <<- conditions.labels
-      nConditions<<-length(conditions.labels)
+      conditions <<- conditions
+      nConditions<<-length(conditions)
     }
     #No condition can be named "N" in ProteoSign so take care of this scarce situation:
-    for(i in 1:length(conditions.labels)){
-      if(conditions.labels[i] == "N")
+    for(i in 1:length(conditions)){
+      if(conditions[i] == "N")
       {
-        conditions.labels[i] <- "condN"
-        conditions.labels <<- conditions.labels
+        conditions[i] <- "condN"
+        conditions <<- conditions
         evidence$label_ <- sub("^N$", "condN", evidence$label_)
       }
     }
@@ -1711,7 +1716,7 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   # Now add the experimental structure information
   evidence<-merge(evidence, .GlobalEnv[["rep_structure"]], by.x=c(rawfile_col), by.y=c('raw_file'))
   new_cond_labels <- NULL
-  for (cond_i in conditions.labels)
+  for (cond_i in conditions)
   {
     if (!(cond_i %in% evidence$label_))
     {
@@ -1729,9 +1734,9 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   }
   if(length(new_cond_labels)>1)
   {
-    conditions.labels <- new_cond_labels
-    conditions.labels <<- conditions.labels
-    nConditions<<-length(conditions.labels)
+    conditions <- new_cond_labels
+    conditions <<- conditions
+    nConditions<<-length(conditions)
   }else{
     levellog(paste0("Error User: Not enough labels left, aborting..."))
     return(F)
@@ -1745,8 +1750,8 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   levellog("read.pgroups_v3: Generating ID Venn data ...")
   tmp.table<-data.table(evidence[, c('Protein.IDs', 'biorep', 'techrep', 'fraction')])
   setkey(tmp.table,  Protein.IDs, biorep, techrep, fraction)
-  setwd(limma_output)
-  write.table(tmp.table[, .(n=.N), by=.(Protein.IDs,rep=biorep)][,.(Protein.IDs,rep)],file=paste0(outputFigsPrefix,"_id_venn3-data_",time.point,".txt"),sep="\t",row.names=F)
+  setwd(limma_out_dir)
+  write.table(tmp.table[, .(n=.N), by=.(Protein.IDs,rep=biorep)][,.(Protein.IDs,rep)],file=paste0(outputFigsPrefix,"_id_venn3-data_",exp_desc,".txt"),sep="\t",row.names=F)
   setwd("..")    
   
   # Bring Labeled or Label-free data to the following common format (table headers):
@@ -1756,12 +1761,12 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   if(!PDdata){
     colnames(evidence)[grepl('Peptide.ID',colnames(evidence))]<-'Unique.Sequence.ID'
     if (!IsobaricLabel){
-      # colnames(evidence)[grepl('Intensity\\..+',colnames(evidence))]<-conditions.labels
+      # colnames(evidence)[grepl('Intensity\\..+',colnames(evidence))]<-conditions
       colnames(evidence) <- sub('Intensity\\.(.+)', "\\1", colnames(evidence))
     }
     # else{
-    # evidence[,conditions.labels]<-NA
-    # for (my_cond in conditions.labels){
+    # evidence[,conditions]<-NA
+    # for (my_cond in conditions){
     #   mi<-which(grepl(my_cond, evidence$Labeling.State))
     #   evidence[mi, my_cond] <- evidence[mi, "Intensity"]
     # }
@@ -1823,11 +1828,11 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
       # Retrieve the following information for all PSMs from evidence: Protein ID, Unique sequence ID (so one column for protein and one
       # for peptide information), its Intensity for each condition seperately, the condition it derives from (label_) and the repetition it derived from (rep_desc)
       # For PD data also retrieve the quantification info column describing the eligibility for quantification
-      evidence.dt<-data.table(evidence[, c('Quan.Usage','Protein.IDs', 'Unique.Sequence.ID', conditions.labels,'rep_desc', 'label_')])
+      evidence.dt<-data.table(evidence[, c('Quan.Usage','Protein.IDs', 'Unique.Sequence.ID', conditions,'rep_desc', 'label_')])
     }else{
       # Retrieve the following information for all PSMs from evidence: Protein ID, Unique sequence ID (so one column for protein and one
       # for peptide information), its Intensity for each condition seperately, the condition it derives from (label_) and the repetition it derived from (rep_desc)
-      evidence.dt<-data.table(evidence[, c('Protein.IDs', 'Unique.Sequence.ID', conditions.labels,'rep_desc', 'label_')])
+      evidence.dt<-data.table(evidence[, c('Protein.IDs', 'Unique.Sequence.ID', conditions,'rep_desc', 'label_')])
     }
     setkey(evidence.dt, rep_desc, Protein.IDs, Unique.Sequence.ID)    
   }
@@ -1840,14 +1845,14 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   evidence.dt.seqCounts<-dcast.data.table(evidence.dt[, .(n=.N > 0), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID, label_)], rep_desc + Protein.IDs + Unique.Sequence.ID ~ label_, fill=FALSE)
   # 2. Add a column flagging the common, between conditions/labels, sequences.
   # In case of more than two conditions/labels, the flag designates that there are at least two conditions/labels where the peptide is common
-  evidence.dt.seqCounts[, 'common' := rowSums(.SD) > 1,.SDcols=conditions.labels]    
+  evidence.dt.seqCounts[, 'common' := rowSums(.SD) > 1,.SDcols=conditions]    
   # 3. Collapse the records for each protein (per replicate) and count the TRUEs.
   # evidence.dt[, .(n.Unique.Sequence.IDs=.N), by=.(rep_desc, Protein.IDs)]
-  evidence.dt.seqCounts<-evidence.dt.seqCounts[,c(n.Unique.Sequence.IDs=.N,lapply(.SD, function(x){return(length(which(x)))})), by=.(rep_desc,Protein.IDs),.SDcols=c(conditions.labels, 'common')]
+  evidence.dt.seqCounts<-evidence.dt.seqCounts[,c(n.Unique.Sequence.IDs=.N,lapply(.SD, function(x){return(length(which(x)))})), by=.(rep_desc,Protein.IDs),.SDcols=c(conditions, 'common')]
   # 4. Calculate the percentage columns
-  evidence.dt.seqCounts[, paste0(conditions.labels,'p') := lapply(.SD, function(x){return((x/sum(.SD))*100)}), by=.(rep_desc,Protein.IDs),.SDcols=c(conditions.labels)]
+  evidence.dt.seqCounts[, paste0(conditions,'p') := lapply(.SD, function(x){return((x/sum(.SD))*100)}), by=.(rep_desc,Protein.IDs),.SDcols=c(conditions)]
   ## Rename the peptide counts columns
-  setnames(evidence.dt.seqCounts,colnames(evidence.dt.seqCounts)[which(colnames(evidence.dt.seqCounts) %in% conditions.labels)],paste('UniqueSequences',conditions.labels,sep='.'))    
+  setnames(evidence.dt.seqCounts,colnames(evidence.dt.seqCounts)[which(colnames(evidence.dt.seqCounts) %in% conditions)],paste('UniqueSequences',conditions,sep='.'))    
   ## Calculate the protein intensity = (sum of unique peptide intensities) for each condition/label and replicate in the following two steps
   if(LabelFree){
     # 1. Cast the data so that we have columns for each label and intensity separately
@@ -1855,29 +1860,29 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   }else{
     if(PDdata){
       # 1. Take the (Quan.Usage == 'Used') records and for each peptide keep only the PSM record with the highest intensity
-      evidence.dt<-evidence.dt[Quan.Usage == 'Used' | Quan.Usage == 'Use', lapply(.SD, max), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID), .SDcols=conditions.labels]    
+      evidence.dt<-evidence.dt[Quan.Usage == 'Used' | Quan.Usage == 'Use', lapply(.SD, max), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID), .SDcols=conditions]    
     }else{
       # 2. Take the records with Intensity != NA across labels/conditions and for each peptide keep only the PSM record with the highest intensity
-      evidence.dt[, sumI := rowSums(.SD, na.rm = T), .SDcols=conditions.labels]
-      evidence.dt<-evidence.dt[sumI > 0, lapply(.SD, max), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID), .SDcols=conditions.labels]    
+      evidence.dt[, sumI := rowSums(.SD, na.rm = T), .SDcols=conditions]
+      evidence.dt<-evidence.dt[sumI > 0, lapply(.SD, max), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID), .SDcols=conditions]    
       evidence.dt[, sumI := NULL]
     }
   }
   
   # Get a vector of unique peptides intensities
-  tmp.I<-sort(unique(evidence.dt[,get(conditions.labels)]))
+  tmp.I<-sort(unique(evidence.dt[,get(conditions)]))
   # If the minimum intensity is zero
   if(tmp.I[1] == 0){
     # Replace 0's with minimum intensity (PD can do this automatically for us)
     minI<-tmp.I[2]
-    evidence.dt[, (conditions.labels) := lapply(.SD, function(x){ t<-which(x == 0); if(length(t) > 0){x[t] <- minI}; return(x) }), .SDcols=conditions.labels]
+    evidence.dt[, (conditions) := lapply(.SD, function(x){ t<-which(x == 0); if(length(t) > 0){x[t] <- minI}; return(x) }), .SDcols=conditions]
   }else{
     minI<-tmp.I[1]
   }
   
   ## If enabled, do filter out peptides where all 'channels' except filterL_lbl channel have noise-level intensity (peptide-level filtering)
   if(filterL && filterL_lvl){
-    evidence.dt[, minIcount := rowSums(.SD == minI), .SDcols=conditions.labels[! conditions.labels %in% filterL_lbl]]
+    evidence.dt[, minIcount := rowSums(.SD == minI), .SDcols=conditions[! conditions %in% filterL_lbl]]
     n1<-nrow(evidence.dt)
     evidence.dt<-evidence.dt[minIcount < (nConditions - 1)]
     n2<-nrow(evidence.dt)
@@ -1891,14 +1896,14 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   # Also count the number of quantifiable peptides (those which do not have intensity NA)
   if(LabelFree){
     # Top three in abundance
-    #evidence.dt<-evidence.dt[, lapply(.SD, function(x){x<-x[!is.na(x)]; x<-sort(x, decreasing<-T); if(length(x)<3){return(sum(x))}else{return(sum(x[1:3]))}}), by=.(rep_desc, Protein.IDs), .SDcols=conditions.labels]
-    evidence.dt<-evidence.dt[, c(n=.N, nas=length(which(is.na(.SD))) ,lapply(.SD, function(x){x<-x[!is.na(x)]; x<-sort(x, decreasing<-T); if(length(x)<3){return(sum(x))}else{return(sum(x[1:3]))}})), by=.(rep_desc, Protein.IDs), .SDcols=conditions.labels]
+    #evidence.dt<-evidence.dt[, lapply(.SD, function(x){x<-x[!is.na(x)]; x<-sort(x, decreasing<-T); if(length(x)<3){return(sum(x))}else{return(sum(x[1:3]))}}), by=.(rep_desc, Protein.IDs), .SDcols=conditions]
+    evidence.dt<-evidence.dt[, c(n=.N, nas=length(which(is.na(.SD))) ,lapply(.SD, function(x){x<-x[!is.na(x)]; x<-sort(x, decreasing<-T); if(length(x)<3){return(sum(x))}else{return(sum(x[1:3]))}})), by=.(rep_desc, Protein.IDs), .SDcols=conditions]
   }else{
     # All peptides
-    evidence.dt<-evidence.dt[, c(n=.N, nas=length(which(is.na(.SD))) ,lapply(.SD, sum, na.rm = T)), by=.(rep_desc, Protein.IDs), .SDcols=conditions.labels] 
+    evidence.dt<-evidence.dt[, c(n=.N, nas=length(which(is.na(.SD))) ,lapply(.SD, sum, na.rm = T)), by=.(rep_desc, Protein.IDs), .SDcols=conditions] 
   }
   ## Rename the intensity columns
-  setnames(evidence.dt,colnames(evidence.dt)[which(colnames(evidence.dt) %in% conditions.labels)],paste('Intensity',conditions.labels,sep='.'))
+  setnames(evidence.dt,colnames(evidence.dt)[which(colnames(evidence.dt) %in% conditions)],paste('Intensity',conditions,sep='.'))
   ## Merge with the evidence.dt.seqCounts table
   evidence.dt<-merge(evidence.dt, evidence.dt.seqCounts)
   
@@ -1931,10 +1936,10 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   # of intensities from all biological replicates, then
   # the biological replicate j is removed for that particular protein for all conditions.
   #if(LabelFree && .GlobalEnv[["n_techreps"]] < 2){
-  #  evidence.dt.bad <- suppressWarnings(evidence.dt[, lapply(.SD, function(x){p.val = grubbs.test(x)$p.value; if(!is.na(p.val) && p.val < 0.05){outlier.true <- T}else{outlier.true <- F}; if(outlier.true){return(.I[outlier(x, logical=T)][1] )}else{return(as.integer(0))} }),by=.(Protein.IDs),.SDcols=paste0('Intensity.',conditions.labels[1])][,get(paste0('Intensity.',conditions.labels[1]))])
+  #  evidence.dt.bad <- suppressWarnings(evidence.dt[, lapply(.SD, function(x){p.val = grubbs.test(x)$p.value; if(!is.na(p.val) && p.val < 0.05){outlier.true <- T}else{outlier.true <- F}; if(outlier.true){return(.I[outlier(x, logical=T)][1] )}else{return(as.integer(0))} }),by=.(Protein.IDs),.SDcols=paste0('Intensity.',conditions[1])][,get(paste0('Intensity.',conditions[1]))])
   #  evidence.dt.bad <- evidence.dt.bad[evidence.dt.bad > 0]
   #  evidence.dt<-evidence.dt[! evidence.dt.bad]
-  #  levellog(paste0("read.pgroups_v3: Filtered out ", length(evidence.dt.bad)," protein intensities based on outlier detection on condition '",conditions.labels[1],"'."));
+  #  levellog(paste0("read.pgroups_v3: Filtered out ", length(evidence.dt.bad)," protein intensities based on outlier detection on condition '",conditions[1],"'."));
   #  Protein.IDs.quant <- evidence.dt[, .(c1 = sum(n-nas)) , by=.(Protein.IDs, biorep)][, .(nQuantPeps = sum(c1), geqXnRequiredLeastBioreps = .N >= .GlobalEnv[["nRequiredLeastBioreps"]]), by=.(Protein.IDs)][nQuantPeps >= .GlobalEnv[["nRequiredLeastBioreps"]] & geqXnRequiredLeastBioreps == T]$Protein.IDs
   #  levellog(paste0("read.pgroups_v3: Filtered out another ", (length(unique(evidence.dt$Protein.IDs)) - length(Protein.IDs.quant))," proteins which were not identified in at least ",nRequiredLeastBioreps," biological replicate(s) with at least a total of ",nRequiredLeastBioreps," peptide(s)"));
   #  evidence.dt[,nQuantPeps := n-nas]
@@ -1945,12 +1950,12 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   
   ## Generate Venn data for the identified proteins and output to a file
   levellog("read.pgroups_v3: Generating quant Venn data ...")
-  setwd(limma_output)  
-  write.table(evidence.dt[, .(Protein.IDs, rep=biorep)],file=paste0(outputFigsPrefix,"_quant_venn3-data-",.GlobalEnv[["nRequiredLeastBioreps"]],"reps_",time.point,".txt"),sep="\t",row.names=F)
+  setwd(limma_out_dir)  
+  write.table(evidence.dt[, .(Protein.IDs, rep=biorep)],file=paste0(outputFigsPrefix,"_quant_venn3-data-",.GlobalEnv[["nRequiredLeastBioreps"]],"reps_",exp_desc,".txt"),sep="\t",row.names=F)
   setwd("..")
   
   ## Cast the table to the following format
-  # Protein.IDs Intensity.[<rep_desc_X>.<label/condition_Y> ...] [<rep_desc_X>.Ratio.counts ...] [<rep_desc_X>.uniqueSequences ...] time.point [<label/condition_Y> ...] [<label/condition_Y>p ...]
+  # Protein.IDs Intensity.[<rep_desc_X>.<label/condition_Y> ...] [<rep_desc_X>.Ratio.counts ...] [<rep_desc_X>.uniqueSequences ...] exp_desc [<label/condition_Y> ...] [<label/condition_Y>p ...]
   
   ## Step 1: For each 'rep_desc', add to a growing dataframe the evidence.dt data, renaming the columns accordingly
   # Also, calculate the missing columns required by the target format and drop the unnecessary columns
@@ -1969,7 +1974,7 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
     # Add new column <rep_desc_X>.uniqueSequences
     rep_desc_i_pgroups[, paste(rep_desc_i,'uniqueSequences',sep='.')]<-rowSums(rep_desc_i_pgroups[, colnames(rep_desc_i_pgroups)[colsl]])
     # Rename 'p' (percentage) cols
-    colsl<-allcols %in% paste0(conditions.labels,'p')
+    colsl<-allcols %in% paste0(conditions,'p')
     colnames(rep_desc_i_pgroups)[colsl]<-gsub("^(.+)$",paste("\\1",rep_desc_i,sep='.'), allcols[colsl])
     # Rename the 'nQuantPeps' column to <rep_desc_i>.Ratio.counts
     colsl<-allcols %in% c('nQuantPeps')
@@ -1980,23 +1985,23 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   }
   # Step 2: Calculate the columns [<label/condition_Y> ...] containing the number of unique sequences found per condition in all replicates
   allcols<-colnames(pgroups)
-  for(cond_i in conditions.labels){
+  for(cond_i in conditions){
     colsl<-grepl(paste('uniqueSequences', cond_i,sep='\\.') ,allcols)
     pgroups[, cond_i]<-rowSums(pgroups[, allcols[colsl]])
   }
   # Step 3: Calculate the columns [<label/condition_Y>p ...] containing the percentage of unique sequences that were found in a specific condition in all replicates
   allcols<-colnames(pgroups)
-  for(cond_i in conditions.labels){
-    colsl<-allcols %in% conditions.labels & ! allcols %in% cond_i
+  for(cond_i in conditions){
+    colsl<-allcols %in% conditions & ! allcols %in% cond_i
     pgroups[, paste0(cond_i,'p')]<-(pgroups[, cond_i]/rowSums(pgroups[, c(cond_i, allcols[colsl])]))*100
   }
   # Step 4: Add time-point column
-  pgroups$time.point <- time.point
+  pgroups$exp_desc <- exp_desc
   # Step 5: in case there is replicate mismatch between conditions i.e. there is at least one replicate of the experiment that contains quantification values not from all conditions, there are some columns in pgroups at the moment that have the format <replicate_description>.uniqueSequences.<condition> e.g. b1t1.uniqueSequences.WildType that contain 0 values solely. These columns should be emmited and the mismatch must be taken into account while sending the data to limma
   replicate_mismatch <<- F
   # We have replicate mismatch in case not all conditions correspond to the same experimental replicates
   for (rep_desc_i in unique(evidence.dt$rep_desc)) {
-    for (cond_i in conditions.labels) {
+    for (cond_i in conditions) {
       # For each of the columns of interest check if it contains solely 0 values and if so delete the respective intensity column
       #if (all(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)] == 0)) {
       if (all(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)] == 0, na.rm = TRUE) || all(is.nan(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)]))) {
@@ -2011,7 +2016,7 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
   allcols<-colnames(pgroups)
   pgroups<-pgroups[,-which(grepl('uniqueSequences\\.', allcols) | grepl('p\\.b[0-9]+t[0-9]+$', allcols) | grepl('^common$', allcols))]
   ##
-  levellog(paste0("read.pgroups_v3: Quantifiable proteins: ", nrow(pgroups)," (",time.point,")"))
+  levellog(paste0("read.pgroups_v3: Quantifiable proteins: ", nrow(pgroups)," (",exp_desc,")"))
   levellog("",change=-1)
   ## 
   return(pgroups)  
@@ -2021,7 +2026,7 @@ read.pgroups_v3<-function(fname,evidence_fname,time.point,keepEvidenceIDs=F){
 prepare_working_pgroups<-function(working_pgroups){
   rownames(working_pgroups)<-working_pgroups[,paste(quantitated_items_lbl,".IDs",sep="")]
   inten_cols<-c()
-  for(cond_i in conditions.labels){
+  for(cond_i in conditions){
     inten_cols<-c(inten_cols,sort(colnames(working_pgroups)[grep(paste("Intensity.",cond_i,".b",sep=""),colnames(working_pgroups))]))
   }  
   working_pgroups<-working_pgroups[,inten_cols]
@@ -2029,125 +2034,58 @@ prepare_working_pgroups<-function(working_pgroups){
   return(working_pgroups)
 }
 
-#GLOBAL variables
 
-duplicateCorrelation_trim<-0.15 # use 0.22 for "bad" datasets (too many missing values)
 
-addLabel<-function(lblname, lbl.Modifications){
+addLabel<-function(lblname, ...){
+  
+  # This routine adds labels or conditions (the two terms can be used interchangeably in PS) to the experiment
   levellog("", change=1)
-  #If label name is a number some routines won't work, it has to be converted to some acceptable variable name
+  
+  # If label name is a number some routines won't work, it has to be converted to some acceptable variable name
   lblname<-make.names(lblname)
-  labeltxt <- "label";
-  if(!LabelFree){
-    lbl.Modifications<-gsub("\\(","\\\\(",lbl.Modifications)
-    lbl.Modifications<-gsub("\\)","\\\\)",lbl.Modifications)
-    unmod_idx<-which(lbl.Modifications == "")
-    if(length(unmod_idx) > 0){
-      rest_idx<-which(lbl.Modifications[-unmod_idx] != "")
-      if(length(rest_idx) > 0){
-        lbl.Modifications<-c(lbl.Modifications[unmod_idx],paste(lbl.Modifications[-unmod_idx],"\\)",sep=""))
-      }
-    }else{
-      lbl.Modifications<-paste(lbl.Modifications,"\\)",sep="")
-    }
-  }else{
+  
+  # labeltxt is used only for making the log seem nicer
+  labeltxt <- "label"
+  if(LabelFree)
+  {
     labeltxt <- "condition";
   }
-  lblname_i<-which(grepl(paste("^",lblname,"$",sep=""),conditions.labels))
+  
+  # Make sure that there is not another condition with the same name
+  lblname_i<-which(grepl(paste("^",lblname,"$",sep=""),conditions))
   if(length(lblname_i) != 0){
-    levellog(paste("addLabel: Error adding ",labeltxt," '",lblname,"': An existing ",labeltxt," with name '",lblname,"' (specification: ",paste(unlist(conditions.labels.Modifications[lblname_i]),collapse=", "),") already exists. Please try a different name.",sep=""), change=-1)
+    levellog(paste("addLabel: Error adding ",labeltxt," '",lblname,"': An existing ",labeltxt," with name '",lblname,"' (specification: ",paste(unlist(conditions.Modifications[lblname_i]),collapse=", "),") already exists. Please try a different name.",sep=""), change=-1)
     return(FALSE)
   }
   
-  conditions.labels<<-c(conditions.labels, lblname)
-  j<-length(conditions.labels.Modifications)+1
-  conditions.labels.Modifications[[j]]<<-lbl.Modifications
-  nConditions<<-length(conditions.labels)
-  levellog("", change=-1)
-}
-removeLabel<-function(lblname){
-  levellog("", change=1)
-  lblname_i<-which(grepl(paste("^",lblname,"$",sep=""),conditions.labels))
-  if(length(lblname_i) != 0){
-    conditions.labels<<-conditions.labels[-lblname_i]
-    conditions.labels.Modifications<<-conditions.labels.Modifications[-lblname_i]
-  }
-  nConditions<<-length(conditions.labels)
-  levellog("", change=-1)
-}
-clearLabels<-function(){
-  levellog("", change=1)
-  conditions.labels<<-c()
-  conditions.labels.Modifications<<-list()
-  nConditions<<-length(conditions.labels)
+  # Add the condition to the conditions global variable
+  conditions<<-c(conditions, lblname)
+
+  # Recalculate the conditions length
+  nConditions<<-length(conditions)
   levellog("", change=-1)
 }
 
-addMod<-function(modname, mod.Modifications){
+clearConditions<-function(){
+  # clearConditions will clear the conditions vector that stores all conditions in the current experiment
+  # and will update the nConditions variable that stores how many conditions we have
+  
   levellog("", change=1)
-  modname<-make.names(modname)
-  mod.Modifications<-gsub("\\(","\\\\(",mod.Modifications)
-  mod.Modifications<-gsub("\\)","\\\\)",mod.Modifications)
-  unmod_idx<-which(mod.Modifications == "")
-  if(length(unmod_idx) > 0){
-    rest_idx<-which(mod.Modifications[-unmod_idx] != "")
-    if(length(rest_idx) > 0){
-      mod.Modifications<-c(mod.Modifications[unmod_idx],paste(mod.Modifications[-unmod_idx],"\\)",sep=""))
-    }
-  }else{
-    mod.Modifications<-paste(mod.Modifications,"\\)",sep="")
-  }
-  modname_i<-which(grepl(paste("^",modname,"$",sep=""),conditions.Mods))
-  if(length(modname_i) != 0){
-    levellog(paste("addMod: Error adding modification '",modname,"': An existing modification with name '",modname,"' (specification: ",paste(unlist(conditions.Mods.Modifications[modname_i]),collapse=", "),") already exists. Please try a different name.",sep=""), change=-1)
-    return(FALSE)
-  }
-  i<-1
-  for(mod_i in conditions.Mods.Modifications){
-    for(mod_i in mod.Modifications){
-      mod_i_matches<-which(grepl(paste("^",mod_i,"$",sep=""),mod_i))
-      if(length(mod_i_matches) != 0){
-        levellog(paste("addMod: Error adding modification '",modname,"': Existing modification with name '",conditions.Mods[i],"' has an identical specification (",mod_i,").",sep=""),change=-1)
-        return(FALSE)
-      }
-    }
-    i<-i+1
-  }
-  conditions.Mods<<-c(conditions.Mods, modname)
-  j<-length(conditions.Mods.Modifications)+1
-  conditions.Mods.Modifications[[j]]<<-mod.Modifications
-  nMods<<-length(conditions.Mods)
-  levellog("", change=-1)
-}
-removeMod<-function(modname){
-  levellog("", change=1)
-  modname_i<-which(grepl(paste("^",modname,"$",sep=""),conditions.Mods))
-  if(length(modname_i) != 0){
-    conditions.Mods<<-conditions.Mods[-modname_i]
-    conditions.Mods.Modifications<<-conditions.Mods.Modifications[-modname_i]
-  }
-  nMods<<-length(conditions.Mods)
-  levellog("", change=-1)
-}
-clearMods<-function(){
-  levellog("", change=1)
-  conditions.Mods<<-c()
-  conditions.Mods.Modifications<<-list()
-  nMods<<-length(conditions.Mods)
+  conditions<<-c()
+  nConditions<<-length(conditions)
   levellog("", change=-1)
 }
 
-# the following functions are for GO analysis
-
+# The following functions are for GO analysis
 
 # Pattern of uniprot IDs
-my_grep <- function(x){
+my_grep <- function(x) {
   #uniprot IDs pattern
   grep('^[OPQ][0-9][A-Z0-9]{3}[0-9]|^[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}',x, value=TRUE)
 }
 
 # Get the UNIPROT IDs from the protein names
-get_uniprot_ids <- function(results, cond1, cond2){
+get_uniprot_ids <- function(results, cond1, cond2) {
   
   #get p values associated to DE proteins
   col_desc_<-paste("P-value adjusted ",paste(cond2,"/",cond1,sep=""),sep="")
@@ -2189,10 +2127,9 @@ get_uniprot_ids <- function(results, cond1, cond2){
 }
 
 # Run the enrichment analysis
-run_enrichment_analysis <- function(UniProtList, myGOorganism, cond1, cond2)
-{
+run_enrichment_analysis <- function(UniProtList, myFNorganism, cond1, cond2) {
   # Enrichment analysis utilizing gprofiler2 R package
-  enrich <- gost(query= UniProtList, organism = myGOorganism, domain_scope = "annotated", significant = T, evcodes = TRUE, sources = c("GO", "KEGG", "REAC", "HPA", "WP"))
+  enrich <- gost(query= UniProtList, organism = myFNorganism, domain_scope = "annotated", significant = T, evcodes = TRUE, sources = c("GO", "KEGG", "REAC", "HPA", "WP"))
   enrich.matrix <- as.matrix(enrich$result[enrich$result$p_value < 0.05,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size", "intersection_size", "intersection")])
   colnames(enrich.matrix) = c("Data Source", "Function", "Term ID", "p-Value", "Term size", "Query size", "Intersection Size", "Intersection")
   
@@ -2209,13 +2146,13 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   # in venn production we only care if a protein was quantified or not so get the results_intensities and wherevere we see
   # an NA value set it to FALSE (not quantified) and set the rest to TRUE
   results_intensities <- !(is.na(results_intensities))
-
+  
   nRep<-length(replicate_descs)
-  nCond<-length(conditions.labels)
+  nCond<-length(conditions)
   
   # The following formula produces a matrix that match a condition and a replicate to a results_intensities column
   mymap <- sapply(c(1:nRep), function(x) (c(0:(nCond-1)) * nRep) + x)
-  rownames(mymap) = conditions.labels
+  rownames(mymap) = conditions
   colnames(mymap) = replicate_descs
   
   #example of mymap:
@@ -2245,7 +2182,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   
   # Now get all the columns that refer to a specific biorep and compute which proteins where quantified in each column
   
-  pdf(paste(outputFigsPrefix,"_Venn_for_all_bioreps_separately",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
+  pdf(paste(outputFigsPrefix,"_Venn_for_all_bioreps_separately",exp_desc,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
   
   for(i in as.numeric(all_brep_indices))
   {
@@ -2287,7 +2224,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
     #Create the diagram
     
     result <- tryCatch({
-      png(paste("../",outputFigsPrefix,"_Venn_for_bio_rep_", i, "_",time.point,".png",sep=""),  width = 1000, height = 1000)
+      png(paste("../",outputFigsPrefix,"_Venn_for_bio_rep_", i, "_",exp_desc,".png",sep=""),  width = 1000, height = 1000)
       
       names(lst_prots_per_rep_quantified) = colnames(Quant_bool_per_rep)[col_idxs_of_a_biorep]
       VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
@@ -2387,7 +2324,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   } else {
     
     result <- tryCatch({
-      png(paste("../",outputFigsPrefix,"_Venn_for_bio_reps_",time.point,".png",sep=""),  width = 1000, height = 1000)
+      png(paste("../",outputFigsPrefix,"_Venn_for_bio_reps_",exp_desc,".png",sep=""),  width = 1000, height = 1000)
       
       
       if (is.matrix(col_idxs))
@@ -2407,7 +2344,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
       
       # The following lines print to the pdf dev
       
-      pdf(paste(outputFigsPrefix,"_Venn_for_bio_reps_",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
+      pdf(paste(outputFigsPrefix,"_Venn_for_bio_reps_",exp_desc,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
       g <- grid.newpage()
       venn.plot <- venn.diagram(lst_prots_per_brep_quantified, NULL , fill=VennPalette[1:n_bioreps], lwd=1, col=VennPalette[1:n_bioreps], margin = 0.08, cex=2.5, cat.cex=2.5)
       g <- grid.draw(venn.plot)
@@ -2421,7 +2358,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   }
   # The last Venn to produce would be a Venn between conditions. We will go back to results_intensities to merge all columns
   # refering to the same condition - the procedure is similarto what we did for the overall bre veVn
-  col_idxs <- sapply(conditions.labels, function(x) grep(paste0("^", x, " "), colnames(results_intensities)))
+  col_idxs <- sapply(conditions, function(x) grep(paste0("^", x, " "), colnames(results_intensities)))
   
   
   # e.g of col_idxs
@@ -2447,7 +2384,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   } else {
     
     result <- tryCatch({
-      png(paste("../",outputFigsPrefix,"_Venn_for_conditions_",time.point,".png",sep=""),  width = 1000, height = 1000)
+      png(paste("../",outputFigsPrefix,"_Venn_for_conditions_",exp_desc,".png",sep=""),  width = 1000, height = 1000)
       
       names(lst_prots_per_cond_quantified) = colnames(col_idxs)
       VennPalette <- c("#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#487eb0")
@@ -2460,7 +2397,7 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
       
       # The following lines print to the pdf dev
       
-      pdf(paste(outputFigsPrefix,"_Venn_for_conditions_",time.point,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
+      pdf(paste(outputFigsPrefix,"_Venn_for_conditions_",exp_desc,".pdf",sep="") ,width=10, height=10, family = "Helvetica", pointsize=8)
       g <- grid.newpage()
       venn.plot <- venn.diagram(lst_prots_per_cond_quantified, NULL , fill=VennPalette[1:length(colnames(col_idxs))], lwd=1, col=VennPalette[1:length(colnames(col_idxs))], margin = 0.08, cex=2.5, cat.cex=2.5)
       g <- grid.draw(venn.plot)
@@ -2476,24 +2413,421 @@ generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
   
 }
 
-# ======= INITIALIZATION =======
-unlabeled_peptide_regex<-"^$"
-clearLabels()
-clearMods()
-paramssetfromGUI<-F
-working_directory<-getwd()
-limma_output<-"msdiffexp_out"
-LabelFree<-F
-AllowLabelRename<-F
-AllowLS<-F
-if (!DEBUG)
-{
-  source("MSdiffexp_definitions.R")
+initProteoSign <- function() {
+  
+  # Set the duplicate correlation trim for limma
+  duplicateCorrelation_trim<<-0.15 # use 0.22 for "bad" datasets (too many missing values)
+  
+  #Prepare the conditions vector
+  clearConditions()
+  
+  #get the current working directory
+  working_directory<<-getwd()
+  
+  # limma_out_dir is the directory that will be created to output limma results files and more. In order to work properly with the rest of ProteoSign it should be hardcoded to "msdiffexp_out"
+  # but it can be changed to preference if ProteoSign is run in command line
+  limma_out_dir<<-"msdiffexp_out"
+  
+  # An experiment that PS works on can be either an Isobaric Labelled one (e.g. TMT) a LabelFree one (known otherwise as LFQ)
+  # or a metabolically labelled one. If both of the following boolean vars are false it is a metabolically labelled one otherwise
+  # an isobaric or LFQ
+  IsobaricLabel<<-F
+  LabelFree<<-F
+  
+  # The following variables define if PS may use the features label rename and label swap (see ur documentation for more info)
+  AllowLabelRename<<-F
+  AllowLS<<-F
+  
+  
+  if (!DEBUG) {
+    cmd_args = commandArgs(T)
+    if (length(cmd_args) < 1)
+    {
+      # if the script is not run through with arguments
+      # MSdiffexp_definitions.R is a source R file that is used to load some experiment specific options
+      source("MSdiffexp_definitions.R")
+    } else {
+      # If there is at least one argument we will load the preferences from the arguments
+      # The arguments are passed in flags starting with a minus (all arguments here are optional)
+      # and are usually followed by another argument that sets a value to the corresponding variable
+      
+      # The following table shows all valid arguments:
+      #
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | ==== Argument ==== |                             ==== Description ====                             |         Default value         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -df <FILENAME>     | Definition filename - an R script to load before PS backend                   | MSdiffexp_definitions.R       |
+      # |                    | runs to load any definitions                                                  |                               |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -hc <COLOR>        | The histogram's box colour                                                    | cyan                          |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -lc <COLOR>        | The color of the best fit line in scatter plots                               | red                           |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -PD                | Set Proteome Discoverer as the preprocessing program                          | (PD is considered by default) |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -MQ                | Set MaxQuant as the preprocessing program                                     | (PD is considered by default) |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -rb <NUMBER>       | Set the least required bioreps for a protein to be valid                      | 2                             |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -rp <NUMBER>       | Set the least required peptides quantified for a protein to consider          | 2                             |
+      # |                    | it valid                                                                      |                               |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -p <NUMBER>        | Set the p threshold                                                           | 0.05                          |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -exf <FILENAME>    | The experimental structure file                                               | exp_struct.txt                |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -LFf <FILENAME>    | The Label to raw file matching file for LFQ experiments                       | LFQ_conditions.txt            |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -RNf <FILENAME>    | The file containing all information to Rename - merge conditions              | Rename_array.txt              |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -LSf <FILENAME>    | The file containing all necessarry information for label swap                 | LS_array.txt                  |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -mf <FILENAME>     | The main file to retrieve data from (MultiConsensus for PD                    | msdiffexp_protein.txt         |
+      # |                    | and evidence for MQ)                                                          |                               |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -pgf <FILENAME>    | The protein groups file used for MQ data processing                           | msdiffexp_peptide.txt         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -RMrf <FILENAME>   | The file containing all Raw file data for replication multiplexing            | RMrawfiles.txt                |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -RMtf <FILENAME>   | The file containing all Tags data for replication multiplexing                | RMtags.txt                    |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -op <PREFIX>       | A prefix to be added to all output files                                      | exp_1                         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -fl                | Set background filtering to true                                              | False                         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -flL <LABEL>       | The label to be considered as background label                                | Light                         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -flp               | Set the filtering level to peptide                                            | False                         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -et <TYPE>         | Set the experiment type: ML for metabolic labeling (SILAC etc.) IL for        | ML                            |
+      # |                    |  Isobaric Labeling (ITRAQ etc.) and LF for label free                         |                               |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -ed <DESCRIPTION>  | Set the experiment description                                                | df_1                          |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -LR                | Enables label renaming                                                        | False                         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -LS                | Enables Label Swapping                                                        | False                         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -RM                | Enables Replication Multiplexing                                              | False                         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -RMbir             | For Replication Multiplexing experiments: defines that biological reps        | True                          |
+      # |                    | are represented as different raw files (False for being represented as        |                               |
+      # |                    | different tags)                                                               |                               |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -RMtir             | For Replication Multiplexing experiments: defines that technical reps         | True                          |
+      # |                    |  are represented as different raw files (False for being represented as       |                               |
+      # |                    |  different tags)                                                              |                               |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -RMcir             | For Replication Multiplexing experiments: defines that conditions are         | False                         |
+      # |                    |  represented as different raw files (False for being represented as different |                               |
+      # |                    |  tags)                                                                        |                               |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -FE                | Enables funtional enrichment analysis                                         | False                         |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      # | -Fo <ORGANISM>     | Sets the target organism for functional enrichment. Notice that the           | human                         |
+      # |                    | only valid organism values are the ones in the second column of the tab       |                               |
+      # |                    | separated file 'valid_GO_Organisms.txt' under 'cgi-bin' folder in             |                               |
+      # |                    | ProteoSign's distribution                                                     |                               |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      #   
+        
+      # First load all default values:
+      levellog("PS is executed with command line arguments...")
+      levellog("Setting default arguments")
+      
+      ratios.hist.colour<<-"cyan"
+      reps.scatter.lmline.colour<<-"red"
+      PDdata<<-T
+      nRequiredLeastBioreps<<-2
+      nRequiredLeastPeps<<-2
+      pThreshold<<-0.05
+      exportFormat<<-"pdf"
+      experimental_structure_file<<-"exp_struct.txt"
+      LFQ_conditions_file<<-"LFQ_conditions.txt"
+      Rename_Array_file<<-"Rename_array.txt"
+      LS_Array_file<<-"LS_array.txt"
+      pgroups_fname<<-"msdiffexp_protein.txt"
+      evidence_fname<<-"msdiffexp_peptide.txt"
+      RMrawfilesdata_file<<-"RMrawfiles.txt"
+      RMtagsdata_file<<-"RMtags.txt"
+      outputFigsPrefix<<-"exp_1"
+      filterL<<-F
+      filterL_lbl<<-"Light"
+      filterL_lvl<<-F
+      LabelFree<<-F
+      IsobaricLabel<<-F
+      All_MQ_Labels<<-c()
+      exp_desc<<-"df_1"
+      ProteinQuantitation<<-T
+      AllowLabelRename<<-F
+      AllowLS<<-F
+      RMisused<<-F
+      RMbrepsinrawfiles<<-T
+      RMtrepsinrawfiles<<-T
+      RMconditionsinrawfiles<<-F
+      FNenrichment<<-F
+      FNorganism<<-'human'
+      
+      
+      levellog("Reading arguments", change = 1)
+      
+      # ProteoSign will always search for the -df arument that defines a new definitions file to be loaded first
+      # if it finds one it will try to execute. If it does not it will try to execute the default MSdiffexp_definitions.R
+      definitions_file <<- "MSdiffexp_definitions.R"
+      
+      for (i in 1:length(cmd_args))
+      {
+        if (cmd_args[i] == "-df")
+        {
+          definitions_file <<- cmd_args[i + 1]
+          levellog(paste0("Changed definitions file to ", definitions_file))
+        }
+      }
+      
+      
+      if (file.exists(definitions_file))
+      {
+        source(definitions_file)
+        levellog("Loaded definitions file")
+      }
+      else
+      {
+        levellog(paste0("Definitions file ", definitions_file, " was not found"))
+      }
+      
+      cur_arg <- ""
+      for (i in 1:length(cmd_args))
+      {
+        if (cur_arg == "")
+        {
+          # Perform operations for '-' starting arguments
+          if (cmd_args[i] == '-hc'){
+            cur_arg <- 'hc'
+            next
+          } else if (cmd_args[i] == '-lc'){
+            cur_arg <- 'lc'
+            next
+          } else if (cmd_args[i] == '-PD'){
+            PDdata <<- T
+            levellog("Set PD as the preprocessing program")
+            next
+          } else if (cmd_args[i] == '-MQ'){
+            PDdata <<- F
+            levellog("Set MQ as the preprocessing program")
+            next
+          } else if (cmd_args[i] == '-rb'){
+            cur_arg <- 'rb'
+            next
+          } else if (cmd_args[i] == '-rp'){
+            cur_arg <- 'rp'
+            next
+          } else if (cmd_args[i] == '-p'){
+            cur_arg <- 'p'
+            next
+          } else if (cmd_args[i] == '-exf'){
+            cur_arg <- 'exf'
+            next
+          } else if (cmd_args[i] == '-LFf'){
+            cur_arg <- 'LFf'
+            next
+          } else if (cmd_args[i] == '-RNf'){
+            cur_arg <- 'RNf'
+            next
+          } else if (cmd_args[i] == '-LSf'){
+            cur_arg <- 'LSf'
+            next
+          } else if (cmd_args[i] == '-mf'){
+            cur_arg <- 'mf'
+            next
+          } else if (cmd_args[i] == '-pgf'){
+            cur_arg <- 'pgf'
+            next
+          } else if (cmd_args[i] == '-RMrf'){
+            cur_arg <- 'RMrf'
+            next
+          } else if (cmd_args[i] == '-RMtf'){
+            cur_arg <- 'RMtf'
+            next
+          } else if (cmd_args[i] == '-op'){
+            cur_arg <- 'op'
+            next
+          } else if (cmd_args[i] == '-fl'){
+            filterL <<- T
+            levellog("Set background filtering to True")
+            next
+          } else if (cmd_args[i] == '-flL'){
+            cur_arg <- 'flL'
+            next
+          } else if (cmd_args[i] == '-flp'){
+            filterL_lvl <<- T
+            levellog("Set filtering level to peptide")
+            next
+          } else if (cmd_args[i] == '-et'){
+            cur_arg <- 'et'
+            next
+          } else if (cmd_args[i] == '-ed'){
+            cur_arg <- 'ed'
+            next
+          } else if (cmd_args[i] == '-LR'){
+            AllowLabelRename <<- T
+            levellog("Enabled Label Renaming")
+            next
+          } else if (cmd_args[i] == '-LS'){
+            AllowLS <<- T
+            levellog("Enabled Label Swapping")
+            next
+          } else if (cmd_args[i] == '-RM'){
+            RMisused <<- T
+            levellog("Enabled Replication Multiplexing")
+            next
+          } else if (cmd_args[i] == '-RMbir'){
+            RMbrepsinrawfiles <<- T
+            levellog("(Only for RM experiments) set biological replicate representation to 'different raw files'")
+            next
+          } else if (cmd_args[i] == '-RMtir'){
+            RMtrepsinrawfiles <<- T
+            levellog("(Only for RM experiments) set technical replicate representation to 'different raw files'")
+            next
+          } else if (cmd_args[i] == '-RMcir'){
+            RMconditionsinrawfiles <<- T
+            levellog("(Only for RM experiments) set conditions' representation to 'different raw files'")
+            next
+          } else if (cmd_args[i] == '-FE'){
+            FNenrichment <<- T
+            levellog("Enabled functional enrichment")
+            next
+          } else if (cmd_args[i] == '-Fo'){
+            cur_arg <- 'Fo'
+            next
+          }
+        } else {
+          # Perform operations for arguments not starting with '-' that are dependent to the previous argument
+          if (cur_arg == 'hc'){
+            cur_arg <- ''
+            ratios.hist.colour <<- cmd_args[i]
+            levellog(paste0("Changed histogram box color to ", ratios.hist.colour))
+            next
+          } else if (cur_arg == 'lc'){
+              cur_arg <- ''
+              reps.scatter.lmline.colour <<- cmd_args[i]
+              levellog(paste0("Changed best fit line color to ", reps.scatter.lmline.colour))
+              next
+          } else if (cur_arg == 'rb'){
+            cur_arg <- ''
+            nRequiredLeastBioreps <<- as.numeric(cmd_args[i])
+            levellog(paste0("Least required bioreps to consider a protein valid set to ", nRequiredLeastBioreps))
+            next
+          } else if (cur_arg == 'rp'){
+            cur_arg <- ''
+            nRequiredLeastPeps <<- as.numeric(cmd_args[i])
+            levellog(paste0("Least required peptides to consider a protein valid set to ", nRequiredLeastPeps))
+            next
+          } else if (cur_arg == 'p'){
+            cur_arg <- ''
+            pThreshold <<- as.numeric(cmd_args[i])
+            levellog(paste0("Changed differential analysis p threshold to ", pThreshold))
+            next
+          } else if (cur_arg == 'exf'){
+            cur_arg <- ''
+            experimental_structure_file <<- cmd_args[i]
+            levellog(paste0("Set experimental structure file path to ", experimental_structure_file))
+            next
+          } else if (cur_arg == 'LFf'){
+            cur_arg <- ''
+            LFQ_conditions_file <<- cmd_args[i]
+            levellog(paste0("Set LFQ file path to ", LFQ_conditions_file))
+            next
+          } else if (cur_arg == 'RNf'){
+            cur_arg <- ''
+            Rename_Array_file <<- cmd_args[i]
+            levellog(paste0("Set Rename file path to ", Rename_Array_file))
+            next
+          } else if (cur_arg == 'LSf'){
+            cur_arg <- ''
+            LS_Array_file <<- cmd_args[i]
+            levellog(paste0("Set Label swap file path to ", LS_Array_file))
+            next
+          } else if (cur_arg == 'mf'){
+            cur_arg <- ''
+            evidence_fname <<- cmd_args[i]
+            levellog(paste0("Set main data file path to ", evidence_fname))
+            next
+          } else if (cur_arg == 'pgf'){
+            cur_arg <- ''
+            pgroups_fname <<- cmd_args[i]
+            levellog(paste0("Set protein groups data file for MQ path to ", pgroups_fname))
+            next
+          } else if (cur_arg == 'RMrf'){
+            cur_arg <- ''
+            RMrawfilesdata_file <<- cmd_args[i]
+            levellog(paste0("Set Replication Multiplexing raw files data file to ", RMrawfilesdata_file))
+            next
+          } else if (cur_arg == 'RMtf'){
+            cur_arg <- ''
+            RMtagsdata_file <<- cmd_args[i]
+            levellog(paste0("Set Replication Multiplexing tags data file to ", RMtagsdata_file))
+            next
+          } else if (cur_arg == 'op'){
+            cur_arg <- ''
+            outputFigsPrefix <<- cmd_args[i]
+            levellog(paste0("Set output prefix to ", outputFigsPrefix))
+            next
+          } else if (cur_arg == 'flL'){
+            cur_arg <- ''
+            filterL_lbl <<- cmd_args[i]
+            levellog(paste0("Set filter label to ", filterL_lbl))
+            next
+          } else if (cur_arg == 'et'){
+            cur_arg <- ''
+            temp_et <- cmd_args[i]
+            if (temp_et == 'ML')
+            {
+              LabelFree <<- F
+              IsobaricLabel <<- F
+              levellog("Set experiment type to metabolic labeling")
+            } else if (temp_et == 'IL') {
+              LabelFree <<- F
+              IsobaricLabel <<- T
+              levellog("Set experiment type to isobaric labeling")
+            } else if (temp_et == 'LF') {
+              LabelFree <<- T
+              IsobaricLabel <<- F
+              levellog("Set experiment type to label free")
+            }
+            next
+          } else if (cur_arg == 'ed'){
+            cur_arg <- ''
+            exp_desc <<- cmd_args[i]
+            levellog(paste0("Set experiment description to ", exp_desc))
+            next
+          } else if (cur_arg == 'Fo'){
+            cur_arg <- ''
+            FNorganism <<- cmd_args[i]
+            levellog(paste0("Set Functional enrichment organism to ", FNorganism))
+            next
+          }
+        }
+      }
+      levellog("Loaded command line arguments", change = -1)
+    }
+  }
 }
 
-perform_analysis<-function(){
+
+perform_analysis<-function() {
+  
+  # Perform analysis is the main function of ProteoSign's backend that will prepare all data to be fed to
+  # subroutines such as read.pgroups that will read the main file and transform all data to a commin format
+  # do limma analysis and do results plots that do the analysis and draw the plots respectively more
+  # functions such as venn diagram creation and functional enrichment analysis will be
+  # executed afterwards
+  
   levellog("",change=1)
+  
+  # First we will navigate to the current directory since all paths to parameters files can be relative
   setwd(working_directory)
+  
+  # Reading the experimental structure is the first step:
   rep_structure<-read.table(experimental_structure_file,col.names=c('raw_file','biorep','techrep','fraction'), sep="\t")
   rep_structure<-rep_structure[order(rep_structure[,2],rep_structure[,3],rep_structure[,4]),]
   LFQ_conds<-c()
@@ -2526,13 +2860,13 @@ perform_analysis<-function(){
     LFQ_conds$condition[which(LFQ_conds$condition == "N")] <- "condN"
     LFQ_conds$condition <- factor(LFQ_conds$condition)
   }
-  #take care of the same problem in conditions.labels as well
+  #take care of the same problem in conditions as well
   #a condition can not be named "N" so just for this case rename it to condN
-  for(i in 1:length(conditions.labels)){
-    if(conditions.labels[i] == "N")
+  for(i in 1:length(conditions)){
+    if(conditions[i] == "N")
     {
-      conditions.labels[i] <- "condN"
-      conditions.labels <<- conditions.labels
+      conditions[i] <- "condN"
+      conditions <<- conditions
     }
   }
   if(filterL_lbl == "N")
@@ -2603,10 +2937,10 @@ perform_analysis<-function(){
   }else{
     quantitated_items_lbl<<-"Peptide"
   }
-  if(file.exists(limma_output)){
-    unlink(limma_output, recursive=T, force=T)
+  if(file.exists(limma_out_dir)){
+    unlink(limma_out_dir, recursive=T, force=T)
   }
-  dir.create(limma_output)
+  dir.create(limma_out_dir)
   if(grepl("\"",readLines(evidence_fname, n=1))){
     levellog("Removing double quotes from input data file #1 ...")
     tmpdata<-gsub("\"", "", readLines(evidence_fname))
@@ -2616,7 +2950,7 @@ perform_analysis<-function(){
   }
   levellog("Reading input data ...")
   if(PDdata){
-    protein_groups<<-read.pgroups_v3(pgroups_fname,evidence_fname,time.point,keepEvidenceIDs=T)
+    protein_groups<<-read.pgroups_v3(pgroups_fname,evidence_fname,exp_desc)
   }else{
     if(grepl("\"",readLines(pgroups_fname, n=1))){
       levellog("Removing double quotes from input data file #2 ...")
@@ -2625,7 +2959,7 @@ perform_analysis<-function(){
       writeLines(tmpdata, con=pgroups_fname_cleaned)
       close(pgroups_fname_cleaned)
     }
-    protein_groups<<-read.pgroups_v3(pgroups_fname,evidence_fname,time.point,keepEvidenceIDs=T)
+    protein_groups<<-read.pgroups_v3(pgroups_fname,evidence_fname,exp_desc)
   }
   #Restore the original rep descriptions to add to the graph
   if (!RMisused)
@@ -2642,7 +2976,7 @@ perform_analysis<-function(){
     }
     colnames(protein_groups) <- newcolumns
   }
-  setwd(limma_output)
+  setwd(limma_out_dir)
   temp_pgroups <- protein_groups
   write.table(temp_pgroups[, -which(names(temp_pgroups) %in% c("N.x","N.y"))],file=paste(outputFigsPrefix,"_proteinGroupsDF.txt",sep=""),row.names=F,sep="\t")
   setwd("..")
@@ -2653,11 +2987,11 @@ perform_analysis<-function(){
   #Create the expdesign table:
   expdesign<-c()
   #Rename conditions labels from condN back to N
-  for(i in 1:length(conditions.labels)){
-    if(conditions.labels[i] == "condN")
+  for(i in 1:length(conditions)){
+    if(conditions[i] == "condN")
     {
-      conditions.labels[i] <- "N"
-      conditions.labels <<- conditions.labels
+      conditions[i] <- "N"
+      conditions <<- conditions
       colnames(protein_groups) <- sub("condN", "N", colnames(protein_groups))
     }
   }
@@ -2675,7 +3009,7 @@ perform_analysis<-function(){
     LFQ_conds <<- LFQ_conds
     colnames(protein_groups) <- sub("condN", "N", colnames(protein_groups))
   }
-  for(cond_i in conditions.labels){
+  for(cond_i in conditions){
     expdesign<-rbind(expdesign,cbind(paste(sub("Intensity\\.","",sort(colnames(protein_groups)[grep(paste("Intensity.",cond_i,".b",sep=""),colnames(protein_groups))]))),cond_i))  
   }
   
@@ -2699,13 +3033,13 @@ perform_analysis<-function(){
   
   levellog("Performing the analysis ...")
   
-  norm.median.intensities <- do_limma_analysis(prepare_working_pgroups(protein_groups),time.point,exp_design_fname,exportFormat="pdf",outputFigsPrefix=outputFigsPrefix)
+  norm.median.intensities <- do_limma_analysis(prepare_working_pgroups(protein_groups),exp_desc,exp_design_fname,exportFormat="pdf",outputFigsPrefix=outputFigsPrefix)
   
   levellog("Generating analysis plots ...")
   
   .GlobalEnv[["expdesign"]]<-expdesign
   
-  results<-do_results_plots(norm.median.intensities, time.point, exportFormat="pdf", outputFigsPrefix=outputFigsPrefix)
+  results<-do_results_plots(norm.median.intensities, exp_desc, exportFormat="pdf", outputFigsPrefix=outputFigsPrefix)
   
   # The results data frame contains all statistics of the homonymous data frame in the beggining of do results plots function (see the 
   # respective comment) with some columns added that show the intensity of each protein in each one of the replicates and conditions
@@ -2731,9 +3065,9 @@ perform_analysis<-function(){
   # N log2 cond1/cond2 shows how many log ratios we managed to compute, avg log2 I L/H
   
   
-  if (GOenrichment)
+  if (FNenrichment)
   {
-    # The last step is to perform the GO analysis using the R package gprofiler
+    # The last step is to perform the enrichment analysis using the R package gprofiler
     levellog("Perform enrichment analysis.")
     
     # First get the uniprot IDs of the Differentially expressed proteins for each combination of conditions
@@ -2741,18 +3075,18 @@ perform_analysis<-function(){
     for(j in 1:nrow(ratio_combs))
     {
       result<-tryCatch({
-        # In this line conditions.labels[ratio_combs[i, 1]] and conditions.labels[ratio_combs[i, 2]] have the names of the conditions to compare
+        # In this line conditions[ratio_combs[i, 1]] and conditions[ratio_combs[i, 2]] have the names of the conditions to compare
         uniprot_ids <- c()
-        uniprot_ids <- get_uniprot_ids(results, conditions.labels[ratio_combs[j, 1]], conditions.labels[ratio_combs[j, 2]])
+        uniprot_ids <- get_uniprot_ids(results, conditions[ratio_combs[j, 1]], conditions[ratio_combs[j, 2]])
         if(length(uniprot_ids) == 0)
         {
-          levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions.labels[ratio_combs[j, 1]], " and ", conditions.labels[ratio_combs[j, 2]], " failed (", GOorganism, " was selected as target organism) because no UNIprot IDs were found for the differentially expressed proteins (if any)"))
+          levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions[ratio_combs[j, 1]], " and ", conditions[ratio_combs[j, 2]], " failed (", FNorganism, " was selected as target organism) because no UNIprot IDs were found for the differentially expressed proteins (if any)"))
           next;
         }
         # Since uniprot_ids contain the IDs of the DE expressed proteins lets run a GO analysis for them
-        run_enrichment_analysis(uniprot_ids,GOorganism, conditions.labels[ratio_combs[j, 1]], conditions.labels[ratio_combs[j, 2]])
+        run_enrichment_analysis(uniprot_ids,FNorganism, conditions[ratio_combs[j, 1]], conditions[ratio_combs[j, 2]])
       }, error = function(err){
-        levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions.labels[ratio_combs[j, 1]], " and ", conditions.labels[ratio_combs[j, 2]], " failed (", GOorganism, " was selected as target organism)"))
+        levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions[ratio_combs[j, 1]], " and ", conditions[ratio_combs[j, 2]], " failed (", FNorganism, " was selected as target organism)"))
       })
     }
   }
@@ -2784,11 +3118,11 @@ perform_analysis<-function(){
   # and values the indices of the respective columns in results dataframe that store the intensities for the specific
   # condition - replicate pair
   
-  intensity_cols_idxs <- sapply(conditions.labels, function(x) grep(paste0("^", x, " \\d+"), colnames(results)))
+  intensity_cols_idxs <- sapply(conditions, function(x) grep(paste0("^", x, " \\d+"), colnames(results)))
   
   # the following lines adds the description of the replicates as rownames:
-  tmp_vector <- expdesign[expdesign[,"Category"] == conditions.labels[1],"Sample"]
-  tmp_vector <- substr(tmp_vector, str_length(conditions.labels[1]) + 2, str_length(tmp_vector))
+  tmp_vector <- expdesign[expdesign[,"Category"] == conditions[1],"Sample"]
+  tmp_vector <- substr(tmp_vector, str_length(conditions[1]) + 2, str_length(tmp_vector))
   rownames(intensity_cols_idxs) <- tmp_vector
   # an example of intensity_cols_idxs is:
   
@@ -2802,6 +3136,7 @@ perform_analysis<-function(){
   
   generate_Venn_diagrams(results[,as.vector(intensity_cols_idxs)], rownames(intensity_cols_idxs))
   
+  
   # Return to the main working directory and log the completion of the procedure
   setwd("..")
   levellog("",change=-1)
@@ -2812,17 +3147,14 @@ perform_analysis<-function(){
 
 #================ PRODUCTION ===============
 
-if(DEBUG ){  
+if(DEBUG){  
   if (DEBUG)
   {
     # the following line is for use of RStudio debugging
     setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-    unlabeled_peptide_regex<-"^$"
-    clearLabels()
-    clearMods()
-    paramssetfromGUI<-F
+    clearConditions()
     working_directory<-getwd()
-    limma_output<-"msdiffexp_out"
+    limma_out_dir<-"msdiffexp_out"
     LabelFree<-F
     AllowLabelRename<-F
     AllowLS<-F
@@ -2831,6 +3163,7 @@ if(DEBUG ){
   }
   
 }else{
+  initProteoSign()
   perform_analysis()
 }
 
