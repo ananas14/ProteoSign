@@ -1,6 +1,5 @@
 
 
-
 # PROTEOSIGN - MSdiffexp.R
 # Main Back-end R script for Proteosign: An end-user online differential proteomics statistical analysis platform.
 # Reference:
@@ -53,7 +52,7 @@ cat("\n=== Dependencies successfully loaded... ===\n\n")
 
 # DEBUGGING log flag/level (0 translates to no debugging log at all)
 debuglog <- 10
-# DEBUGGING log indentation level (psoitive int, global) for levellog function
+# DEBUGGING log indentation level (positive int, global) for levellog function
 loglvl <- 0
 lastSysTime <- NA
 firstSysTime <- NA
@@ -2034,8 +2033,6 @@ prepare_working_pgroups<-function(working_pgroups){
   return(working_pgroups)
 }
 
-
-
 addLabel<-function(lblname, ...){
   
   # This routine adds labels or conditions (the two terms can be used interchangeably in PS) to the experiment
@@ -2060,7 +2057,7 @@ addLabel<-function(lblname, ...){
   
   # Add the condition to the conditions global variable
   conditions<<-c(conditions, lblname)
-
+  
   # Recalculate the conditions length
   nConditions<<-length(conditions)
   levellog("", change=-1)
@@ -2133,10 +2130,31 @@ run_enrichment_analysis <- function(UniProtList, myFNorganism, cond1, cond2) {
   enrich.matrix <- as.matrix(enrich$result[enrich$result$p_value < 0.05,c( "source", "term_name", "term_id", "p_value", "term_size", "query_size", "intersection_size", "intersection")])
   colnames(enrich.matrix) = c("Data Source", "Function", "Term ID", "p-Value", "Term size", "Query size", "Intersection Size", "Intersection")
   
+  # The enrichment analysis produces a table file like the following one:
+  
+  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
+  # | Data Source | Function                                              | Term ID    | p-Value  | Term size | Query size | Intersection Size | Intersection                                                   |
+  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
+  # | CORUM       | Nop56p-associated pre-rRNA complex                    | CORUM:3055 | 2.40E-02 | 104       | 10         | 4                 | P22087,Q01081,P15880,P30050                                    |
+  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
+  # | GO:BP       | positive regulation of mRNA splicing, via spliceosome | GO:0048026 | 5.03E-06 | 26        | 14         | 4                 | Q13573,P62995,P38159,Q14011                                    |
+  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
+  # | GO:BP       | RNA processing                                        | GO:0006396 | 8.24E-06 | 968       | 14         | 9                 | P22087,Q01081,Q13573,P62995,P15880,P38159,Q52LJ0,P14866,Q14011 |
+  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
+  # | GO:BP       | positive regulation of mRNA processing                | GO:0050685 | 1.97E-05 | 36        | 14         | 4                 | Q13573,P62995,P38159,Q14011                                    |
+  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
+  
+  # Which describes the Function detected per line, the term ID etc and all information relative to a GO enrichment analysis
+  
   write.table(enrich.matrix, paste(outputFigsPrefix,"_enrichment_results_" , cond2, ".", cond1 , ".txt",sep=""), row.names=FALSE, sep = "\t", dec = ".", quote = F)
 }
 
 generate_Venn_diagrams <- function(results_intensities, replicate_descs) {
+  
+  # Venn diagrams can be very useful for visualising the reproducibility of the experiment. In general two replicates
+  # of the experiment should not have great differences in the amount of proteins quantified. The Venn diagram might
+  # show these possible differences between biological replicates, or technical replicates of the same biorep
+  # the following function gets the experimental structure and the columns of the protein intensities across all replicates
   
   # First of all suppress the log file from Venn Diagram package
   futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
@@ -2510,11 +2528,11 @@ initProteoSign <- function() {
       # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
       # | -RM                | Enables Replication Multiplexing                                              | False                         |
       # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
-      # | -RMbir             | For Replication Multiplexing experiments: defines that biological reps        | True                          |
+      # | -RMbir             | For Replication Multiplexing experiments: defines that biological reps        | False                         |
       # |                    | are represented as different raw files (False for being represented as        |                               |
       # |                    | different tags)                                                               |                               |
       # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
-      # | -RMtir             | For Replication Multiplexing experiments: defines that technical reps         | True                          |
+      # | -RMtir             | For Replication Multiplexing experiments: defines that technical reps         | False                         |
       # |                    |  are represented as different raw files (False for being represented as       |                               |
       # |                    |  different tags)                                                              |                               |
       # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
@@ -2529,8 +2547,9 @@ initProteoSign <- function() {
       # |                    | separated file 'valid_GO_Organisms.txt' under 'cgi-bin' folder in             |                               |
       # |                    | ProteoSign's distribution                                                     |                               |
       # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
-      #   
-        
+      # | -of <FOLDER>       | The output folder's path - name                                               | msdiffexp_out                 |
+      # +--------------------+-------------------------------------------------------------------------------+-------------------------------+
+      
       # First load all default values:
       levellog("PS is executed with command line arguments...")
       levellog("Setting default arguments")
@@ -2562,8 +2581,8 @@ initProteoSign <- function() {
       AllowLabelRename<<-F
       AllowLS<<-F
       RMisused<<-F
-      RMbrepsinrawfiles<<-T
-      RMtrepsinrawfiles<<-T
+      RMbrepsinrawfiles<<-F
+      RMtrepsinrawfiles<<-F
       RMconditionsinrawfiles<<-F
       FNenrichment<<-F
       FNorganism<<-'human'
@@ -2699,6 +2718,9 @@ initProteoSign <- function() {
           } else if (cmd_args[i] == '-Fo'){
             cur_arg <- 'Fo'
             next
+          } else if (cmd_args[i] == '-of'){
+            cur_arg <- 'of'
+            next
           }
         } else {
           # Perform operations for arguments not starting with '-' that are dependent to the previous argument
@@ -2708,10 +2730,10 @@ initProteoSign <- function() {
             levellog(paste0("Changed histogram box color to ", ratios.hist.colour))
             next
           } else if (cur_arg == 'lc'){
-              cur_arg <- ''
-              reps.scatter.lmline.colour <<- cmd_args[i]
-              levellog(paste0("Changed best fit line color to ", reps.scatter.lmline.colour))
-              next
+            cur_arg <- ''
+            reps.scatter.lmline.colour <<- cmd_args[i]
+            levellog(paste0("Changed best fit line color to ", reps.scatter.lmline.colour))
+            next
           } else if (cur_arg == 'rb'){
             cur_arg <- ''
             nRequiredLeastBioreps <<- as.numeric(cmd_args[i])
@@ -2805,6 +2827,11 @@ initProteoSign <- function() {
             FNorganism <<- cmd_args[i]
             levellog(paste0("Set Functional enrichment organism to ", FNorganism))
             next
+          } else if (cur_arg == 'of'){
+            cur_arg <- ''
+            limma_out_dir <<- cmd_args[i]
+            levellog(paste0("Set output folder to ", limma_out_dir))
+            next
           }
         }
       }
@@ -2813,75 +2840,364 @@ initProteoSign <- function() {
   }
 }
 
-
-perform_analysis<-function() {
-  
-  # Perform analysis is the main function of ProteoSign's backend that will prepare all data to be fed to
-  # subroutines such as read.pgroups that will read the main file and transform all data to a commin format
-  # do limma analysis and do results plots that do the analysis and draw the plots respectively more
-  # functions such as venn diagram creation and functional enrichment analysis will be
-  # executed afterwards
-  
-  levellog("",change=1)
-  
-  # First we will navigate to the current directory since all paths to parameters files can be relative
-  setwd(working_directory)
-  
+load_table_param_files <- function() {
+  # Much information for the experiment is given using some text files
+  # that are tab separated parameter tables. This function loads these files
   # Reading the experimental structure is the first step:
-  rep_structure<-read.table(experimental_structure_file,col.names=c('raw_file','biorep','techrep','fraction'), sep="\t")
-  rep_structure<-rep_structure[order(rep_structure[,2],rep_structure[,3],rep_structure[,4]),]
-  LFQ_conds<-c()
+  rep_structure<<-read.table(experimental_structure_file,col.names=c('raw_file','biorep','techrep','fraction'), sep="\t")
+  
+  # A truncated example of rep_structure could be:
+  #
+  # +--------------------------------------+--------+---------+----------+
+  # | raw_file                             | biorep | techrep | fraction |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF01_01 | 1      | 1       | 1        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF01_02 | 1      | 2       | 1        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF02_01 | 1      | 1       | 2        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF02_02 | 1      | 2       | 2        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF03_01 | 1      | 1       | 3        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF03_02 | 1      | 2       | 3        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF04_01 | 1      | 1       | 4        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF04_02 | 1      | 2       | 4        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF05_01 | 1      | 1       | 5        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF05_02 | 1      | 2       | 5        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF06_02 | 1      | 1       | 6        |
+  # +--------------------------------------+--------+---------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF06_03 | 1      | 2       | 6        |
+  # +--------------------------------------+--------+---------+----------+
+  # ...
+  #
+  # The table above matches each raw file to a biorep a techrep and a fraction
+  # (rep_structure is a global variable)
+  
+  # Lets sort the table:
+  rep_structure<<-rep_structure[order(rep_structure[,2],rep_structure[,3],rep_structure[,4]),]
+  
+  # Especially for LFQ data each raw file is matched to a condition as well. This kind of information
+  # is stored in the LFQ_conditions_file
+  
+  # LFQ_conds will hold this kind of information:
+  LFQ_conds<<-c()
   if(LabelFree)
   {
-    #if labelfree load the lfq conditions structure
-    LFQ_conds<-read.table(LFQ_conditions_file, col.names=c('raw_file', 'condition'), stringsAsFactors = F)
+    # Load the necessary information
+    LFQ_conds<<-read.table(LFQ_conditions_file, col.names=c('raw_file', 'condition'), stringsAsFactors = F)
+    
+    # An example of LFQ_conds could be:
+    #
+    #   +--------------+-----------+
+    #   | raw_file     | condition |
+    #   +--------------+-----------+
+    #   | 20130426EL04 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL05 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL06 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL07 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL08 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL09 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL10 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL11 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL12 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL13 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL14 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL15 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL16 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL17 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL18 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL19 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL20 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL21 | WT        |
+    #   +--------------+-----------+
+    #   | 20130426EL24 | pfg377KO  |
+    #   +--------------+-----------+
+    #   | 20130426EL25 | pfg377KO  |
+    #   +--------------+-----------+
+    #   | 20130426EL26 | pfg377KO  |
+    #   +--------------+-----------+
+    #   | 20130426EL27 | pfg377KO  |
+    #   +--------------+-----------+
+    #
+    # Matching each raw file to a condition.
+    
   }
+  
+  
   if (AllowLabelRename == T)
   {
+    # Label Renaming is a procedure where the user can rename some of their conditions. If two or more conditions
+    # point to the same new name they will be merged.
+    # Rename_array is a global variable. In cse we have merging for example of conditions M and L to "wt" the
+    # array will seem like:
+    
+    # +-----------+-----------+
+    # | old_label | new_label |
+    # +-----------+-----------+
+    # | H         | H         |
+    # +-----------+-----------+
+    # | M         | wt        |
+    # +-----------+-----------+
+    # | L         | wt        |
+    # +-----------+-----------+
+    
+    # Notice that all conditions that are not renamed will have the same conditions in both columns.
+    # In case a ProteoSign run does not need any renaming ther are 2 options. Either AllowLabelRename will be disabled
+    # or the Rename_array will have the same labels on both columns.
+    # The latter is used when running PS from its web interface, so in our example Rename_array will have the following format:
+    
+    # +-----------+-----------+
+    # | old_label | new_label |
+    # +-----------+-----------+
+    # | H         | H         |
+    # +-----------+-----------+
+    # | L         | L         |
+    # +-----------+-----------+
+    
+    
     Rename_Array <<- read.table(Rename_Array_file, col.names=c('old_label', 'new_label'), stringsAsFactors = F)
   }
+  
+  
   if (AllowLS == T)
   {
+    # LS_array keeps all necessary information for label swapping (see our documentation for label swap)
+    # Proteosign swaps quantitated data for the swapped labels in all raw files designated by LS array
+    
+    # An example of LS_array is seen below:
+    #
+    # +--------------------------------------+-------------+--------------+
+    # | selected_raw_file                    | first_label | second_label |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF01_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF02_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF03_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF04_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF05_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF06_03 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF07_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF08_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF09_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF10_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF11_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    # | OT2_Terhune_2012-10-09_DMC-HLNF12_02 | L           | H            |
+    # +--------------------------------------+-------------+--------------+
+    #
+    # That contains exactly the necessary information with all raw files where label swap between H and L will happen
+    #
+    # To make things easy, when PS is run using the web interface the LS array file is filled with a predtermined
+    # table:
+    # +-------------------+----------+-------+
+    # | This run contains | no label | swaps |
+    # +-------------------+----------+-------+
+    # in this case LS_array is populated with the table above but since (hopefully) no raw files are ever
+    # named "This run contains" PS runs properly with this LS_array but simply overlooks it
+    
+    
     Ls_array <<- read.table(LS_Array_file, col.names=c('selected_raw_file', 'first_label', 'second_label'), stringsAsFactors = F)
   }
+  
+  # Replication Multiplexing is quite complicated - it lets the user run PS on experiments
+  # where bio and techreps might be represented as different tags and conditions as different raw files (MS runs)
+  # PS's frontend sets RMisused to true to enable Replication Multiplexing (RM) if RM is used in the experiment
+  # all necessary information for RM is contained in 2 tables that are RMrawfilesdata and RMtagsdata and show what is represented
+  # by different raw files and tags respectively and 3 boolean variables:
+  #
+  # RMbrepsinrawfiles that is true if bioreps are represented by different raw files (as in a typical proteomics experiment)
+  # RMtrepsinrawfiles that is true if treps are represented by different raw files (as in a typical proteomics experiment)
+  # and RMconditionsinrawfiles that is true if conditions are represented as different raw files (that is an atypical way to represent your conditions, conditions are usually different labels or tags)
+  #
+  # almost all possible combinations of the booleans above are acceptable (if something is not reasonable it will be rejected from PS's frontend)
+  
+  
+  # The following example shows an experiment where the conditions were distributed across MS runs but the
+  # bio and techreps were represented as different tags in a TMT 6-ple example. Lets say that 3 bio reps of mice were chosen
+  # and we have two samples (2 tech reps) for each one of these:
+  #
+  #                       +-------------------+
+  #                       |                   |
+  #                       |       Mice        |
+  #                       |                   |
+  #                       +---------+---------+
+  #                                 |
+  #                                 |
+  #                  +--------------+----------------+
+  #                  |              |                |
+  #                  |              |                |
+  #           +------v------+  +----v--------+ +-----v------+
+  #           |             |  |             | |            |
+  #           |   brep1     |  |   brep2     | |   brep3    |
+  #           +-------+-----+  +---+---------+ +--------+---+
+  #                   |            |                    |
+  #      +------------+            +---------+          +-------------+
+  #      |            |            |         |          |             |
+  # +----v----+  +----v----  +-----v---+ +---v-----+ +--v------+ +----v----+
+  # |         |  |         | |         | |         | |         | |         |
+  # |  b1t1   |  |  b1t2   | |  b2t1   | |  b2t2   | |  b3t1   | |  b3t2   |
+  # +---------+  +---------+ +---------+ +---------+ +---------+ +---------+
+  # 
+  # 
+  # 
+  # We tag each one of the samples with a different TMT tag (0 to 5) and we thus represent the technical replication in different tags
+  #
+  # in this example the aforementioned booleans will be 
+  #
+  # RMbrepsinrawfiles       F
+  # RMtrepsinrawfiles       F
+  # RMconditionsinrawfiles  T
+  #
+  # and RMtagsdata will be:
+  #
+  # +----+------+------+------+------+------+------+----------+
+  # | id | name | brep | trep | frac | cond | used | selected |
+  # +----+------+------+------+------+------+------+----------+
+  # | 1  | 0    | 1    | 1    | -    | -    | TRUE | FALSE    |
+  # +----+------+------+------+------+------+------+----------+
+  # | 2  | 1    | 1    | 2    | -    | -    | TRUE | FALSE    |
+  # +----+------+------+------+------+------+------+----------+
+  # | 3  | 2    | 2    | 1    | -    | -    | TRUE | FALSE    |
+  # +----+------+------+------+------+------+------+----------+
+  # | 4  | 3    | 2    | 2    | -    | -    | TRUE | FALSE    |
+  # +----+------+------+------+------+------+------+----------+
+  # | 5  | 4    | 3    | 1    | -    | -    | TRUE | FALSE    |
+  # +----+------+------+------+------+------+------+----------+
+  # | 6  | 5    | 3    | 2    | -    | -    | TRUE | FALSE    |
+  # +----+------+------+------+------+------+------+----------+
+  #
+  # Notice that all TMT tags (0-5) are matched against the respective brep-trep pair. Tags are not fractionated
+  # so the frac column is empty and conditions are represented by MS runs so this column is also empty
+  # The user can alway choose to opt out some tags so if the used field is set to FALSE the tag will not be used in the
+  # analysis. The selected field is deprecated and always set to false
+  #
+  # Now lets assume that we have 4 conditions that we want our samples to be studied on. We can mix all the
+  # samples above since they are tagged and divide the mixture into 4 parts and set them under different conditions
+  # Afterwards, we can pass the parts through a mass spectrometer, thus the conditions will
+  # be represented by different MS runs. Don't forget that many MS runs might correspond to a single condition
+  # since MS runs are lmost always fractionated
+  # Thus, a possible RMrawfilesdata could be:
+  # 
+  # +----+----------+------+------+------+-------+------+----------+
+  # | id | name     | brep | trep | frac | cond  | used | selected |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 1  | M456-B06 | -    | -    | 1    | cond2 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 2  | M456-C03 | -    | -    | 1    | cond3 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 3  | M456-C04 | -    | -    | 2    | cond3 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 4  | M456-C09 | -    | -    | 3    | cond3 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 5  | M456-C10 | -    | -    | 4    | cond3 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 6  | M456-D01 | -    | -    | 1    | cond4 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 7  | M456-D05 | -    | -    | 2    | cond4 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 8  | M456-D10 | -    | -    | 3    | cond4 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 9  | M456-E04 | -    | -    | 1    | cond1 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  # | 10 | M456-E08 | -    | -    | 2    | cond1 | TRUE | FALSE    |
+  # +----+----------+------+------+------+-------+------+----------+
+  #
+  # Each line corresponds to a different MS run - a different raw file - and matched against a condition - fraction pair
+  # As before, all unnecessary columns are left blank
+  # 
+  # Using the 3 aformentioned boolean variables and these two tables all reasonable combinations of representation
+  # of breps, treps and conditions by tags or raw files are possible
+  
+  
   if (RMisused == T)
   {
+    # Load the raw files data for RM:
     RMrawfilesdata <<- read.table(RMrawfilesdata_file, col.names=c('id', 'name', 'brep', 'trep', 'frac', 'cond', 'used', 'selected'), stringsAsFactors = F)
   }
   if (RMisused == T)
   {
+    # Load the tafs data for RM
     RMtagsdata <<- read.table(RMtagsdata_file, col.names=c('id', 'name', 'brep', 'trep', 'frac', 'cond', 'used', 'selected'), stringsAsFactors = F)
   }
-  #Because a condition can not be named "N" in ProteoSign, rename it to condN
-  mi <- which(LFQ_conds$condition == "N")
-  if(length(mi)>0)
-  {
-    levels(LFQ_conds$condition) <- c(levels(LFQ_conds$condition), "condN")
-    LFQ_conds$condition[which(LFQ_conds$condition == "N")] <- "condN"
-    LFQ_conds$condition <- factor(LFQ_conds$condition)
-  }
-  #take care of the same problem in conditions as well
-  #a condition can not be named "N" so just for this case rename it to condN
-  for(i in 1:length(conditions)){
-    if(conditions[i] == "N")
-    {
-      conditions[i] <- "condN"
-      conditions <<- conditions
-    }
-  }
-  if(filterL_lbl == "N")
-  {
-    filterL_lbl <<- "condN"
-  }
-  #we will keep a copy of the original rep_structure to display in the graphs
+}
+
+edit_rep_structure <- function() {
+  # This function edits the rep structure variable that holds the experimental structure
+  # and writes the original rep structure variable as seen below:
+  
+  
+  # Since sometimes some breps or treps might be discarded during experimental processes we might have
+  # vaid experimental strucctures like the one below:
+  #
+  #   +--------------------------------------+------+------+------+
+  #   | raw_file                             | brep | trep | frac |
+  #   +--------------------------------------+------+------+------+
+  #   | OT2_Terhune_2012-10-09_DMC-HLNF01_01 | 1    | 1    | 1    |
+  #   +--------------------------------------+------+------+------+
+  #   | OT2_Terhune_2012-10-09_DMC-HLNF01_02 | 1    | 3    | 1    |
+  #   +--------------------------------------+------+------+------+
+  #   | OT2_Terhune_2012-10-09_DMC-HLNF02_01 | 1    | 1    | 2    |
+  #   +--------------------------------------+------+------+------+
+  #   | OT2_Terhune_2012-10-09_DMC-HLNF02_02 | 1    | 4    | 1    |
+  #   +--------------------------------------+------+------+------+
+  #
+  # Notice in the example above that brep 1 has 3 treps named 1-3-4 - three non-consecutive numbers.
+  # This will break PS so we will keep a copy of the original structure to a global variable
+  # and we will refresh rep_structure so that it contains only consecutive biorep numbers and
+  # consecutive trep numbers for each brep
+  
+  # We will keep a copy of the original rep_structure to display in the graphs
   original_rep_structure <- rep_structure
-  #we are not sure if the biorep and techrep numbers the user typed are sequential, the following code converts them to sequential numbers
+  
+  # We are not sure if the biorep and techrep numbers the user typed are sequential
+  
+  # Get all breps without duplicates
   unique_reps <- unique(rep_structure$biorep)
+  
   counter <- 1
   for(rep_i in unique_reps){
+    
+    # Get all records in rep structure that contain the current brep
     mi <- which(rep_structure$biorep == rep_i)
+    
+    # Renumber the brep to a sequential counter
     rep_structure$biorep[mi] <- counter
     counter <- counter + 1
+    
+    # Get all the treps for the current brep and set them to sequential numbers as we do for all the breps
     unique_techreps <- unique(rep_structure$techrep[mi])
     counter2 <- 1
     for(techrep_i in unique_techreps){
@@ -2890,57 +3206,62 @@ perform_analysis<-function() {
       counter2 <- counter2 + 1
     }
   }
-  original_rep_structure$rep_desc<-paste(paste(paste('b',original_rep_structure$biorep,sep=''),'t',original_rep_structure$techrep,sep=''))
+  
+  # The following line aborts PS run in case we have only one biological replicate.
+  # This is done because limma needs at least 2 bioreps to perform the differential analysis
+  
   if (!RMisused)
   {
     if(length(unique(rep_structure$biorep)) == 1){
       levellog("Error User: Cannot accept dataset with just one biological replicate. Aborting ...")
       return(F)
-      # single_brep_file <<- T
-      # nRequiredLeastBioreps <<- 1
-      # } else {
-      # single_brep_file <<- F
-    }
-  }
-  if(length(unique(rep_structure$techrep)) > 1){
-    if(length(unique(rep_structure$fraction)) > 1){
-      # we have techreps and fractions
-      rep_structure$rep_desc<-paste(paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep=''),'f',rep_structure$fraction,sep='')
-      original_rep_structure$rep_desc<-paste(paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep=''),'f',rep_structure$fraction,sep='')
-    }else{
-      #we have bioreps and techreps
-      rep_structure$rep_desc<-paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep='')
-      original_rep_structure$rep_desc<-paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep='')
-    }
-  }else{
-    if(length(unique(rep_structure$fraction)) > 1){
-      # we have fractions but not techreps
-      rep_structure$rep_desc<-paste(paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep=''),'f',rep_structure$fraction,sep='')
-      original_rep_structure$rep_desc<-paste(paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep=''),'f',rep_structure$fraction,sep='')
-    }else{
-      # we just have bioreps
-      rep_structure$rep_desc<-paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep='')
-      original_rep_structure$rep_desc<-paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep='')
-      # it should be like below, but for backward compatibility with other parts of the code, we keep the convention that in the rep. description, we will always have the terms 'b' (i.e. bio-rep) and 't', even if we don't have tech-reps ...
-      # rep_structure$rep_desc<-paste('b',rep_structure$biorep,sep='')
     }
   }
   
+  # The following lines sets a description for each biorep - trep - frac group.
+  # Example of original_rep_structure
+  #
+  # +---+--------------------------------------+--------+---------+----------+----------+
+  # |   | raw_file                             | biorep | techrep | fraction | rep_desc |
+  # +---+--------------------------------------+--------+---------+----------+----------+
+  # | 1 | OT2_Terhune_2012-10-09_DMC-HLNF01_01 | 1      | 1       | 1        | b1t1f1   |
+  # +---+--------------------------------------+--------+---------+----------+----------+
+  # | 2 | OT2_Terhune_2012-10-09_DMC-HLNF01_02 | 1      | 2       | 1        | b1t2f1   |
+  # +---+--------------------------------------+--------+---------+----------+----------+
+  # | 3 | OT2_Terhune_2012-10-09_DMC-HLNF02_01 | 1      | 1       | 2        | b1t1f2   |
+  # +---+--------------------------------------+--------+---------+----------+----------+
+  # | 4 | OT2_Terhune_2012-10-09_DMC-HLNF02_02 | 1      | 2       | 2        | b1t2f2   |
+  # +---+--------------------------------------+--------+---------+----------+----------+
+  # | 5 | OT2_Terhune_2012-10-09_DMC-HLNF03_01 | 1      | 1       | 3        | b1t1f3   |
+  # +---+--------------------------------------+--------+---------+----------+----------+
+  # (...)
+  #
+  #
+  # The description depends in whether we have fractionation or not (in the case of fractionation the f<#> suffix is added)
+  
+  
+  
+  if(length(unique(rep_structure$fraction)) > 1){
+    # we have fractionation
+    rep_structure$rep_desc<-paste(paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep=''),'f',rep_structure$fraction,sep='')
+    original_rep_structure$rep_desc<-paste(paste(paste('b',original_rep_structure$biorep,sep=''),'t',original_rep_structure$techrep,sep=''),'f',original_rep_structure$fraction,sep='')
+  }else{
+    # we have no fractionation
+    rep_structure$rep_desc<-paste(paste('b',rep_structure$biorep,sep=''),'t',rep_structure$techrep,sep='')
+    original_rep_structure$rep_desc<-paste(paste('b',original_rep_structure$biorep,sep=''),'t',original_rep_structure$techrep,sep='')
+  }
+  
+  # Make rep structure and original rep structure globa variables
   .GlobalEnv[["rep_structure"]]<-rep_structure
-  .GlobalEnv[["LFQ_conds"]]<-LFQ_conds
   .GlobalEnv[["original_rep_structure"]]<-original_rep_structure
-  .GlobalEnv[["n_bioreps"]]<-max(rep_structure$biorep)
-  .GlobalEnv[["n_techreps"]]<-min(ddply(rep_structure[,c("biorep","techrep")],c("biorep"),function(x){return(max(x$techrep))})$V1)
   
-  if(ProteinQuantitation){
-    quantitated_items_lbl<<-"Protein"
-  }else{
-    quantitated_items_lbl<<-"Peptide"
-  }
-  if(file.exists(limma_out_dir)){
-    unlink(limma_out_dir, recursive=T, force=T)
-  }
-  dir.create(limma_out_dir)
+}
+
+remove_double_quotes <- function () {
+  
+  # Removes the double quotes from all quantitation input datafiles
+  
+  # Remove double quotes (if any) from the evidence file
   if(grepl("\"",readLines(evidence_fname, n=1))){
     levellog("Removing double quotes from input data file #1 ...")
     tmpdata<-gsub("\"", "", readLines(evidence_fname))
@@ -2948,10 +3269,10 @@ perform_analysis<-function() {
     writeLines(tmpdata, con=evidence_fname_cleaned)
     close(evidence_fname_cleaned)
   }
-  levellog("Reading input data ...")
-  if(PDdata){
-    protein_groups<<-read.pgroups_v3(pgroups_fname,evidence_fname,exp_desc)
-  }else{
+  
+  # If we are in an MQ preprocessed experiment remove the double quotes (if any) from the protein groups file as well
+  if (!PDdata)
+  {
     if(grepl("\"",readLines(pgroups_fname, n=1))){
       levellog("Removing double quotes from input data file #2 ...")
       tmpdata<-gsub("\"", "", readLines(pgroups_fname))
@@ -2959,13 +3280,18 @@ perform_analysis<-function() {
       writeLines(tmpdata, con=pgroups_fname_cleaned)
       close(pgroups_fname_cleaned)
     }
-    protein_groups<<-read.pgroups_v3(pgroups_fname,evidence_fname,exp_desc)
   }
-  #Restore the original rep descriptions to add to the graph
+}
+
+write_proteinGroupsDF <- function() {
+  # This writes the proteinGroupsDF file that contains information for each protein necessary to proceed to
+  # the differential analysis
+  
+  #Restore the original rep descriptions to add to proteinGroupsDF output file
   if (!RMisused)
   {
     newcolumns <- names(protein_groups)
-    oldcolumns = newcolumns
+    oldcolumns <- newcolumns
     for(my_column in newcolumns){
       for(my_repdesc in .GlobalEnv[["rep_structure"]]$rep_desc){
         if (grepl(my_repdesc, my_column)){
@@ -2977,59 +3303,189 @@ perform_analysis<-function() {
     colnames(protein_groups) <- newcolumns
   }
   setwd(limma_out_dir)
-  temp_pgroups <- protein_groups
-  write.table(temp_pgroups[, -which(names(temp_pgroups) %in% c("N.x","N.y"))],file=paste(outputFigsPrefix,"_proteinGroupsDF.txt",sep=""),row.names=F,sep="\t")
-  setwd("..")
+  write.table(protein_groups[, -which(names(protein_groups) %in% c("N.x","N.y"))],file=paste(outputFigsPrefix,"_proteinGroupsDF.txt",sep=""),row.names=F,sep="\t")
+  setwd(working_directory)
+  
   if (!RMisused)
   {
     colnames(protein_groups) <- oldcolumns
   }
-  #Create the expdesign table:
+}
+
+create_expdesign <- function () {
+  # Creates the expdesign table that describes the experimental design in a limma friendly manner
+  # It also saves it in a file:
+  
+  # Create the expdesign table:
   expdesign<-c()
-  #Rename conditions labels from condN back to N
-  for(i in 1:length(conditions)){
-    if(conditions[i] == "condN")
-    {
-      conditions[i] <- "N"
-      conditions <<- conditions
-      colnames(protein_groups) <- sub("condN", "N", colnames(protein_groups))
-    }
-  }
-  if(filterL_lbl == "condN")
-  {
-    filterL_lbl <<- "N"
-  }
-  #Rename condN back to N in lfq_conds and protein_groups
-  mi <- which(LFQ_conds$condition == "condN")
-  if(length(mi)>0)
-  {
-    levels(LFQ_conds$condition) <- c(levels(LFQ_conds$condition), "N")
-    LFQ_conds$condition[which(LFQ_conds$condition == "condN")] <- "N"
-    LFQ_conds$condition <- factor(LFQ_conds$condition)
-    LFQ_conds <<- LFQ_conds
-    colnames(protein_groups) <- sub("condN", "N", colnames(protein_groups))
-  }
+  
   for(cond_i in conditions){
     expdesign<-rbind(expdesign,cbind(paste(sub("Intensity\\.","",sort(colnames(protein_groups)[grep(paste("Intensity.",cond_i,".b",sep=""),colnames(protein_groups))]))),cond_i))  
   }
   
   colnames(expdesign)<-c("Sample","Category")
+  
+  # The first step is to assign a label to each one of the <condition>.<rep_desc> values. An example of expdesign now
+  # can be:
+  
+  # +--------+--------+
+  # | Sample |Category|
+  # +--------+--------+
+  # | H.b1t1 | H      |
+  # +--------+--------+
+  # | H.b1t2 | H      |
+  # +--------+--------+
+  # | H.b2t1 | H      |
+  # +--------+--------+
+  # | H.b2t2 | H      |
+  # +--------+--------+
+  # | H.b3t1 | H      |
+  # +--------+--------+
+  # | H.b3t2 | H      |
+  # +--------+--------+
+  # | L.b1t1 | L      |
+  # +--------+--------+
+  # | L.b1t2 | L      |
+  # +--------+--------+
+  # | L.b2t1 | L      |
+  # +--------+--------+
+  # | L.b2t2 | L      |
+  # +--------+--------+
+  # | L.b3t1 | L      |
+  # +--------+--------+
+  # | L.b3t2 | L      |
+  # +--------+--------+
+  #
+  
+
+  
   if(!RMisused){
-    #the following lines also deal with restoring the original breps and treps numbers
-    #temp vector has only the information of the replication (e.g. b1t1 or b1t1f1 if we have fractionation)
+    # The following lines deal with restoring the original breps and treps numbers from original_rep_structure
+    # temp_vector created below will get only the rep description from the first column of exp design
     temp_vector <- sub("(.*)\\.","", expdesign[,1])
+    
+    # e.g. : temp_vector: "b1t1" "b1t2" "b2t1" "b2t2" "b3t1" "b3t2" "b1t1" "b1t2" "b2t1" "b2t2" "b3t1" "b3t2"
+    
+    # The following line executes match to find the indices in rep_structure$rep_desc that
+    # contain rep description information for the repdescs in temp_vector
+    # for example b1t1 in rep_structure$rep_desc is located in the first element (in fact the first element is b1t1f1)
+    # b1t2 is in index 13 etc..
+    #
+    # This way PS can trace back to the original rep structure$rep_desc vector and fetch the original rep
+    # descriptions. All this is done in the line below
     temp_vector <- original_rep_structure$rep_desc[match(temp_vector, sub("f.*", "", rep_structure$rep_desc))]
-    #Make sure that expdesign (column Sample) contains data in te right format by merging expdesign and tmp_vector:
+    
+    # The only issue with the method above is that the original rep structure might contain fraactionation information
+    # (as seen in the example above) and this should be removed afterwards
+    
+    # Make sure that expdesign (column Sample) contains the original rep descriptions
+    # to do so merget temp_vector with the sample column in expdesign
+    
     tmp_counter <- 0
     for (expdesign_i in expdesign[,1]){
       expdesign[tmp_counter + 1,1] <- sub("(.*)\\..*",paste0("\\1.", temp_vector[tmp_counter + 1]), expdesign_i)
       tmp_counter <- tmp_counter + 1
     }
   }
-  #Remove the fractionation information: (if any)
+  
+  # Remove the fractionation information: (if any) as noted above
   expdesign[,1] <- sub("(.*\\..*)f.*", "\\1", expdesign[,1], perl = TRUE)
+  
+  # expdesign now seems like:
+  
+  # +--------+----------+
+  # | Sample | Category |
+  # +--------+----------+
+  # | H.b1t1 | H        |
+  # +--------+----------+
+  # | H.b1t2 | H        |
+  # +--------+----------+
+  # | H.b2t1 | H        |
+  # +--------+----------+
+  # | H.b2t2 | H        |
+  # +--------+----------+
+  # | H.b3t1 | H        |
+  # +--------+----------+
+  # | H.b3t2 | H        |
+  # +--------+----------+
+  # | L.b1t1 | L        |
+  # +--------+----------+
+  # | L.b1t2 | L        |
+  # +--------+----------+
+  # | L.b2t1 | L        |
+  # +--------+----------+
+  # | L.b2t2 | L        |
+  # +--------+----------+
+  # | L.b3t1 | L        |
+  # +--------+----------+
+  # | L.b3t2 | L        |
+  # +--------+----------+
+  
+  # that in our example is the same as before but if the original rep descs were different than the
+  # ones used in the analysis it would now contain the correct original rep descs
+  
+  # Write the expdesign table to a file
   write.table(expdesign,file="curr_exp_design.txt",row.names=F,quote=F,sep = "\t")
   exp_design_fname<<-"curr_exp_design.txt"
+  
+  # Make the variable global
+  .GlobalEnv[["expdesign"]]<-expdesign
+}
+
+perform_analysis<-function() {
+  
+  # Perform analysis is the main function of ProteoSign's backend that will properly execute
+  # subroutines such as read.pgroups that will read the main file and transform all data to a common format
+  # do limma analysis and do results plots that do the analysis and draw the plots respectively more
+  # functions such as venn diagram creation and functional enrichment analysis will be
+  # executed afterwards
+  
+  levellog("",change=1)
+  
+  # First we will navigate to the current directory since all paths to parameters files can be relative
+  setwd(working_directory)
+  
+  # Load all tabe separated parameter files taht usually accompany a PS run:
+  load_table_param_files()
+  
+  # Edit the rep structure and original reo structure variables that hold all necessary information for our current experimental structure
+  edit_rep_structure()
+  
+  # Count how many treps and breps we have and store the information to global variables
+  # Note that some experiments are not "orthogonal" that means that some breps might have more treps than others
+  # In this case n_techreps contains the maximum amount of treps per brep
+  .GlobalEnv[["n_bioreps"]]<-max(rep_structure$biorep)
+  .GlobalEnv[["n_techreps"]]<-max(ddply(rep_structure[,c("biorep","techrep")],c("biorep"),function(x){return(max(x$techrep))})$V1)
+  
+  # Protein quantitation is deprecated - always set to true
+  if(ProteinQuantitation){
+    quantitated_items_lbl<<-"Protein"
+  }else{
+    quantitated_items_lbl<<-"Peptide"
+  }
+  
+  # Create the output folder:
+  if(file.exists(limma_out_dir)){
+    levellog("Warn User: The output working folder already exists...")
+  }
+  if (!file.exists(limma_out_dir)) dir.create(limma_out_dir)
+  
+  # Remove double quotes from proteomics quantitation datafiles (if any)
+  remove_double_quotes()
+
+  # Read the proteomics data
+  levellog("Reading input data ...")
+  protein_groups<<-read.pgroups_v3(pgroups_fname,evidence_fname,exp_desc)
+  
+  # Write the proteinGroupsDF file:
+  write_proteinGroupsDF()
+  
+  # The exp_design variable is a very important one that describes the experimental design
+  # in a limma - friendly manner. the following function creates thuis gobal variable and saves a copy of that
+  # in a file called "curr_exp_design.txt"
+  
+  create_expdesign()
+ 
   
   levellog("Performing the analysis ...")
   
@@ -3037,10 +3493,11 @@ perform_analysis<-function() {
   
   levellog("Generating analysis plots ...")
   
-  .GlobalEnv[["expdesign"]]<-expdesign
+
   
   results<-do_results_plots(norm.median.intensities, exp_desc, exportFormat="pdf", outputFigsPrefix=outputFigsPrefix)
   
+  #{
   # The results data frame contains all statistics of the homonymous data frame in the beggining of do results plots function (see the 
   # respective comment) with some columns added that show the intensity of each protein in each one of the replicates and conditions
   # the following table is an example of that:
@@ -3063,11 +3520,13 @@ perform_analysis<-function() {
   # protein is detected, ID the proteins name as values in a data frame column (they contain the same information as the respective row names) avg log2 cond1/cond2
   # that shows the average log ratio of the two conditions across all replicates, sd log2 cond1/cond2 that show the standard deviation of the log ratios across the replicates,
   # N log2 cond1/cond2 shows how many log ratios we managed to compute, avg log2 I L/H
+  #}
   
+  # Perform functional enrichment analysis:
   
   if (FNenrichment)
   {
-    # The last step is to perform the enrichment analysis using the R package gprofiler
+    # Perform the enrichment analysis using the R package gprofiler
     levellog("Perform enrichment analysis.")
     
     # First get the uniprot IDs of the Differentially expressed proteins for each combination of conditions
@@ -3085,34 +3544,18 @@ perform_analysis<-function() {
         }
         # Since uniprot_ids contain the IDs of the DE expressed proteins lets run a GO analysis for them
         run_enrichment_analysis(uniprot_ids,FNorganism, conditions[ratio_combs[j, 1]], conditions[ratio_combs[j, 2]])
+        
+        # run_enrichment_analysis produces a file with all enrichment analysis information - take a look at its comments to find out more
+        
       }, error = function(err){
         levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions[ratio_combs[j, 1]], " and ", conditions[ratio_combs[j, 2]], " failed (", FNorganism, " was selected as target organism)"))
       })
     }
   }
   
-  # The enrichment analysis produces a table file like the following one:
-  
-  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
-  # | Data Source | Function                                              | Term ID    | p-Value  | Term size | Query size | Intersection Size | Intersection                                                   |
-  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
-  # | CORUM       | Nop56p-associated pre-rRNA complex                    | CORUM:3055 | 2.40E-02 | 104       | 10         | 4                 | P22087,Q01081,P15880,P30050                                    |
-  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
-  # | GO:BP       | positive regulation of mRNA splicing, via spliceosome | GO:0048026 | 5.03E-06 | 26        | 14         | 4                 | Q13573,P62995,P38159,Q14011                                    |
-  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
-  # | GO:BP       | RNA processing                                        | GO:0006396 | 8.24E-06 | 968       | 14         | 9                 | P22087,Q01081,Q13573,P62995,P15880,P38159,Q52LJ0,P14866,Q14011 |
-  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
-  # | GO:BP       | positive regulation of mRNA processing                | GO:0050685 | 1.97E-05 | 36        | 14         | 4                 | Q13573,P62995,P38159,Q14011                                    |
-  # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
-  
-  # Which describes the Function detected per line, the term ID etc and all information relative to a GO enrichment analysis
-  
+  # Create the Venn diagrams
+
   levellog("Create Venn Diagrams.")
-  
-  # Venn diagrams can be very useful for visualising the reproducibility of the experiment. In general two replicates
-  # of the experiment should not have great differences in the amount of proteins quantified. The Venn diagram might
-  # show these possible differences between biological replicates, or technical replicates of the same biorep
-  # the following function gets the experimental structure and the columns of the protein intensities across all replicates
   
   # First lets build a matrix with columns the different conditions, rows the replicate descriptions (b1t1, b1t2 etc..)
   # and values the indices of the respective columns in results dataframe that store the intensities for the specific
@@ -3120,12 +3563,12 @@ perform_analysis<-function() {
   
   intensity_cols_idxs <- sapply(conditions, function(x) grep(paste0("^", x, " \\d+"), colnames(results)))
   
-  # the following lines adds the description of the replicates as rownames:
+  # The following lines adds the description of the replicates as rownames:
   tmp_vector <- expdesign[expdesign[,"Category"] == conditions[1],"Sample"]
   tmp_vector <- substr(tmp_vector, str_length(conditions[1]) + 2, str_length(tmp_vector))
   rownames(intensity_cols_idxs) <- tmp_vector
-  # an example of intensity_cols_idxs is:
-  
+  # An example of intensity_cols_idxs is:
+  #
   #       H  L
   # b1t1  8 14
   # b1t2  9 15
@@ -3134,11 +3577,12 @@ perform_analysis<-function() {
   # b3t1 12 18
   # b3t2 13 19
   
+  # The following function will generate the diagrams and save them to image files - see the integrated comments for more information
+  
   generate_Venn_diagrams(results[,as.vector(intensity_cols_idxs)], rownames(intensity_cols_idxs))
   
-  
   # Return to the main working directory and log the completion of the procedure
-  setwd("..")
+  setwd(working_directory)
   levellog("",change=-1)
   levellog("Data analysis finished.")
   levellog("",change=-1)
