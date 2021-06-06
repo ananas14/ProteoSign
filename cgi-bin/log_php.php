@@ -7,7 +7,7 @@
 	$file_location = $location . "/php_log.txt";
 	$server_response['success'] = true;
 	$server_response['msg'] = '';
-	$texttoappend = $_POST["texttoappend"];
+	$texttoappend = htmlentities($_POST["texttoappend"]);
 	if ($ff = fopen($file_location, 'a'))
 	{
 		$canwrite = fwrite($ff, $texttoappend);

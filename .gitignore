@@ -1,5 +1,7 @@
 dev/*
 uploads/*
+!uploads/Feedbacks
+!uploads/.htaccess
 test data/*
 !test data/edit_testdatadb
 !test data/Dimethyl_DIC_merged_psms.txt

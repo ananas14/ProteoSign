@@ -18,13 +18,13 @@
 	var cgi_bin_path = 'cgi-bin/'; // Relative path to cgi-bin folder in the server
 	var RSS_prefix = "NAR Advance articles:"; // Prefix before RSS elements displayed while waiting for results
 	var RSS_link = "https://academic.oup.com/rss/site_5127/3091.xml"; // RSS link to display contents while waiting for the results
-	var server_Feedback_file = "/data/ProteoSign/Feedbacks.txt"; // The absolute path of the server text file that will store all feedbacks
+	var server_Feedback_file = "Feedbacks/Feedbacks.txt"; // The path where the users' Feedbacks will be saved relative to the uploads folder - this should be an uploads subdirectory and the file should already be created
 	
 	// === DEBUG flags ===
 	
 	var AllowMergeLabels = true;
 	var AllowLS = true;
-	
+		
 	// === Version variables ===
 	
 	var sessionid = new Date().getTime();
@@ -6314,6 +6314,8 @@
 		// For more information on Parameters file see the comments on CreateParamsFile
 		var mytext = CreateParamsFile();
 		
+
+		
 		if (mytext !== "")
 		{
 			// Send the text to downloadparam file.php. downloadparam file is responsible to create a
@@ -6336,7 +6338,7 @@
 				}).done(function (data, textStatus, jqXHR) {
 				if (output_file == 0)
 				{
-					msgbox('Download your parameters using this link: <a href="' + data.results_url + '" download target="_blank">' + $('input[name="expid"]').val() + ' parameters.txt</a>.')
+					msgbox('Download your parameters using this link: <a href="' + data.results_url + '" download target="_blank">' + $('input[name="expid"]').val() + ' parameters.zip</a>.')
 				}
 			});
 		}

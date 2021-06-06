@@ -16,8 +16,13 @@
 	}
 	fwrite($myfile, $my_text);
 	fclose($myfile);
+	if ($createOutputParam_file == 0)
+	{
+		chdir($upload_dir);
+		exec("zip " . $experiment_name . "_parameters.zip " . $experiment_name . "_parameters.txt");
+	}
 	$server_response['success'] = true;
-	$server_response['results_url'] = $temp_path . "/" .  $experiment_name . "_parameters.txt";
+	$server_response['results_url'] = $temp_path . "/" .  $experiment_name . "_parameters.zip";
 	header('Content-type: application/json');
-echo json_encode($server_response);
+	echo json_encode($server_response);
 ?>
