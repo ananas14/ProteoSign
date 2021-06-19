@@ -1,10 +1,11 @@
 #
 #
 # PROTEOSIGN - MSdiffexp.R
-# Main Back-end R script for Proteosign: An end-user online differential proteomics statistical analysis platform.
+# Main Back-end R script for ProteoSign v2: a faster and evolved user-friendly online tool for statistical analyses of differential proteomics
+#
 # Reference:
-# Efstathiou G., Antonakis A. N., Theodosiou T., Pavlopoulos G. A., Divanach P., Trudgian D. C., Thomas B., Papanikolaou N., Aivaliotis M., Acuto O. and Iliopoulos I.
-# https://www.ncbi.nlm.nih.gov/pubmed/28520987
+# Theodorakis E., Antonakis A. N., Baltsavia I., Pavlopoulos G. A., Samiotaki M., Amoutzias G. D., Theodosiou T., Acuto O., Efstathiou G., Iliopoulos I.
+# https://doi.org/10.1093/nar/gkab329
 #
 #
 
@@ -136,7 +137,7 @@ panel.cor.scale <- function(x, y, digits=2, prefix="", cex.cor){
 
 panel.cor <- function(x, y, digits=2, prefix="", cex.cor){
   
-  # This function computes the Pearsons's r for each paair of replicates for a specific pair of conditions
+  # This function computes the Pearsons's r for each pair of replicates for a specific pair of conditions
   # the x and y vectors are two columns of the allratios data frame. All possible pairs will be parsed through panel.cor
   # allratios is a data frame containing u columns
   # (i.e. as many replicates we have) each for one replicate for a specific condition pair with the log ratios of the two conditions (e.g. L vs H) for each
@@ -413,9 +414,13 @@ do_results_plots <- function(norm.median.intensities,exp_desc,exportFormat="pdf"
   
   
   
-  if (nrow(ratio_combs) == 1) {
+  if (nrow(ratio_combs) == 1)
+  {
     # limma does not indicate the conditions compared in case only two conditions are compared in the column names so if ratio_combs = 1 add the conditions manually to the colnames of results
     colnames(results)[grep("p\\.value\\.adj",colnames(results), ignore.case = T)]<-paste("p.value.adj.",conditions[2],".",conditions[1],sep="")
+  } else {
+    # In any case make the specific column name case insensitive
+    colnames(results) <- sub("p\\.value\\.adj(.*)$", "p.value.adj\\1", colnames(results), ignore.case = T)
   }
   
   
@@ -449,17 +454,23 @@ do_results_plots <- function(norm.median.intensities,exp_desc,exportFormat="pdf"
   {
     results <- subset(results, select=-c(X))
   }
+  
+  
   levellog("Filtering data based on P-value(s) ...")
   signTruth<-rep(FALSE,nrow(results))
-  for(i in 1:nrow(ratio_combs)){
-    col_desc_<-paste("p.value.adj.",paste(conditions[ratio_combs[i,2]],".",conditions[ratio_combs[i,1]],sep=""),sep="")
-    na_indexes<-which(is.na(results[,col_desc_]))
-    if(length(na_indexes)>0){
-      results[na_indexes,col_desc_]<-1
-      signTruth<-(signTruth | results[,col_desc_]<pThreshold)
-      results[na_indexes,col_desc_]<-NA
+  for(i in 1:nrow(ratio_combs))
+  {
+    col_desc_ <- paste("p.value.adj.",paste(conditions[ratio_combs[i,2]],".",conditions[ratio_combs[i,1]],sep=""),sep="")
+    # Pick the right clumnin a case insensitive mnner to catch all MQ and PD versions
+    col_picker <- grepl(col_desc_, x = colnames(results), ignore.case = T)
+    na_indexes<-which(is.na(results[, col_picker]))
+    if(length(na_indexes) > 0)
+    {
+      results[na_indexes,col_picker]<-1
+      signTruth<-(signTruth | results[,col_picker]<pThreshold)
+      results[na_indexes,col_picker]<-NA
     }else{
-      signTruth<-(signTruth | results[,col_desc_]<pThreshold)
+      signTruth<-(signTruth | results[,col_picker]<pThreshold)
     }
   }
   
@@ -500,7 +511,7 @@ do_results_plots <- function(norm.median.intensities,exp_desc,exportFormat="pdf"
   }
   
   # The following line parses all rows of results one by one to calcrowstats that calculates all statistics for this row.
-  # For example the first vextor that will be sen to calcRowStats might be:
+  # For example the first vector that will be sent to calcRowStats might be:
   
   #          A            Coef               t         P.value p.value.adj.L.H               F       F.p.value             H 1             H 2             H 3 
   # 24.1043377      -0.7357708      -0.9142610       0.3805779       0.6364843       0.8358731       0.3805779      24.9853920      24.2196678      24.6194861 
@@ -530,6 +541,7 @@ do_results_plots <- function(norm.median.intensities,exp_desc,exportFormat="pdf"
   
   levellog("Performing final formatting operations ...")
   colnames_d_<-c()
+  
   # d contains all calculated statistics for ratios calculated by calcrowstats. the columns will be renamed to a more informative name. For a specific combination of conditions the columns contain the following info: mean/standard deviation/number of ratios calculated/average of log2 quant data/the rest of the columns are ratios calculated (one per replicate)
   # the first columns are standard:
   for(i in 1:nrow(ratio_combs)){
@@ -601,7 +613,8 @@ do_results_plots <- function(norm.median.intensities,exp_desc,exportFormat="pdf"
   
   
   # Plot generation:
-  for(i in 1:nrow(ratio_combs)){
+  for(i in 1:nrow(ratio_combs))
+  {
     levellog(paste("Generating plots for combination #",i," ..."),change=1,after=T)
     ratio_i_str <- paste(conditions[ratio_combs[i, 2]], ".", conditions[ratio_combs[i, 1]], sep = "") # for example H.L
     
@@ -616,7 +629,7 @@ do_results_plots <- function(norm.median.intensities,exp_desc,exportFormat="pdf"
       ratio_i_<-paste("log2.",ratio_i_str,sep="")
       ratio_i_sd_col<-paste("log2.sd.",ratio_i_str,sep="")
       
-      # Before starting the volcano plot generation we will compute all values needed for our plots. Forst goal is to find per replicate the (log2 intensity) +- (sd of log intensities) for the current condition pair
+      # Before starting the volcano plot generation we will compute all values needed for our plots. First goal is to find per replicate the (log2 intensity) +- (sd of log intensities) for the current condition pair
       # tmp2 is a data frame that gets for the current condition pair and for each protein the value (log2 intensity) + (sd of log intensities) for all the replicates
       
       tmp2<-results[,colnames(results)[grep(gsub("\\.","\\\\.",paste0(ratio_i_, " ")),colnames(results))]]+results[,colnames(results)[grep(gsub("\\.","\\\\.",paste0(ratio_i_sd_col, "$")),colnames(results))]]
@@ -678,7 +691,6 @@ do_results_plots <- function(norm.median.intensities,exp_desc,exportFormat="pdf"
         ratiolim <- 5
       }
       panel.hist.breaks<<-(-ratiolim:ratiolim)
-      
       
       ratio_i_p.value.adj<-paste("p.value.adj.",paste(conditions[ratio_combs[i,2]],".",conditions[ratio_combs[i,1]],sep=""),sep="")
       ratio_i_avg_col<-paste("log2.avg.",ratio_i_str,sep="")
@@ -980,7 +992,8 @@ do_results_plots <- function(norm.median.intensities,exp_desc,exportFormat="pdf"
   
   for(i in 1:nrow(ratio_combs)){
     col_desc_<-paste("P-value adjusted ",paste(conditions[ratio_combs[i,2]],"/",conditions[ratio_combs[i,1]],sep=""),sep="")
-    ndiffexp_tmp<-length(which(results[,col_desc_]<pThreshold))
+    col_picker <- grepl(col_desc_, x = colnames(results), ignore.case = T)
+    ndiffexp_tmp<-length(which(results[,col_picker]<pThreshold))
     levellog(paste("do_results_plots: Differentially expressed for ",conditions[ratio_combs[i,2]]," vs ",conditions[ratio_combs[i,1]]," : ",ndiffexp_tmp,sep=""))
   }
   
@@ -1322,31 +1335,109 @@ do_limma_analysis <- function(working_pgroups,exp_desc,exp_design_fname,exportFo
 }
 
 read.pgroups <- function(fname,evidence_fname,exp_desc){
+  
+  # read pgroups will read the main quantitation file of the experiment that is the evidence file for MQ or the MultiConsensus file for PD
   levellog("",change=1)
-  levellog("Reading data file ...");
+  levellog("Reading data file ...")
+  
+  # The following line reads the file and stores it to evidence - this is one of the most time consuming lines since these files may be quite big
+  # and copying all of them to the memory takes a while
+  
+  
   evidence<-read.table(evidence_fname, header = T, sep = "\t",quote="",stringsAsFactors=F,comment.char = "")
   
-  if(PDdata) {
-    if ('Protein.Group.Accessions' %in% colnames(evidence)) {
+  # Keeping all this information to memory is a waste of memory space so we will drop all unnecessary columns unless we are in DEBUG mode
+  # Note that if we decide to use other columns as well in the future we should update nec_evidence_columns to keep them in the process
+  
+  if (!DEBUG)
+  {
+    # TODO: Perform drop of unnecessary columns
+    levellog("Dropping unnecessary columns ...")
+    # nec_evidence_columns stores regular expressions of headers of columns to keep from evidence (case insensitive) - it should contain for both MQ and PD
+    nec_evidence_columns <- c('Protein.Group.Accessions', '^Protein.Accessions', '^Proteins$')
+  }
+  
+  # We will start searching for the necessary columns and store their headers to variables. E.g. pgroups_colname will store the regexes that match all headers of columns that have to do
+  # with Proteins detected. The information that is retrieved by different preprocessing programs may differ significantly. Lets take an example working on an evidence file of MQ:
+  #
+  #
+  # All lines correspond to a peptide sequence (with or without modifications and in a certain charge state) detected in a single MS run.
+  # Each peptide sequence is matched against proteins that it is possible to be derived from. These proteins are stored in our example in the Proteins column and are named
+  # after IDs of well established databases. An example is H-INV:HIT000035131;Q86U42;ENSEMBL:ENSP00000380446 that shows us 3 ids one from H-invitational database, SwissProt and Ensemble database.
+  # This is not the best example since these accessions lead to the same protein. If there will be many accessions pointing to the same protein or not depends on the parameters that wre used in MQ
+  # and specifically on the FASTA file of valid proteins that was selected. Most of the times the acessions we will get will be for a single database e.g. UniProt
+  #
+  # So all these ids refer to the same protein but this is not always the case. For example a line below in our example has this record: H-INV:HIT000091288;P30153;TREMBL:B4DQY1;TREMBL:B4E1Q0;ENSEMBL:ENSP00000391905;C9J9C1
+  # Taking the two swissprot accessions (i.e. P30153 and C9J9C1) we can see that they correspond to:
+  #
+  # Serine/threonine-protein phosphatase 2A 65 kDa regulatory subunit A alpha isoform and
+  # cDNA FLJ59603, highly similar to Serine/threonine-protein phosphatase 2A 65 kDa regulatory subunit A alpha isoform respectively that are two very similar protein subunits.
+  #
+  # Indeed this can be seen in their uniprot database entry. Taking a look at the sequence that was detected in this evidence line we can see that it is
+  # AAADGDDSI YPIAVIIDEI R that matches the sequence AAADGDDSL YPIAVLIDEL R in both proteins. It is notable that some leukines are detected as isoleukines but this is a common issue
+  # in proteomics so most of the times the preprocessing programs are set so that isoleukines and leukines are treated as equivalent. This is also an example where two proteins can be matched to
+  # an evidence line but even in this case these are very similar and it may not be a problem to assign e.g. P30153 and not C9J9C1 to the evidence line
+  # Sometimes though 2 quite different proteins might both be matched against an evidence line since a detected sequence can be part of two different proteins in the target organism's
+  # proteome. For example the sequence AAAASAAEAGIATTGTEDSDDAIIK that is detected in our example is matched against
+  #
+  # P55036 - Putative PIP5K1A and PSMD4-like protein and
+  # A2A3N6 - 26S proteasome non-ATPase regulatory subunit 4
+  #
+  # searching the respective uniprot records we see that P55036 is a putative protein - possible product of a gene PIPSL which "appeared in hominoids by L1-mediated retrotransposition in a hominoid ancestor of a readthrough, intergenically spliced transcript between the PIP5K1A and PSMD4 genes."
+  # A2A3N6 on the other hand derives from the PSMD4 gene.
+  #
+  # These kinds of similar proteins are commonly found in the same evidence line and it is the preprocessing program's job to define
+  # which one is the most probable or biologically useful Protein to match the detected peptide. This is commonly found in another column that is called "Leading Proteins" "Master Protein" or something similar
+  # PD usually gives us one single protein to overcome this issue but MQ shows us the whole protein group. One way to solve this is to always take the first protein that is shown
+  # in the Proteins column - this is the one that is detected by the largest number of peptides and usually is the one of interest. This creates a problem if many databases are involved
+  # as in the case above since the accession of the first database and only will be fetched or when an unreviewed protein is detected to have more peptide hits than a reviewed one
+  # but all these are well known issues that are fixed beforehand using the correct FASTA file when loading MQ.
+  #
+  # We will take the proteins column or MQ that stores all proteins of the protein group
+  
+  if(PDdata)
+  {
+    # The information for proteins matched against evidence lines in PD is stored in the column Protein Group Accessions or Protein Accessions
+    if ('Protein.Group.Accessions' %in% colnames(evidence))
+    {
       pgroups_colname<-'Protein.Group.Accessions'
-    }
-    else if ('Protein.Accessions' %in% colnames(evidence)) {
-      #pgroups_colname<-'Protein.Accessions'
-      ###Ismini edit: Pattern must starts with Protein.Accessions because id PD 2.4 there is also another column as Master.Protein.Accessions
+    } else if ('Protein.Accessions' %in% colnames(evidence)) {
+      # Pattern must start with Protein.Accessions because id PD 2.4 there is also another column as Master.Protein.Accessions
       pgroups_colname<-'^Protein.Accessions'
     } else {
       levellog("Error User: The dataset does not contain the columns 'Protein Group Accessions' or 'Protein Accessions'")
     }
   } else {
+    # As for MQ the information for proteins matched against evidence lines is stored in the column "Proteins"
     pgroups_colname<-'^Proteins$'
   }
+  
+  # Let's rename the aforementioned column to Protein.IDs to make it independable of the preprocessing program
+  
   colnames(evidence)[grepl(pgroups_colname,colnames(evidence))]<-'Protein.IDs'
-  if(!PDdata){
-    ## For MaxQuant correct protein groups in the evidence file using the protein groups file.
+  
+  # The next step is to match each protein group to a descriptive name. Sometimes the evidence file already has a column called protein.names that has these descriptions
+  # If this is not the case we should create the column using the second file - the protein groups file that has all the info for the protein groups
+  
+  # Check if protein names exists in evidence and if so rename it to Protein.Names to face case sensitivity ambiguity
+  
+  col_Protein.names <- length(grep('Protein.Names',colnames(evidence))) > 0
+  col_Protein.namesLC <- length(grep('Protein.names',colnames(evidence))) > 0
+  
+  if (col_Protein.namesLC) colnames(evidence)[grepl('Protein.names',colnames(evidence))] <- 'Protein.Names'
+  
+  if(!PDdata & !col_Protein.names & !col_Protein.namesLC){
+    
+    # In MQ, if there are no descriptive names in the evidence file, the protein_groups file is needed to add descriptive names to each protein. These names may be already contained in
+    # the Protein Names column of the file but if this is not the case we should create a descriptive column from the protein groups file
+    
+    # Read the file:
     pgroups<-read.table(fname, header = T, sep = "\t",quote="",stringsAsFactors=F,comment.char = "")
-    # If there isn't a Protein.Names or Protein.names column (depends on MQ version), create one from the Fasta Headers column
+    
+    # If both Protein.Names and Protein.names column do not exist on the pgroups file (depends on MQ version), create one from the Fasta Headers column
     col_Protein.names <- length(grep('Protein.Names',colnames(pgroups))) > 0
     col_Protein.namesLC <- length(grep('Protein.names',colnames(pgroups))) > 0
+    
     if(! col_Protein.names & ! col_Protein.namesLC)
     {
       pgroups$Protein.Names <- str_match(pgroups$Fasta.headers, '>[:alnum:]+[^[:alnum:]]+([^;>]+)')[,2]
@@ -1355,28 +1446,63 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
     {
       colnames(pgroups)[grepl('Protein.names',colnames(pgroups))] <- 'Protein.Names'
     }
+    
+    # At this point we have a column called Protein.names that contains the descriptions of all proteins in the pgroups data table
+    
     # Construct a table, mapping the correct protein groups IDs (and the corresponding proteins names) to the evidence IDs
-    #First check if there are any blank lines and remove them:
+    # First check if there are any blank lines and remove them:
+    
     mi<-which(pgroups$Evidence.IDs == "")
     if (length(mi)>0)
     {
       pgroups <- pgroups[-mi,]
     }
+    
+    
     if (!'Protein.IDs' %in% colnames(pgroups) & 'Peptide.IDs' %in% colnames(pgroups))
     {
       colnames(pgroups)[colnames(pgroups) == 'Peptide.IDs'] <- 'Protein.IDs'
     }
+    
+    # the following lines unfold pgroups evidence column by creating a long table (tmp.table.1) that replicates protein id and protein name for each evidence id
+    # matched to a protein. For example for the record in pgroups that has the following protein id - protein name and evidence ids triad:
+    # 
+    # Protein.IDs Evidence.IDs
+    #    7960;9207  77961;90856
+    # 
+    # Protein.Names
+    # GC-box-binding zinc finger protein 1;Transcription factor ZBP-99;Zinc finger DNA-binding prot [...]
+    #
+    # will be changed to:
+    #
+    # Protein.IDs Protein.names                                                                                       id
+    # 7960;9207	  GC-box-binding zinc finger protein 1;Transcription factor ZBP-99;Zinc finger DNA-binding pro [...]	77961
+    # 7960;9207	  GC-box-binding zinc finger protein 1;Transcription factor ZBP-99;Zinc finger DNA-binding pro [...]	90856
+    #
+    # This way each line corresponds to a single evidence id
+    
     tmp.table.1<-data.table(do.call(rbind, apply(pgroups[,c('Protein.IDs','Protein.Names','Evidence.IDs')], 1, function(x){return(cbind(x['Protein.IDs'], x['Protein.Names'], unlist(strsplit(x['Evidence.IDs'], ';'))))})))
     setnames(tmp.table.1, colnames(tmp.table.1), c('Protein.IDs', 'Protein.Names', 'id'))
+    
+    # Now that we have unfolded pgroups we can inner join it with evidence with common key the evidence ids to add the descriptions to the evidence data table
     class(tmp.table.1$id)<-'integer'
     setkey(tmp.table.1, id)
     # Get the evidence records
     tmp.table.2<-data.table(evidence)
     setkey(tmp.table.2, id)
+    
     # Remove the incorrect Protein.IDs column
     tmp.table.2[, c('Protein.IDs', 'Protein.Names') := NULL]
     # Inner join the mapping table with the evidence table and return the data frame that we ought to have in the first place
     evidence<-data.frame(tmp.table.1[tmp.table.2])
+    
+    
+
+  }
+  
+  # Get rid of all contaminant and reverse peptides if any (valid only for MQ)
+  if (!PDdata)
+  {
     if(length(grep("Contaminant", colnames(evidence))) > 0){
       evidence<-evidence[evidence$Contaminant == '', ]
     }
@@ -1384,9 +1510,12 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       evidence<-evidence[evidence$Reverse == '', ]
     }
   }
+
   
-  #In the case of Isobaric labeling we should reformat the table before proceeding, afterwards we will treat the data as
-  #if they were label-free data
+  # TODO: test on Iso Labeling:
+  
+  # In the case of Isobaric labeling we should reformat the table before proceeding, afterwards we will treat the data as
+  # if they were label-free data
   if(IsobaricLabel)
   {
     if(!PDdata)
@@ -1410,8 +1539,7 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       if(RMisused){
         RMtagsdata$name <- sub("^([[:digit:]]*[[:alpha:]]?)$", "Reporter.intensity.\\1",  RMtagsdata$name)
       }
-    }
-    else{
+    } else {
       evidence$Intensity <- NULL
       if (any(grepl("^Abundance..", colnames(evidence)))){
         colnames(evidence) <- sub("^Abundance..", "X", colnames(evidence))
@@ -1435,62 +1563,135 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       }
     }
   }
-  # #Erase all rows in rename_array that try to rename a label to an already existing
-  # mi<-which(Rename_Array$new_label %in% conditions)
-  # Rename_Array <- Rename_Array[-mi,]
-  # Rename_Array <<- Rename_Array
+  
+  # log the amount of identified proteins
   
   levellog(paste0("read.pgroups: Identified proteins: ",length(unique(evidence$Protein.IDs))," (",exp_desc,")"))
   
+  # n1 will hold the number of evidence we have (for logging purposes only):
   n1<-nrow(evidence)
+  
+  # Drop all evidence that have blank ProteinID
   evidence<-evidence[nchar(evidence$Protein.IDs) > 0,]
+  
   levellog(paste0("read.pgroups: Discarded PSM records due to unassigned protein group: ",(n1-nrow(evidence))))
+  
+  # TODO test for PD data
   ## Make Protein.IDs human-readable
   if(PDdata){
     pgroups_colname<-'Protein.Descriptions'
     if (!'Protein.Descriptions' %in% colnames(evidence)) {
       evidence[, c('Protein.Descriptions')] <- ""
     }
-  }else{ pgroups_colname<-'Protein.Names' }
+  }else{
+    pgroups_colname<-'Protein.Names'
+  }
+  
+  # Let's get only protein information from our evidence table to a data table to make things faster:
+  # Setting the i as a primary key will afterwards help us return the edited data back to evidence our main data frame
   tmp.table<-data.table(cbind(evidence[, c('Protein.IDs', pgroups_colname)], i=1:nrow(evidence)))
   setkey(tmp.table, Protein.IDs)
-  # Generate data.table with unique Protein.IDs
-  tmp.table2<-tmp.table[,.(n=.N),by=Protein.IDs]
-  setkey(tmp.table2, Protein.IDs)
-  # Make a new protein description column in other data.table
-  tmp.table[, pdesc := paste0(Protein.IDs, ' [',strtrim(get(pgroups_colname), 50), ' ...]')]
-  # set the Protein.IDs in the original data frame
-  evidence$Protein.IDs<-tmp.table2[tmp.table][order(i),pdesc]
-  ## Assign defined labels (conditions), one for each PSM record
-  if(PDdata){ rawfile_col<-'Spectrum.File' }else{
+  
+  # tmp.table:
+  # +-----------------------------------------+----------------------------------+-------+
+  # | Protein.IDs                             | Protein.Names                    | i     |
+  # +-----------------------------------------+----------------------------------+-------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59601 |
+  # +-----------------------------------------+----------------------------------+-------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59602 |
+  # +-----------------------------------------+----------------------------------+-------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59603 |
+  # +-----------------------------------------+----------------------------------+-------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59604 |
+  # +-----------------------------------------+----------------------------------+-------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59605 |
+  # +-----------------------------------------+----------------------------------+-------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59606 |
+  # +-----------------------------------------+----------------------------------+-------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59607 |
+  # +-----------------------------------------+----------------------------------+-------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59608 |
+  # +-----------------------------------------+----------------------------------+-------+
+  # 
+  # Notice that setting key to Protein.IDs sorts the respective column
+  
+  # Make a new protein description column in the tmp.table data table containing both the protein accession IDs and their descriptions. This are separated by
+  # a "|:" symbol
+  tmp.table[, pdesc := paste0(Protein.IDs, "|: ", get(pgroups_colname))]
+  
+  # tmp.table: 
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # | Protein.IDs                             | Protein.Names                    | i     | pdesc                                                                     |
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # | AAR31361.1;ABV71636.1                   |                                  | 86714 | AAR31361.1;ABV71636.1:                                                    |
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # | AAR31361.1;ABV71636.1                   |                                  | 86715 | AAR31361.1;ABV71636.1:                                                    |
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59601 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1: 55 kDa immediate-early protein 1 |
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59602 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1: 55 kDa immediate-early protein 1 |
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59603 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1: 55 kDa immediate-early protein 1 |
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59604 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1: 55 kDa immediate-early protein 1 |
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59605 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1: 55 kDa immediate-early protein 1 |
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1 | 55 kDa immediate-early protein 1 | 59606 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1: 55 kDa immediate-early protein 1 |
+  # +-----------------------------------------+----------------------------------+-------+---------------------------------------------------------------------------+
+  # 
+  # Remember that tmp.table has as many lines as evidence
+  
+  # The following line orders all data using the i index and returns the detailed descriptions safely to the Protein.ID column of evidence data frame
+  
+  evidence$Protein.IDs<-tmp.table[order(i),pdesc]
+  
+  # Save the name of the rawfile column to a variable to make it independent to the preprocessing program
+  
+  if(PDdata){
+    rawfile_col<-'Spectrum.File' 
+  } else {
     if(length(grep("Raw.File", colnames(evidence))) > 0)
     {
       rawfile_col<-'Raw.File'
-    }
-    else
-    {
+    } else {
       rawfile_col<-'Raw.file'
     }
   }
   
+  # There is always a column that defines the condition of the specific evidence line. Save that to cond_spec_col to make PS independent of the preprocessing program and the
+  # experiment type
   
+  # TODO test for labelfree and iso labeling
   if(LabelFree){
     cond_spec_col<-rawfile_col
     if(IsobaricLabel){
-      if(PDdata){ cond_spec_col<-'Modifications' }else{ cond_spec_col<-'Labeling.State' }
+      if(PDdata){
+        cond_spec_col<-'Modifications'
+      } else {
+        cond_spec_col<-'Labeling.State'
+      }
     }
   }else{
-    if(PDdata){ cond_spec_col<-'Modifications' }else{ cond_spec_col<-'Labeling.State' }
+    if(PDdata){
+      cond_spec_col<-'Modifications'
+    } else {
+      cond_spec_col<-'Labeling.State'
+    }
   }
   
+  # TODO test RM
   if(RMisused){
     levellog("read.pgroups: Transforming data for Replication Multiplexing ...")
-    #when RM is chosen, in this line evidence has two main columns, one called Labeling.State or Modifications
-    #that tells us what tag it was tagged and one called 
-    #Spectrum File or Raw File that says from which raw file did the psm come from
-    #in case of RM breps treps and conditions may come from either raw files or tags but in this data format creating
-    #two new columns describing the structure correctly is not difficult
-    #first create the column for conditions
+    
+    # when RM is chosen, in this line evidence has two main columns, the column that matches an evidence line to a condition
+    # (cond_spec_col) and one that matches the line to  raw file (rawfile_col)
+    #
+    # In case of RM breps treps and conditions may come from either raw files or tags but in this data format creating
+    # two new columns describing the structure correctly is not difficult.
+    #
+    # First create the column for conditions
+    
     RMrawfilesdata <- RMrawfilesdata[!RMrawfilesdata$used == 'false',]
     RMtagsdata <- RMtagsdata[!RMtagsdata$used == 'false',]
     if(RMconditionsinrawfiles)
@@ -1499,8 +1700,10 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
     } else {
       evidence <- merge(evidence, RMtagsdata[, c('name', 'cond')], by.x = cond_spec_col, by.y = 'name')
     }
-    #the conditions array is already set from the front end
-    #Now we will initialize the new_raw_file column that will contain pseudo-raw files describing our bioreps, techreps and fracs
+    
+    # The conditions array is already set from the front end
+    # Now we will initialize the new_raw_file column that will contain pseudo-raw files describing our bioreps, techreps and fracs
+    
     colnames(RMrawfilesdata)[3:5] <- c('new_brep', 'new_trep', 'new_frac')
     colnames(RMtagsdata)[3:5] <- c('new_brep', 'new_trep', 'new_frac')
     if(RMbrepsinrawfiles)
@@ -1509,7 +1712,9 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
     } else {
       evidence <- merge(evidence, RMtagsdata[, c('name', 'new_brep')], by.x = cond_spec_col, by.y = 'name')
     }
-    #do the same thing for treps
+    
+    # Do the same thing for treps
+    
     if(RMtrepsinrawfiles)
     {
       evidence <- merge(evidence, RMrawfilesdata[, c('name', 'new_trep')], by.x = rawfile_col, by.y = 'name')
@@ -1517,7 +1722,9 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       evidence <- merge(evidence, RMtagsdata[, c('name', 'new_trep')], by.x = cond_spec_col, by.y = 'name')
     }
     if(RMbrepsinrawfiles | RMtrepsinrawfiles) {
-      #do the same thing for fracs
+      
+      # Do the same thing for fracs
+      
       evidence <- merge(evidence, RMrawfilesdata[, c('name', 'new_frac')], by.x = rawfile_col, by.y = 'name')
     }
     if(!RMbrepsinrawfiles & !RMtrepsinrawfiles) {
@@ -1525,7 +1732,9 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
     } else {
       evidence$new_raw_file <- paste0('b', evidence$new_brep, 't', evidence$new_trep, 'f', evidence$new_frac)
     }
-    #Now lets refresh the rep_structure array the pseudo raw files we created are descriptive and contain the breps treps and fracs
+    
+    # Now lets refresh the rep_structure array the pseudo raw files we created are descriptive and contain the breps treps and fracs
+    
     pseudo_raw_files <- unique(evidence$new_raw_file)
     new_rep_structure <- rep_structure
     new_rep_structure <- new_rep_structure[0,]
@@ -1565,7 +1774,9 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       }
     }
     .GlobalEnv[["rep_structure"]]<-new_rep_structure
-    #now erase the old columns for raw files and conditions and replace with the new ones
+    
+    # Now erase the old columns for raw files and conditions and replace with the new ones
+    
     evidence[, c(rawfile_col, cond_spec_col)] <- list(NULL)
     colnames(evidence)[colnames(evidence) == "new_raw_file"] <- rawfile_col
     colnames(evidence)[colnames(evidence) == "cond"] <- cond_spec_col
@@ -1577,9 +1788,139 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
   
   levellog("read.pgroups: Assigning labels ...")
   levellog("",change=1)
+  
+  # First define some variables:
   evidence$label_<-NA
   background_species_lbl<-NA
   
+  
+  if (!PDdata & !LabelFree)
+  {
+    # In case of Labelled maxquant data each evidence line has some columns that provide us with quantitation values. The interpretation of these quantitation values
+    # depend on the way that the evidence line (otherwise called "hit") was detected. This is defined by the "Type" column that can have some specific values:
+    #
+    # MULTI-MSMS is the easiest to understand meaning that a peptide was detected in MS and quantified in all the labels of the experiment,
+    #   this will bring us for example two valid quantitation numbers for a SILAC 2plex
+    # MSMS means that no MS1 label state could be detected so the peptide was hit and identified but not quantified so this should be ommited from the analysis
+    # MULTI-SECPEP means that the hit is of a peptide that was detected using "second peptide algorithm". This is an algorithm that is used to quantify peptides that are
+    #   co-elluted and sent to MSMS together with others. The algorithm is well established and also produces valid quantification values
+    # MULTI-MATCH means that the hit was detected using match between runs. In match between runs MQ guesses that a peptide should be present in a elution time point
+    #   in an MS run by matching its elution profile with the profiles of other runs. It also provides valid quantitation values
+    # ISO-MSMS means that an isotope cluster was detected but with no pair. In this case the labeling state column states the label the hit was assigned
+    #   normally all other label intensity columns should be set to 0
+    #
+    # A safe way to get all necessary quantitation values is to ommit all lines that have MSMS as type and to force to 0 all intensity values in ISO-MSMS that match
+    # to labels different from the one stated under Labeling state
+    #
+    
+    evidence <- evidence[!(evidence$Type == "MSMS"),]
+    
+    # To force 0 intensity to all other labels lets see this example:
+    
+    # +-----+---------------------------------+----------+----------------+-------------+-------------+
+    # | id  | Sequence                        | Type     | Labeling.State | Intensity.L | Intensity.H |
+    # +-----+---------------------------------+----------+----------------+-------------+-------------+
+    # | 62  | AAAAAAAIQAK                     | ISO-MSMS | 1              | 33117000    | 5176300     |
+    # +-----+---------------------------------+----------+----------------+-------------+-------------+
+    # | 71  | AAAAAAAIQAK                     | ISO-MSMS | 0              | 873790      | 17029000    |
+    # +-----+---------------------------------+----------+----------------+-------------+-------------+
+    # | 90  | AAAAGGGGPGTAVGATGSGIAAAAAGIAVYR | ISO-MSMS | 1              | 298290      | 96692       |
+    # +-----+---------------------------------+----------+----------------+-------------+-------------+
+    # | 102 | AAAAVVEFQR                      | ISO-MSMS | 0              | 672120      | 9695200     |
+    # +-----+---------------------------------+----------+----------------+-------------+-------------+
+    # | 104 | AAAAVVEFQR                      | ISO-MSMS | 0              | 4325700     | 105140000   |
+    # +-----+---------------------------------+----------+----------------+-------------+-------------+
+    # | 116 | AAAAVVEFQR                      | ISO-MSMS | 0              | 509660      | 8551300     |
+    # +-----+---------------------------------+----------+----------------+-------------+-------------+
+    
+    # Here we have isolated some records in evidence that were identified with ISO-MSMS type and have quantitation values for both H and L
+    # The labeling state defines which one is the valid intensity value so the other one should be set to 0
+    # The labeling state is encoded so that 0 stands for Light 1 for Medium and 2 for Heavy (or 0 Light 1 Heavy in 2plex). When the isotope can not be assigned safely to a
+    # label then labeling state is set to -1
+    # First erase all records with labeling state -1 and type ISO-MSMS
+    
+    evidence <- evidence[!(evidence$Type == "ISO-MSMS" & evidence$Labeling.State == "-1"),]
+    
+    # Now check if there is an Intensity.M label to decide if we have a 2plex or 3plex experiment
+    
+    if (any(grepl("Intensity.M", x = colnames(evidence))))
+    {
+      
+      # 3plex example:
+      # Set to 0 all ISO-MSMS Intensities with labeling state = 0 except the light one
+      evidence[evidence$Type == "ISO-MSMS" & evidence$Labeling.State == "0", grep("Intensity\\.[^L]", colnames(evidence))] <- 0
+      
+      # Do the same for M and H
+      evidence[evidence$Type == "ISO-MSMS" & evidence$Labeling.State == "1", grep("Intensity\\.[^M]", colnames(evidence))] <- 0
+      evidence[evidence$Type == "ISO-MSMS" & evidence$Labeling.State == "2", grep("Intensity\\.[^H]", colnames(evidence))] <- 0
+    } else {
+      
+      # 2plex example: (as with the 3plex example above)
+      evidence[evidence$Type == "ISO-MSMS" & evidence$Labeling.State == "0", grep("Intensity\\.[^L]", colnames(evidence))] <- 0
+      evidence[evidence$Type == "ISO-MSMS" & evidence$Labeling.State == "1", grep("Intensity\\.[^H]", colnames(evidence))] <- 0
+    }
+    
+    # Now each hit has one valid quantitation value per condition as seen in these selected columns of evidence:
+    #
+    # +----+-------------+--------------+----------------+-------------+-------------+
+    # | id | Sequence    | Type         | Labeling.State | Intensity.L | Intensity.H |
+    # +----+-------------+--------------+----------------+-------------+-------------+
+    # | 58 | AAAAAAAIQAK | MULTI-SECPEP | NA             | 28764       | 29688       |
+    # +----+-------------+--------------+----------------+-------------+-------------+
+    # | 59 | AAAAAAAIQAK | MULTI-MSMS   | NA             | 345050      | 369960      |
+    # +----+-------------+--------------+----------------+-------------+-------------+
+    # | 60 | AAAAAAAIQAK | MULTI-MSMS   | NA             | 58373000    | 66849000    |
+    # +----+-------------+--------------+----------------+-------------+-------------+
+    # | 61 | AAAAAAAIQAK | MULTI-MSMS   | NA             | 7549500     | 9036800     |
+    # +----+-------------+--------------+----------------+-------------+-------------+
+    # | 62 | AAAAAAAIQAK | ISO-MSMS     | 1              | 0           | 5176300     |
+    # +----+-------------+--------------+----------------+-------------+-------------+
+    # | 63 | AAAAAAAIQAK | MULTI-MSMS   | NA             | 131360      | 209020      |
+    # +----+-------------+--------------+----------------+-------------+-------------+
+    #
+
+    # Melt the data frame to create an Intensity column with the intensity and a label_ with the respective label in the long format
+    
+    evidence <- reshape::melt(data = evidence, id.vars = colnames(evidence)[!grepl("Intensity\\..+", colnames(evidence))], variable_name = "label")
+    evidence$label_ <- evidence$label
+    evidence$Intensity <- evidence$value
+    
+    # Drop the unneccessary columns
+    evidence <- evidence[,!(colnames(evidence) %in% c("label", "value"))]
+    
+    # Remove the unneccessary Intensity prefix from the label_ column
+    evidence$label_ <- str_replace(evidence$label_, "^Intensity\\.", "")
+    
+    # Discard all evidence lines with 0 intensity
+    evidence <- evidence[evidence$Intensity != 0,]
+    
+    # Now evidence looks like this (chosen columns and rows displayed):
+    # 
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    # | id    | Protein.Group.IDs | Sequence         | Type       | Labeling.State | Intensity | label_ |
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    # | 0     | 419               | AAAAAAAAAAGAAGGR | MULTI-MSMS | NA             | 373520    | L      |
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    # | 1     | 419               | AAAAAAAAAAGAAGGR | MULTI-MSMS | NA             | 10432000  | L      |
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    # | 2     | 419               | AAAAAAAAAAGAAGGR | MULTI-MSMS | NA             | 4183800   | L      |
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    # | 99432 | 7005              | ANIPQSFQVDTSK    | MULTI-MSMS | NA             | 4303800   | H      |
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    # | 99433 | 7006              | ANIPQSFQVDTSK    | MULTI-MSMS | NA             | 3313400   | H      |
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    # | 99434 | 7007              | ANIPQSFQVDTSK    | MULTI-MSMS | NA             | 1608800   | H      |
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    # | 99435 | 7008              | ANIPQSFQVDTSK    | ISO-MSMS   | 1              | 6892100   | H      |
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    # | 99436 | 7009              | ANIPQSFQVDTSK    | MULTI-MSMS | NA             | 3708700   | H      |
+    # +-------+-------------------+------------------+------------+----------------+-----------+--------+
+    
+  }
+  
+  
+  
+  # TODO test PD, Label free and iso labeling
   for(i in 1:length(conditions)){
     if(PDdata){
       if(LabelFree){
@@ -1602,23 +1943,21 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
           mi<-which(grepl(conditions[i], LFQ_conds[, "condition"]))
           mi2<-which(grepl(paste(LFQ_conds[mi,]$raw_file, collapse="|"), evidence[, cond_spec_col]))
           evidence[mi2,]$label_<-conditions[i]
-        }
-        else{
+        } else {
           evidence$label_<-evidence$Labeling.State
         }
         
-      }else{
-        # MQ nomenclature for labels: 0 the first label, 1 the second etc ...
-        # Since the user might opted for excluding some labels
-        # find the index of the included labels and parse them to the label_ column
-        mi0<-which(All_MQ_Labels == conditions[i])
-        mi<-which(grepl((mi0[1]-1), evidence[, cond_spec_col]))
-        evidence[mi,]$label_<-conditions[i]
+      } else {
+        
+       # The case of MQ labelled data is already processed above
+        
       }
     }
     levellog(paste0("read.pgroups: Assigned label '", conditions[i],"'."))
   }
-  #Rename any labels if necessary
+  
+  # Rename any labels if necessary
+  # TODO test label renaming
   if (AllowLabelRename == T)
   {
     if (length(Rename_Array$old_label) != 0)
@@ -1627,10 +1966,10 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       {
         if(Rename_Array$old_label[i] != Rename_Array$new_label[i])
         {
-          #The case where old label = new label is common since if the user did not ask for a label rename (merge) for a label
-          #this label is sent to be renamed in R to itself
-          #in any other case rename the labels that are merged to the same label so that they become indistinguishable
-          #and refresh the conditions labels by erasing the old label and adding the new if necessary
+          # The case where old label = new label is common since if the user did not ask for a label rename (merge) for a label
+          # this label is sent to be renamed in R to itself
+          # in any other case rename the labels that are merged to the same label so that they become indistinguishable
+          # and refresh the conditions labels by erasing the old label and adding the new if necessary
           mi<-which(evidence$label_ == Rename_Array$old_label[i])
           if (LabelFree == FALSE & IsobaricLabel == FALSE)
           {
@@ -1663,18 +2002,10 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       conditions <<- conditions
       nConditions<<-length(conditions)
     }
-    #No condition can be named "N" in ProteoSign so take care of this scarce situation:
-    for(i in 1:length(conditions)){
-      if(conditions[i] == "N")
-      {
-        conditions[i] <- "condN"
-        conditions <<- conditions
-        evidence$label_ <- sub("^N$", "condN", evidence$label_)
-      }
-    }
   }
   
-  #Rename again the labels in case of label swapping
+  # Rename again the labels in case of label swapping
+  # TODO test label swap
   if (AllowLS == T)
   {
     for(i in 1:length(Ls_array$first_label))
@@ -1683,51 +2014,101 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       mi2<-which(evidence[, rawfile_col] == Ls_array$selected_raw_file[i] & evidence$label_ == Ls_array$second_label[i])
       evidence$label_[mi1] <- as.character(Ls_array$second_label[i])
       evidence$label_[mi2] <- as.character(Ls_array$first_label[i])
-      if (LabelFree == FALSE & IsobaricLabel == FALSE)
-      {
-        prefix<-NA
-        if (PDdata)
-        {
-          prefix<-""
-        }
-        else
-        {
-          prefix<-"Intensity."
-        }
-        #in case of precursor ion we should also swap the values between the columns "Intensity" of the first and second label
-        if (length(mi1) > 0)
-        {
-          evidence[mi1, "temp_LS_Intensities"] <- evidence[mi1, paste0(prefix, Ls_array$second_label[i])]
-          evidence[mi1, paste0(prefix, Ls_array$second_label[i])] <- evidence[mi1, paste0(prefix, Ls_array$first_label[i])]
-          evidence[mi1, paste0(prefix, Ls_array$first_label[i])] <- evidence[mi1, "temp_LS_Intensities"]
-        }
-        if (length(mi2) > 0)
-        {
-          evidence[mi2, "temp_LS_Intensities"] <- evidence[mi2, paste0(prefix, Ls_array$second_label[i])]
-          evidence[mi2, paste0(prefix, Ls_array$second_label[i])] <- evidence[mi2, paste0(prefix, Ls_array$first_label[i])]
-          evidence[mi2, paste0(prefix, Ls_array$first_label[i])] <- evidence[mi2, "temp_LS_Intensities"]
-        }
-      }
     }
   }
+  
+  
   levellog("",change=-1)
+  
+  # TODO test background species
   mi<-which(is.na(evidence$label_))
-  if(is.na(background_species_lbl)){
-    if(length(mi) > 0){
+  if(is.na(background_species_lbl))
+  {
+    if(length(mi) > 0)
+    {
       evidence<-evidence[-mi,]
       levellog(paste("read.pgroups: Discarded PSM records due to unassigned label: ",length(mi),sep=""))
     }
   }else{
     evidence[mi,]$label_<-background_species_lbl
   }
-  # Now add the experimental structure information
-  evidence<-merge(evidence, .GlobalEnv[["rep_structure"]], by.x=c(rawfile_col), by.y=c('raw_file'))
+
+  # At this point each hit (evidence record) is matched against a label and its respective intensity (under label_ and Intensity columns respectively)
+  
+
+  
+  # PS needs to know which replicate coordinate (biorep - trep - frac) each evidence record corresponds to. Since a coordinate is matched
+  # against a specific raw file we will merge rep_structure and evidence. rep_structure looks like this:
+  # 
+  # +--------------------------------------+--------+---------+----------+----------+
+  # | raw_file                             | biorep | techrep | fraction | rep_desc |
+  # +--------------------------------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF01_01 | 1      | 1       | 1        | b1t1f1   |
+  # +--------------------------------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF02_01 | 1      | 1       | 2        | b1t1f2   |
+  # +--------------------------------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF03_01 | 1      | 1       | 3        | b1t1f3   |
+  # +--------------------------------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF04_01 | 1      | 1       | 4        | b1t1f4   |
+  # +--------------------------------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF05_01 | 1      | 1       | 5        | b1t1f5   |
+  # +--------------------------------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF06_02 | 1      | 1       | 6        | b1t1f6   |
+  # +--------------------------------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF07_01 | 1      | 1       | 7        | b1t1f7   |
+  # +--------------------------------------+--------+---------+----------+----------+ (...)
+  
+  # We will create a new column in rep_structure to erase any fractionation information - we start preparing the data to be in a format that limma will like!
+  
+  if(length(unique(.GlobalEnv[["rep_structure"]]$fraction)) > 1){
+    .GlobalEnv[["rep_structure"]]$old_rep_desc <- .GlobalEnv[["rep_structure"]]$rep_desc
+    .GlobalEnv[["rep_structure"]]$rep_desc <- paste0('b',.GlobalEnv[["rep_structure"]]$biorep,'t',.GlobalEnv[["rep_structure"]]$techrep)
+  }
+  
+  # The next line will merge the table above with evidence by raw_file meaning that evidence will be widened: for each record data biorep techrep fraction and rep_desc will
+  # be added to the end of evidence according to the Raw file the record was assigned to
+  
+  levellog("Adding experimental structure information...")
+  
+  # Add the experimental structure information (merge all columns in evidence with all columns in rep_structure except the old_rep_desc one)
+  evidence<-merge(evidence, .GlobalEnv[["rep_structure"]][,!grepl("old_rep_desc", colnames(.GlobalEnv[["rep_structure"]]))], by.x=c(rawfile_col), by.y=c('raw_file'))
+  
+  # Refresh rep_structure by dropping the rep_desc column
+  .GlobalEnv[["rep_structure"]]$rep_desc <- .GlobalEnv[["rep_structure"]]$old_rep_desc
+  .GlobalEnv[["rep_structure"]] <- .GlobalEnv[["rep_structure"]][,!grepl("old_rep_desc", colnames(.GlobalEnv[["rep_structure"]]))]
+  
+  # evidence now looks like this (dropped unnecessary columns - random rows)
+  
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  # | Raw.file                                    | id    | Sequence    | biorep | techrep | fraction | rep_desc |
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2013-08-06_DC-SILAC-BR3Fr2_01   | 72068 | QITVNDIPVGR | 3      | 1       | 2        | b3t1     |
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2013-01-15_DMC-SILAC_HL_NF-02_3 | 91469 | TVAVITSDGR  | 2      | 1       | 2        | b2t1     |
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2013-01-15_DMC-SILAC_HL_NF-11_4 | 4863  | AIAIGAIQNIR | 2      | 2       | 11       | b2t2     |
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF05_02        | 74312 | REPTVSSFYVK | 1      | 2       | 5        | b1t2     |
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF04_01        | 38925 | IDFVDAIK    | 1      | 1       | 4        | b1t1     |
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF09_02        | 47140 | IIIIDWPEIK  | 1      | 2       | 9        | b1t2     |
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF10_01        | 51450 | INQIKPGIQYK | 1      | 1       | 10       | b1t1     |
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  # | OT2_Terhune_2012-10-09_DMC-HLNF05_01        | 56339 | ITFCTGIR    | 1      | 1       | 5        | b1t1     |
+  # +---------------------------------------------+-------+-------------+--------+---------+----------+----------+
+  
+  # Now make sure that all conditions are represented in the label_ column. Warn the user if one condition is not found and
+  # refresh conditions so that it contains only valid conditions
+  
+  # TODO test filtering
   new_cond_labels <- NULL
   for (cond_i in conditions)
   {
     if (!(cond_i %in% evidence$label_))
     {
-      levellog(paste0("Warn User: ", cond_i, " label was not found in the selected raw files and was not used in comparisons!"))
+      levellog(paste0("Warn User: ", cond_i, " condition was not found in the selected raw files and was not used in comparisons!"))
       if(filterL_lbl == cond_i)
       {
         filterL<-F
@@ -1739,6 +2120,8 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       new_cond_labels <- c(new_cond_labels, cond_i)
     }
   }
+  
+  
   if(length(new_cond_labels)>1)
   {
     conditions <- new_cond_labels
@@ -1748,57 +2131,63 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
     levellog(paste0("Error User: Not enough labels left, aborting..."))
     return(F)
   }
-  ## If we have fractionation, remake the rep_desc column and don't take into account the fraction number
-  if(length(unique(.GlobalEnv[["rep_structure"]]$fraction)) > 1){
-    evidence$rep_desc <- paste0('b',evidence$biorep,'t',evidence$techrep)
-  }
-  
-  ## Generate Venn data for the identified proteins and output to a file
-  levellog("read.pgroups: Generating ID Venn data ...")
-  tmp.table<-data.table(evidence[, c('Protein.IDs', 'biorep', 'techrep', 'fraction')])
-  setkey(tmp.table,  Protein.IDs, biorep, techrep, fraction)
-  setwd(limma_out_dir)
-  write.table(tmp.table[, .(n=.N), by=.(Protein.IDs,rep=biorep)][,.(Protein.IDs,rep)],file=paste0(outputFigsPrefix,"_id_venn3-data_",exp_desc,".txt"),sep="\t",row.names=F)
-  setwd("..")    
   
   # Bring Labeled or Label-free data to the following common format (table headers):
   # rep_desc Protein.IDs UniqueSequences.Intensity.condition_1 ... UniqueSequences.Intensity.condition_N Intensity.condition_1 ... Intensity.condition_N
   
+  # Now we need to have a unique ID per peptide to merge all evidence information that point to the same peptide, we will call
+  # this column Unique.Sequence.ID and in fact it will be the Peptide.ID column from MQ
+  
   levellog("read.pgroups: Standarizing data format ...")
-  if(!PDdata){
-    colnames(evidence)[grepl('Peptide.ID',colnames(evidence))]<-'Unique.Sequence.ID'
-    if (!IsobaricLabel){
-      # colnames(evidence)[grepl('Intensity\\..+',colnames(evidence))]<-conditions
-      colnames(evidence) <- sub('Intensity\\.(.+)', "\\1", colnames(evidence))
-    }
-    # else{
-    # evidence[,conditions]<-NA
-    # for (my_cond in conditions){
-    #   mi<-which(grepl(my_cond, evidence$Labeling.State))
-    #   evidence[mi, my_cond] <- evidence[mi, "Intensity"]
-    # }
-    # }
-    
+  if(!PDdata)
+  {
+    colnames(evidence)[grepl('^Peptide.ID$',colnames(evidence))]<-'Unique.Sequence.ID'
   }
   
-  if (!'Unique.Sequence.ID' %in% colnames(evidence)){
-    if ('Annotated.Sequence' %in% colnames(evidence)){
+  # If the Peptide.ID did not exist we will create a unique identifier for each peptide from the peptide sequence
+  # TODO test datasets where Unique.Sequence.ID is not present
+  if (!'Unique.Sequence.ID' %in% colnames(evidence))
+  {
+    if ('Annotated.Sequence' %in% colnames(evidence))
+    {
+      levellog("Unique Sequence ID column was not found!")
       colnames(evidence)[colnames(evidence) == 'Annotated.Sequence'] <- 'Unique.Sequence.ID'
       evidence$Unique.Sequence.ID <- sub(".*?\\.(.*?)\\..*", "\\1", evidence$Unique.Sequence.ID)
     }
   }
   
-  #Here we have a column containing a unique sequence ID or the unique sequence of a peptide i.e. all PSMs that correspond
-  #to the same peptide will have the same identifier in this column in evidence data table
+  # The following part of evidence table shows that Unique Sequence ID matches all evidence to a specific peptide
   
-  #Below we will buid the evidence.dt data table so that it contains the following information per PROTEIN:
-  if(LabelFree){
-    if(PDdata){
-      # Precursor Area is unfortunately buggy (sometimes 0/NA), so we are left with Intensity to work with
-      #intensityCol <- 'Precursor.Area'
-      #intensityCol <- 'Intensity'
-      #Ismini edit: in PD 2.4 there is no Intensity column, instead there is the "PRECURSOR.ABUNDANCE" column
-      #intensityCol <- 'Intensity'
+  # +-------+--------------------+-----------+-----------+--------+----------+
+  # | id    | Unique.Sequence.ID | Sequence  | Intensity | label_ | rep_desc |
+  # +-------+--------------------+-----------+-----------+--------+----------+
+  # | 3968  | 349                | AGIQFPVGR | 362720000 | H      | b1t1     |
+  # +-------+--------------------+-----------+-----------+--------+----------+
+  # | 3973  | 349                | AGIQFPVGR | 150410    | H      | b1t1     |
+  # +-------+--------------------+-----------+-----------+--------+----------+
+  # | 3974  | 349                | AGIQFPVGR | 222510    | H      | b1t1     |
+  # +-------+--------------------+-----------+-----------+--------+----------+
+  # | 3975  | 349                | AGIQFPVGR | 166730    | H      | b1t1     |
+  # +-------+--------------------+-----------+-----------+--------+----------+
+  # | 17377 | 1728               | DVNQQEFVR | 191520    | L      | b1t1     |
+  # +-------+--------------------+-----------+-----------+--------+----------+
+  # | 17378 | 1728               | DVNQQEFVR | 23279     | L      | b1t1     |
+  # +-------+--------------------+-----------+-----------+--------+----------+
+  
+  
+  # Rename Intensity.(condition) column to (condition)
+  if (!PDdata & !IsobaricLabel)
+  {
+    colnames(evidence) <- sub('Intensity\\.(.+)', "\\1", colnames(evidence))
+  }
+  
+  # TODO test for PD data and label free
+  if(LabelFree)
+  {
+    if(PDdata)
+    {
+      
+      # Ismini edit: in PD 2.4 there is no Intensity column, instead there is the "PRECURSOR.ABUNDANCE" column
       if(any(grepl('Intensity',colnames(evidence)))){
         intensityCol <- 'Intensity'
       }else if(any(grepl('Precursor.Abundance',colnames(evidence)))){
@@ -1814,14 +2203,17 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
     }else{
       intensityCol <- 'Intensity'
     }
-    # Retrieve the following information for all PSMs from evidence: Protein ID, Unique sequence ID (so one column for protein and one
+    
+    # Retrieve the following information for all evidence: Protein ID, Unique sequence ID (so one column for protein and one
     # for peptide information), its Intensity, the condition it derives from (label_) and the repetition it derived from (rep_desc)
     evidence.dt<-data.table(evidence[, c('Protein.IDs', 'Unique.Sequence.ID', intensityCol,'label_', 'rep_desc')])
     setkey(evidence.dt, rep_desc, Protein.IDs, Unique.Sequence.ID, label_)
+    
     # In case a peptide has been identified in a single MS run more than one time this means that during LC elution it has been detected multiple times
     # get the maximum of these intensities as the most representative quantification value for these peptides
     # Get maximum PSM intensity per peptide/protein/[(rep_desc/label) = raw_file]
     suppressWarnings(evidence.dt<-evidence.dt[, .(maxI=as.double(max(get(intensityCol), na.rm = T))), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID, label_)][maxI != -Inf])
+    
   }else{
     if(PDdata){
       #get only the PSMs that PD suggested as eligible for quantification
@@ -1837,195 +2229,830 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
       # For PD data also retrieve the quantification info column describing the eligibility for quantification
       evidence.dt<-data.table(evidence[, c('Quan.Usage','Protein.IDs', 'Unique.Sequence.ID', conditions,'rep_desc', 'label_')])
     }else{
-      # Retrieve the following information for all PSMs from evidence: Protein ID, Unique sequence ID (so one column for protein and one
-      # for peptide information), its Intensity for each condition seperately, the condition it derives from (label_) and the repetition it derived from (rep_desc)
-      evidence.dt<-data.table(evidence[, c('Protein.IDs', 'Unique.Sequence.ID', conditions,'rep_desc', 'label_')])
+      
+      # MQ - labelled data:
+      # Retrieve the following information for all evidence: Protein ID, Unique sequence ID its Intensity, the condition it derives from (label_) and the repetition it derived from (rep_desc)
+      evidence.dt<-data.table(evidence[, c('Protein.IDs', 'Unique.Sequence.ID','rep_desc', 'Intensity', 'label_')])
     }
     setkey(evidence.dt, rep_desc, Protein.IDs, Unique.Sequence.ID)    
   }
   
-  # Here evidence.dt contains PSMs as rows. Each row contains info that matches the respective PSM to a specific peptide, to each most probable parent protein
-  # and to each intensity.
+  # Here evidence.dt contains hits as rows. Each row contains info that matches the respective hit to a specific peptide, to each parent protein group
+  # and to each intensity for a specific repetition and condition.
+  #
+  # An example could be:
   
-  ## Calculate identified peptide counts per protein for each condition/label and replicate in the following three steps
-  # 1. For each condition (per sequnce, protein and replicate), set a corresponding column to TRUE if there are > 0 evidence.dt (PSMs) records, FALSE otherwise
-  evidence.dt.seqCounts<-dcast.data.table(evidence.dt[, .(n=.N > 0), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID, label_)], rep_desc + Protein.IDs + Unique.Sequence.ID ~ label_, fill=FALSE)
-  # 2. Add a column flagging the common, between conditions/labels, sequences.
-  # In case of more than two conditions/labels, the flag designates that there are at least two conditions/labels where the peptide is common
-  evidence.dt.seqCounts[, 'common' := rowSums(.SD) > 1,.SDcols=conditions]    
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  # | Protein.IDs                                                                  | Unique.Sequence.ID | rep_desc | Intensity | label_ |
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa immediate-early protein 1 | 6633               | b1t1     | 374510    | L      |
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa immediate-early protein 1 | 6633               | b1t1     | 6085700   | H      |
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa immediate-early protein 1 | 6633               | b1t1     | 4570100   | H      |
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa immediate-early protein 1 | 6633               | b1t1     | 497290    | L      |
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  # | AAR31368.1;ABV71643.1;Q68400|: Membrane   protein UL148;Orf UL148            | 7649               | b1t1     | 4084800   | H      |
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  # | AAR31368.1;ABV71643.1;Q68400|: Membrane   protein UL148;Orf UL148            | 7649               | b1t1     | 3270300   | L      |
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  # | AAR31368.1;ABV71643.1;Q68400|: Membrane   protein UL148;Orf UL148            | 7649               | b1t1     | 1305700   | H      |
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  # | AAR31368.1;ABV71643.1;Q68400|: Membrane   protein UL148;Orf UL148            | 7649               | b1t1     | 835190    | L      |
+  # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+  
+  # The data table above is the only one that will be used afterwards so we can erase evidence from memory
+  rm(evidence)
+  
+  levellog("Calculating peptide counts...")
+  ## Calculate peptide counts per protein, condition and replicate; This procedure will take 4 steps:
+  
+  # 1. For each condition (per sequence, protein and replicate), set a corresponding column to TRUE if there are > 0 evidence records, (FALSE otherwise)
+  #
+  # To analyse the line below this comment first take a look at this line:
+  #   evidence.dt[, n := .N, by=.(rep_desc, Protein.IDs, Unique.Sequence.ID, label_)]
+  #   will create a data table with a new column called n that will show how many instances of each quad {rep_desc, Protein.IDs, Unique.Sequence.ID, label_} exist
+  # the example below shows this for the protein [AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein 1] :
+  #
+  # +--------+------------------------------------------------------------------------------+--------------------+----------+--------+---+
+  # | id     | Protein.IDs                                                                  | Unique.Sequence.ID | rep_desc | label_ | n |
+  # +--------+------------------------------------------------------------------------------+--------------------+----------+--------+---+
+  # | 58850  | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | b1t2     | L      | 1 |
+  # +--------+------------------------------------------------------------------------------+--------------------+----------+--------+---+
+  # | 1      | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | b1t1     | L      | 2 |
+  # +--------+------------------------------------------------------------------------------+--------------------+----------+--------+---+
+  # | 4      | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | b1t1     | L      | 2 |
+  # +--------+------------------------------------------------------------------------------+--------------------+----------+--------+---+
+  # | 117381 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | b2t1     | H      | 2 |
+  # +--------+------------------------------------------------------------------------------+--------------------+----------+--------+---+
+  # | 117382 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | b2t1     | H      | 2 |
+  # +--------+------------------------------------------------------------------------------+--------------------+----------+--------+---+
+  # | 137009 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | b2t2     | H      | 2 |
+  # +--------+------------------------------------------------------------------------------+--------------------+----------+--------+---+
+  # | 137010 | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | b2t2     | H      | 2 |
+  # +--------+------------------------------------------------------------------------------+--------------------+----------+--------+---+
+  #
+  # Instead, executing:
+  #   evidence.dt[, .(n=.N), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID, label_)]
+  #   will do the same thing but will collapse the rows with the same quad {rep_desc, Protein.IDs, Unique.Sequence.ID, label_} as seen below:
+  #
+  # +----------+------------------------------------------------------------------------------+--------------------+--------+---+
+  # | rep_desc | Protein.IDs                                                                  | Unique.Sequence.ID | label_ | n |
+  # +----------+------------------------------------------------------------------------------+--------------------+--------+---+
+  # | b2t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | H      | 2 |
+  # +----------+------------------------------------------------------------------------------+--------------------+--------+---+
+  # | b2t2     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | H      | 2 |
+  # +----------+------------------------------------------------------------------------------+--------------------+--------+---+
+  # | b1t2     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | L      | 1 |
+  # +----------+------------------------------------------------------------------------------+--------------------+--------+---+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | L      | 2 |
+  # +----------+------------------------------------------------------------------------------+--------------------+--------+---+
+  #
+  # Since the only thing we want to do is to merge the quads as seen above, the n column is useless so we will fill it with TRUE values executing instead:
+  #   evidence.dt[, .(n=.N > 0), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID, label_)]
+  #   
+  # This data table will then be casted (widened) so that the label_ column will be replaced by as many columns as the conditions. These columns will be filled with T ans F values
+  # to match each triad {rep_desc, Protein.IDs, Unique.Sequence.ID} to each condition stating if the triad (a specific peptide matched to a specific protein in a certain experiment replicate)
+  # was quantified in this condition (for more technical details the 'value' variable is casting is 'n'). An example is:
+  #
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | rep_desc | Protein.IDs                                                                               | Unique.Sequence.ID | H    | L     |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1              | 6633               | TRUE | TRUE  |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 1450               | TRUE | TRUE  |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 1852               | TRUE | TRUE  |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 2148               | TRUE | FALSE |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 2188               | TRUE | TRUE  |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 2576               | TRUE | TRUE  |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 3401               | TRUE | FALSE |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 3679               | TRUE | TRUE  |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 3689               | TRUE | TRUE  |
+  # +----------+-------------------------------------------------------------------------------------------+--------------------+------+-------+
+  #
+  # This result is saved in evidence.dt.seqCounts and all the aforementioned procedures are executed in a single line:
+  
+  evidence.dt.seqCounts<-dcast.data.table(evidence.dt[, .(n=.N > 0), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID, label_)], rep_desc + Protein.IDs + Unique.Sequence.ID ~ label_, fill=FALSE, value.var = 'n')
+  
+  # 2. Add a column flagging the common triads {ProteinID - SequenceID - rep_desc}, between at least two labels (note: SD means SubData in data tables)
+
+  evidence.dt.seqCounts[, 'common' := rowSums(.SD) > 1, .SDcols=conditions]
+  
+  # +----------+-----------------------------------------------------------------------------------------------------+---+---+---+--------+
+  # | rep_desc | Protein.IDs                                                                                         | N | H | L | common |
+  # +----------+-----------------------------------------------------------------------------------------------------+---+---+---+--------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                        | 1 | 1 | 1 | 1      |
+  # +----------+-----------------------------------------------------------------------------------------------------+---+---+---+--------+
+  # | b1t1     | ABV71543.1;ACZ79936.1;E2RU82;P16755|: Uncharacterized protein UL13                                  | 4 | 4 | 0 | 0      |
+  # +----------+-----------------------------------------------------------------------------------------------------+---+---+---+--------+
+  # | b1t1     | ABV71543.1;ACZ79936.1;E2RU82|:                                                                      | 1 | 1 | 0 | 0      |
+  # +----------+-----------------------------------------------------------------------------------------------------+---+---+---+--------+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1;D3YRW5|: Phosphoprotein 85;Phosphoprotein   UL25;Tegument protein UL25 | 8 | 5 | 8 | 5      |
+  # +----------+-----------------------------------------------------------------------------------------------------+---+---+---+--------+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1|: Phosphoprotein 85;Phosphoprotein UL25                                | 1 | 1 | 1 | 1      |
+  # +----------+-----------------------------------------------------------------------------------------------------+---+---+---+--------+
+  # | b1t1     | ABV71555.1;P16761;D3YRW5|: Phosphoprotein 85;Phosphoprotein UL25;Tegument   protein UL25            | 1 | 1 | 1 | 1      |
+  # +----------+-----------------------------------------------------------------------------------------------------+---+---+---+--------+
+  # | b1t1     | ABV71557.1;ACZ79950.1;D3YRW7;P16763|: Uncharacterized protein UL27                                  | 1 | 1 | 0 | 0      |
+  # +----------+-----------------------------------------------------------------------------------------------------+---+---+---+--------+
+  #
+  # Now the number of rows is the same with the number of protein groups
+  # TODO: add the option to merge the protein groups to the master protein
+  
   # 3. Collapse the records for each protein (per replicate) and count the TRUEs.
-  # evidence.dt[, .(n.Unique.Sequence.IDs=.N), by=.(rep_desc, Protein.IDs)]
-  evidence.dt.seqCounts<-evidence.dt.seqCounts[,c(n.Unique.Sequence.IDs=.N,lapply(.SD, function(x){return(length(which(x)))})), by=.(rep_desc,Protein.IDs),.SDcols=c(conditions, 'common')]
+  #
+  # The following line can be split into two commands:
+  #
+  # First, evidence.dt.seqCounts[,c(n.Unique.Sequence.IDs=.N), by=.(rep_desc,Protein.IDs)]
+  # can produce a data table where all peptides are merged to pairs of {rep_desc, Protein IDs}. A new column (N) will state the amount of peptides that
+  # belonged to each one of the pairs:
+  #
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  # | rep_desc | Protein.IDs                                                                                         | N  |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                        | 1  |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1;D3YRW5|: Phosphoprotein 85;Phosphoprotein   UL25;Tegument protein UL25 | 8  |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1|: Phosphoprotein 85;Phosphoprotein UL25                                | 1  |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  # | b1t1     | ABV71555.1;P16761;D3YRW5|: Phosphoprotein 85;Phosphoprotein UL25;Tegument   protein UL25            | 1  |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  # | b1t1     | ABV71557.1;ACZ79950.1;D3YRW7;P16763|: Uncharacterized protein UL27                                  | 1  |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  # | b1t1     | ABV71559.1;P16764;ACZ79951.1;C0H677;D3YRW8|: Uncharacterized protein UL29                           | 11 |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  # | b1t1     | ABV71559.1|:                                                                                        | 1  |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  # | b1t1     | ABV71561.1;ACZ79953.1;D3YRX0;P16848|: Protein UL31;Uncharacterized   protein UL31                   | 3  |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+
+  #
+  # Second, mytemp2 = evidence.dt.seqCounts[,c(lapply(.SD, function(x){return(length(which(x)))})), .SDcols=c(conditions, 'common'), by=.(rep_desc, Protein.IDs)]
+  # will produce a data table where each pair {rep_desc - Protein ID} will be matched to how many peptides belonging to the pair where identified in each condition and how many in at least two
+  # conditions together (Protein IDs truncated)
+  #
+  # +----------+--------------------------------+----+----+--------+
+  # | rep_desc | Protein.IDs                    | H  | L  | common |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;A | 1  | 1  | 1      |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q | 2  | 1  | 1      |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;K | 1  | 0  | 0      |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | AAR31368.1;ABV71643.1;Q68400;A | 2  | 2  | 2      |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | AAR31368.1;ABV71643.1;Q68400|: | 1  | 1  | 1      |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P | 19 | 14 | 14     |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | ABV71543.1;ACZ79936.1;E2RU82;P | 4  | 0  | 0      |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | ABV71543.1;ACZ79936.1;E2RU82|: | 1  | 0  | 0      |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1;D | 5  | 8  | 5      |
+  # +----------+--------------------------------+----+----+--------+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1|: | 1  | 1  | 1      |
+  # +----------+--------------------------------+----+----+--------+
+  #
+  # Notice that common is always <= than min(conditions) which is rational
+  #
+  # The wider data table from the combined line below looks like:
+  #
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  # | rep_desc | Protein.IDs                                                                                         | N  | H  | L | common |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                        | 1  | 1  | 1 | 1      |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  # | b1t1     | ABV71543.1;ACZ79936.1;E2RU82;P16755|: Uncharacterized protein UL13                                  | 4  | 4  | 0 | 0      |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  # | b1t1     | ABV71543.1;ACZ79936.1;E2RU82|:                                                                      | 1  | 1  | 0 | 0      |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1;D3YRW5|: Phosphoprotein 85;Phosphoprotein   UL25;Tegument protein UL25 | 8  | 5  | 8 | 5      |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1|: Phosphoprotein 85;Phosphoprotein UL25                                | 1  | 1  | 1 | 1      |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  # | b1t1     | ABV71555.1;P16761;D3YRW5|: Phosphoprotein 85;Phosphoprotein UL25;Tegument   protein UL25            | 1  | 1  | 1 | 1      |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  # | b1t1     | ABV71557.1;ACZ79950.1;D3YRW7;P16763|: Uncharacterized protein UL27                                  | 1  | 1  | 0 | 0      |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  # | b1t1     | ABV71559.1;P16764;ACZ79951.1;C0H677;D3YRW8|: Uncharacterized protein UL29                           | 11 | 11 | 9 | 9      |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+----+---+--------+
+  #
+  # Also notice that N >= than max(conditions) and of course N > common that is rational too.
+  
+  evidence.dt.seqCounts<-evidence.dt.seqCounts[,c(n.Unique.Sequence.IDs=.N, lapply(.SD, function(x){return(length(which(x)))})), by=.(rep_desc,Protein.IDs), .SDcols=c(conditions, 'common')]
+  
   # 4. Calculate the percentage columns
-  evidence.dt.seqCounts[, paste0(conditions,'p') := lapply(.SD, function(x){return((x/sum(.SD))*100)}), by=.(rep_desc,Protein.IDs),.SDcols=c(conditions)]
-  ## Rename the peptide counts columns
-  setnames(evidence.dt.seqCounts,colnames(evidence.dt.seqCounts)[which(colnames(evidence.dt.seqCounts) %in% conditions)],paste('UniqueSequences',conditions,sep='.'))    
-  ## Calculate the protein intensity = (sum of unique peptide intensities) for each condition/label and replicate in the following two steps
-  if(LabelFree){
-    # 1. Cast the data so that we have columns for each label and intensity separately
+  #
+  # For each one of the conditions calculate the percentage of the {rep_desc - protein} pair's peptides that were quantified in the specific condition
+  #
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | rep_desc | Protein.IDs                                                                                         | N  | UniqueSequences.H | UniqueSequences.L | common | Hp       | Lp       |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                        | 1  | 1                 | 1                 | 1      | 50       | 50       |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31368.1;ABV71643.1;Q68400;ACZ80031.1|: Membrane protein UL148;Orf   UL148                        | 2  | 2                 | 2                 | 2      | 50       | 50       |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31368.1;ABV71643.1;Q68400|: Membrane protein UL148;Orf UL148                                     | 1  | 1                 | 1                 | 1      | 50       | 50       |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22           | 19 | 19                | 14                | 14     | 57.57576 | 42.42424 |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | ABV71543.1;ACZ79936.1;E2RU82;P16755|: Uncharacterized protein UL13                                  | 4  | 4                 | 0                 | 0      | 100      | 0        |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | ABV71543.1;ACZ79936.1;E2RU82|:                                                                      | 1  | 1                 | 0                 | 0      | 100      | 0        |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1;D3YRW5|: Phosphoprotein 85;Phosphoprotein   UL25;Tegument protein UL25 | 8  | 5                 | 8                 | 5      | 38.46154 | 61.53846 |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | ABV71555.1;P16761;ACZ79948.1|: Phosphoprotein 85;Phosphoprotein UL25                                | 1  | 1                 | 1                 | 1      | 50       | 50       |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | ABV71555.1;P16761;D3YRW5|: Phosphoprotein 85;Phosphoprotein UL25;Tegument   protein UL25            | 1  | 1                 | 1                 | 1      | 50       | 50       |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | ABV71557.1;ACZ79950.1;D3YRW7;P16763|: Uncharacterized protein UL27                                  | 1  | 1                 | 0                 | 0      | 100      | 0        |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | ABV71559.1;P16764;ACZ79951.1;C0H677;D3YRW8|: Uncharacterized protein UL29                           | 11 | 11                | 9                 | 9      | 55       | 45       |
+  # +----------+-----------------------------------------------------------------------------------------------------+----+-------------------+-------------------+--------+----------+----------+
+  #
+  # (the table has renamed columns as produced by the command below)
+  
+  evidence.dt.seqCounts[, paste0(conditions,'p') := lapply(.SD, function(x){return((x/sum(.SD))*100)}), by=.(rep_desc,Protein.IDs), .SDcols=c(conditions)]
+  
+  # Rename the peptide counts columns
+  setnames(evidence.dt.seqCounts,colnames(evidence.dt.seqCounts)[which(colnames(evidence.dt.seqCounts) %in% conditions)],paste('UniqueSequences',conditions,sep='.')) 
+  
+  levellog("Calculating protein intensity...")
+  
+  # Calculate the protein intensity = (sum of unique peptide intensities) for each condition - replicate in the following steps
+  # TODO test for label free and PD
+  if(LabelFree)
+  {
+    # Cast the data so that we have columns for each label and intensity separately
     evidence.dt<-dcast.data.table(evidence.dt, rep_desc + Protein.IDs + Unique.Sequence.ID ~ label_, fill=0)    
   }else{
-    if(PDdata){
-      # 1. Take the (Quan.Usage == 'Used') records and for each peptide keep only the PSM record with the highest intensity
+    if(PDdata)
+    {
       evidence.dt<-evidence.dt[Quan.Usage == 'Used' | Quan.Usage == 'Use', lapply(.SD, max), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID), .SDcols=conditions]    
     }else{
-      # 2. Take the records with Intensity != NA across labels/conditions and for each peptide keep only the PSM record with the highest intensity
-      evidence.dt[, sumI := rowSums(.SD, na.rm = T), .SDcols=conditions]
-      evidence.dt<-evidence.dt[sumI > 0, lapply(.SD, max), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID), .SDcols=conditions]    
-      evidence.dt[, sumI := NULL]
+      # MQ labelled data
+      # evidence dt may have many rows per {replicate - protein - peptide - label} quad that means that a peptide belonging to a protein may have been quantified more than once in a replicate
+      # (possibly in more than one fractions or in more than one modifications or charges) and condition. We assume that the sum of these intensities is the most accurate quanttification value for this peptide
+      # aggregating these intensities will do the work:
+      #
+      # The aggregation in the line below will for example merge these evidence intensities to their sum - peptide intensity:
+      #
+      # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+      # | Protein.IDs                                                                  | Unique.Sequence.ID | rep_desc | Intensity | label_ |
+      # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+      # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa immediate-early protein 1 | 6633               | b1t1     | 6085700   | H      |
+      # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+      # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa immediate-early protein 1 | 6633               | b1t1     | 4570100   | H      |
+      # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+      # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa immediate-early protein 1 | 6633               | b1t1     | 3864500   | H      |
+      # +------------------------------------------------------------------------------+--------------------+----------+-----------+--------+
+      #
+      # +----------+------------------------------------------------------------------------------+--------------------+--------+-----------+
+      # | rep_desc | Protein.IDs                                                                  | Unique.Sequence.ID | label_ | Intensity |
+      # +----------+------------------------------------------------------------------------------+--------------------+--------+-----------+
+      # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1 | 6633               | H      | 14520300  |
+      # +----------+------------------------------------------------------------------------------+--------------------+--------+-----------+
+      #
+      
+      
+      evidence.dt <- evidence.dt[, .(Intensity = sum(Intensity)), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID, label_)]
+      
+      # We will cast the data to widen them once more:
+      #
+      # evidence.dt will become:
+      #
+      # +----------+-------------------------------------------------------------------------------------------+--------------------+----------+---------+
+      # | rep_desc | Protein.IDs                                                                               | Unique.Sequence.ID | H        | L       |
+      # +----------+-------------------------------------------------------------------------------------------+--------------------+----------+---------+
+      # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1              | 6633               | 14520300 | 871800  |
+      # +----------+-------------------------------------------------------------------------------------------+--------------------+----------+---------+
+      # | b1t1     | AAR31368.1;ABV71643.1;Q68400;ACZ80031.1|: Membrane protein UL148;Orf   UL148              | 2400               | 4408400  | 3374800 |
+      # +----------+-------------------------------------------------------------------------------------------+--------------------+----------+---------+
+      # | b1t1     | AAR31368.1;ABV71643.1;Q68400;ACZ80031.1|: Membrane protein UL148;Orf   UL148              | 9860               | 2110900  | 2635200 |
+      # +----------+-------------------------------------------------------------------------------------------+--------------------+----------+---------+
+      # | b1t1     | AAR31368.1;ABV71643.1;Q68400|: Membrane protein UL148;Orf UL148                           | 7649               | 6010890  | 4459470 |
+      # +----------+-------------------------------------------------------------------------------------------+--------------------+----------+---------+
+      # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 12                 | 41383670 | 2524151 |
+      # +----------+-------------------------------------------------------------------------------------------+--------------------+----------+---------+
+      # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 1050               | 11698700 | 611150  |
+      # +----------+-------------------------------------------------------------------------------------------+--------------------+----------+---------+
+      # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclear protein   HWLF1;Tegument protein US22 | 1450               | 27244455 | 2502488 |
+      # +----------+-------------------------------------------------------------------------------------------+--------------------+----------+---------+
+      #
+      # Notice the sum 14520300 validating the example above.
+      
+      evidence.dt<-dcast.data.table(evidence.dt, rep_desc + Protein.IDs + Unique.Sequence.ID ~ label_, fill=0, value.var = 'Intensity')  
+      
+      # The following lines are obsolete
+      # # Get another column (sumI) with the sum of intensities in all conditions: 
+      # 
+      # evidence.dt[, sumI := rowSums(.SD, na.rm = T), .SDcols=conditions]
+      # 
+      # evidence.dt <- evidence.dt[sumI > 0, lapply(.SD, max), by=.(rep_desc, Protein.IDs, Unique.Sequence.ID), .SDcols=conditions]    
+      # evidence.dt[, sumI := NULL]
     }
   }
   
+  # Here, each evidence.dt row represents a detected peptide in a specific experiment replicate. Let's sort the unique sequecne IDs to have a look
+  # at our missing values (Protein IDs truncated):
+  #
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | rep_desc | Unique.Sequence.ID | H        | L        | Protein.IDs                                        |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b1t1     | 0                  | 43635927 | 24237101 | H-INV:HIT000035131;Q86U42;ENSEMBL:ENSP00000380446| |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b1t2     | 0                  | 40498440 | 20943890 | H-INV:HIT000035131;Q86U42;ENSEMBL:ENSP00000380446| |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b2t1     | 0                  | 88589670 | 45784620 | H-INV:HIT000035131;Q86U42;ENSEMBL:ENSP00000380446| |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b2t2     | 0                  | 80149090 | 42010380 | H-INV:HIT000035131;Q86U42;ENSEMBL:ENSP00000380446| |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b3t1     | 0                  | 2134140  | 986747   | H-INV:HIT000035131;Q86U42;ENSEMBL:ENSP00000380446| |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b3t2     | 0                  | 22462057 | 14065705 | H-INV:HIT000035131;Q86U42;ENSEMBL:ENSP00000380446| |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b2t1     | 2                  | 5145100  | 5252100  | REFSEQ:NP_001104262;TREMBL:C6FGV0;Q59FJ6|: Methyl- |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b1t1     | 3                  | 3290000  | 2731700  | REFSEQ:NP_001104262|: Methyl-CpG-binding protein 2 |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b1t2     | 3                  | 2532900  | 2199800  | REFSEQ:NP_001104262|: Methyl-CpG-binding protein 2 |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b1t1     | 7                  | 96692    | 0        | H-INV:HIT000220955;Q92922;ENSEMBL:ENSP00000414266; |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b1t2     | 7                  | 116640   | 56799    | H-INV:HIT000220955;Q92922;ENSEMBL:ENSP00000414266; |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b2t1     | 7                  | 2619680  | 1468100  | H-INV:HIT000220955;Q92922;ENSEMBL:ENSP00000414266; |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b2t2     | 7                  | 2386500  | 1309500  | H-INV:HIT000220955;Q92922;ENSEMBL:ENSP00000414266; |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b3t1     | 7                  | 771920   | 473710   | H-INV:HIT000220955;Q92922;ENSEMBL:ENSP00000414266; |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  # | b3t2     | 7                  | 725750   | 387590   | H-INV:HIT000220955;Q92922;ENSEMBL:ENSP00000414266; |
+  # +----------+--------------------+----------+----------+----------------------------------------------------+
+  #
+  # Since this is a SILAC example most of the peptides are detected in both conditions (an LFQ experiment could have more peptides detected not in all conditions)
+  # Indeed, 10.2% of the peptides in evidence.dt are detected in a single condition and 5.1% of the intensity cells are missing values. 
+  # Also not all peptides are detected in all repetitions.. In fact aggregating all peptides by times of appearance (length - in this experiment it should be 1-6)
+  # and then aggregating the times of appearance by legth again will give us how many peptides were detected in 1 sample how many in 2 etc. and we can compute the respective
+  # percentages as follows:
+  #
+  # +---------------------+------------+
+  # | times of appearance | percentage |
+  # +---------------------+------------+
+  # | 1                   | 0.22       |
+  # +---------------------+------------+
+  # | 2                   | 0.35       |
+  # +---------------------+------------+
+  # | 3                   | 0.09       |
+  # +---------------------+------------+
+  # | 4                   | 0.17       |
+  # +---------------------+------------+
+  # | 5                   | 0.04       |
+  # +---------------------+------------+
+  # | 6                   | 0.13       |
+  # +---------------------+------------+
+  #
+  # Only 13% of the peptides are detected in all repetitions of the experiment! This can be due to variance of biological or technical reasons
+  # 
+  # The following lines perform imputation of the missing values.
+  # The intensities detected show a left skewed distribution as expected.. According to "A comparative study of evaluating missing value imputation methods in label???free proteomic" (Jin et al.)
+  # seven commonly used imputation methods are: lowest of detection (LOD), random drawing from a left-censored normal distribution (ND), k-nearest neighbors (kNN), local least squares (LLS), random
+  # forest (RF), singular value decomposition (SVD) and Bayesian principal component analysis (BPCA)
+  #
+  # TODO: add more imputation algorithms based on "Missing value imputation" section of the aforementioned paper
+  
+  # Here we apply the LOD (lowest of detection) imputation algorithm:
+  
   # Get a vector of unique peptides intensities
   tmp.I<-sort(unique(evidence.dt[,get(conditions)]))
+  
   # If the minimum intensity is zero
-  if(tmp.I[1] == 0){
-    # Replace 0's with minimum intensity (PD can do this automatically for us)
+  if(tmp.I[1] == 0)
+  {
+    # Replace 0's with minimum intensity
     minI<-tmp.I[2]
     evidence.dt[, (conditions) := lapply(.SD, function(x){ t<-which(x == 0); if(length(t) > 0){x[t] <- minI}; return(x) }), .SDcols=conditions]
   }else{
     minI<-tmp.I[1]
   }
   
-  ## If enabled, do filter out peptides where all 'channels' except filterL_lbl channel have noise-level intensity (peptide-level filtering)
-  if(filterL && filterL_lvl){
+  # If enabled, do filter out peptides where all conditions except the condition 'filterL_lbl' have noise-level intensity (peptide-level filtering)
+  # This block is used to exclude background peptides as described in methods such as pSILAC. In pSILAC we usually let the production of aminoacids happen in the light label
+  # and then apply different conditions to our samples for a short period of time. The peptides that were not affected by the pulses should have high abundances
+  # in the light label and low (noise level) in the other ones and should be excluded by the analysis:
+  if(filterL && filterL_lvl)
+  {
+    # The following line counts how many conditions (except the background condition - filterL_lbl) have noise level intensity (noise level is considered as only
+    # the lowest intensity detected) - the result is written in the minIcount column
+    # TODO: is the noise calculating algorithm correct? (noise level is considered as only the lowest intensity detected)
+    
     evidence.dt[, minIcount := rowSums(.SD == minI), .SDcols=conditions[! conditions %in% filterL_lbl]]
     n1<-nrow(evidence.dt)
+    
+    # Drop all rows peptides that have noise level intensity in all conditions except the background condition
     evidence.dt<-evidence.dt[minIcount < (nConditions - 1)]
     n2<-nrow(evidence.dt)
-    if(n2 < n1){
+    if(n2 < n1)
+    {
       levellog(paste0("read.pgroups: Filtered out ", (n1-n2)," peptides having noise-level intensity in all channels except the '", filterL_lbl,"' channel ..."));
     }
+    
+    # Drop the minIcount column that is no longer used
     evidence.dt[, minIcount := NULL]
   }
   
-  # 2. Calculate the protein intensity (= sum of unique peptide intensities) for each condition/label and replicate
+  # 2. Calculate the protein intensity (sum of peptide intensities) for each condition and replicate
   # Also count the number of quantifiable peptides (those which do not have intensity NA)
-  if(LabelFree){
-    # Top three in abundance
+  
+  # TODO: test fol LFQ
+  if(LabelFree)
+  {
+    # Top three peptides in abundance
     #evidence.dt<-evidence.dt[, lapply(.SD, function(x){x<-x[!is.na(x)]; x<-sort(x, decreasing<-T); if(length(x)<3){return(sum(x))}else{return(sum(x[1:3]))}}), by=.(rep_desc, Protein.IDs), .SDcols=conditions]
     evidence.dt<-evidence.dt[, c(n=.N, nas=length(which(is.na(.SD))) ,lapply(.SD, function(x){x<-x[!is.na(x)]; x<-sort(x, decreasing<-T); if(length(x)<3){return(sum(x))}else{return(sum(x[1:3]))}})), by=.(rep_desc, Protein.IDs), .SDcols=conditions]
   }else{
     # All peptides
+    # The following command aggregates the intensity in all condition of all peptides of the same protein in a specifi replicate by adding all the intensities of the respective peptides
+    # It also creates a column that counts how many NAs there are in intensity values for each pair {protein - replicate}
     evidence.dt<-evidence.dt[, c(n=.N, nas=length(which(is.na(.SD))) ,lapply(.SD, sum, na.rm = T)), by=.(rep_desc, Protein.IDs), .SDcols=conditions] 
   }
-  ## Rename the intensity columns
+  evidence.dt[, N := NULL]
+  # Rename the intensity columns form [condition] to Intensity.[condition]
   setnames(evidence.dt,colnames(evidence.dt)[which(colnames(evidence.dt) %in% conditions)],paste('Intensity',conditions,sep='.'))
-  ## Merge with the evidence.dt.seqCounts table
+  
+  # evidence.dt now seems like:
+  #
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # | rep_desc | Protein.IDs                                        | nas | Intensity.H | Intensity.L |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa i | 0   | 14520300    | 871800      |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV | 0   | 6315898     | 290628.7    |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;ACZ80025.1;AAR | 0   | 3846360     | 4330.7      |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;ACZ80025.1|: 5 | 0   | 42086141    | 804846.7    |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # | b1t1     | AAR31362.1;ABV71635.1;P19893;Q6SWJ2;ACZ80024.1|: 4 | 0   | 4330.7      | 2835300     |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # | b1t1     | AAR31368.1;ABV71643.1;Q68400;ACZ80031.1|: Membrane | 0   | 6519300     | 6010000     |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # | b1t1     | AAR31368.1;ABV71643.1;Q68400|: Membrane protein UL | 0   | 6010890     | 4459470     |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclea | 0   | 2.25E+08    | 12415101    |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+
+  # 
+  # Merge with the evidence.dt.seqCounts table
+  # both evidence.dt and evidence.dt.seqCounts have the pair {Protein.ID - rep_desc} as key so per line and for each of these pairs all the other columnns will be simply put together
+  
   evidence.dt<-merge(evidence.dt, evidence.dt.seqCounts)
   
+  # evidence.dt starts building up...
+  #
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  # | rep_desc | Protein.IDs                                        | nas | Intensity.H | Intensity.L | N  | UniqueSequences.H | UniqueSequences.L | common | Hp       | Lp       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa i | 0   | 14520300    | 871800      | 1  | 1                 | 1                 | 1      | 50       | 50       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV | 0   | 6315898     | 290628.7    | 2  | 2                 | 1                 | 1      | 66.66667 | 33.33333 |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;ACZ80025.1;AAR | 0   | 3846360     | 4330.7      | 1  | 1                 | 0                 | 0      | 100      | 0        |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;ACZ80025.1|: 5 | 0   | 42086141    | 804846.7    | 3  | 3                 | 2                 | 2      | 60       | 40       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31362.1;ABV71635.1;P19893;Q6SWJ2;ACZ80024.1|: 4 | 0   | 4330.7      | 2835300     | 1  | 0                 | 1                 | 0      | 0        | 100      |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31368.1;ABV71643.1;Q68400;ACZ80031.1|: Membrane | 0   | 6519300     | 6010000     | 2  | 2                 | 2                 | 2      | 50       | 50       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | AAR31368.1;ABV71643.1;Q68400|: Membrane protein UL | 0   | 6010890     | 4459470     | 1  | 1                 | 1                 | 1      | 50       | 50       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  # | b1t1     | ABV71513.1;ACZ80070.1;D3YS51;P09722|: Early nuclea | 0   | 2.25E+08    | 12415101    | 19 | 19                | 14                | 14     | 57.57576 | 42.42424 |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+----+-------------------+-------------------+--------+----------+----------+
+  
   # Add the experimental structure information to evidence.dt based on rep_desc (raw file at this point has no information and is dropped)
+  # First drop the fraction and rawfile columns from rep_structure - also rename repdesc to indicate the brep and trep only
+  #
+  # +--------+---------+----------+
+  # | biorep | techrep | rep_desc |
+  # +--------+---------+----------+
+  # | 1      | 1       | b1t1     |
+  # +--------+---------+----------+
+  # | 1      | 2       | b1t2     |
+  # +--------+---------+----------+
+  # | 2      | 1       | b2t1     |
+  # +--------+---------+----------+
+  # | 2      | 2       | b2t2     |
+  # +--------+---------+----------+
+  # | 3      | 1       | b3t1     |
+  # +--------+---------+----------+
+  # | 3      | 2       | b3t2     |
+  # +--------+---------+----------+
+  
   tmp.rep_struct<-.GlobalEnv[["rep_structure"]][! duplicated(.GlobalEnv[["rep_structure"]][,c('biorep','techrep')]), !grepl('raw_file', colnames(.GlobalEnv[["rep_structure"]])) & !grepl('fraction', colnames(.GlobalEnv[["rep_structure"]]) )]
   tmp.rep_struct$rep_desc<-paste0('b',tmp.rep_struct$biorep,'t',tmp.rep_struct$techrep)
-  evidence.dt<-merge(evidence.dt ,data.table(tmp.rep_struct), by='rep_desc')
   
-  ## If enabled, do filter out proteins based on percentage labeling for the desired label (protein-level filtering)
-  if(filterL && !filterL_lvl){
+  # Add information for bioreps and treps by merging the evidence.dt and the temporary rep struct table shown above with common key being "rep_desc"
+  evidence.dt<-merge(evidence.dt, data.table(tmp.rep_struct), by='rep_desc')
+  
+  # If enabled, filter out proteins based on percentage labeling for the desired label (protein-level filtering)
+  # This is also used in pSILAC to exclude proteins that were not de novo produced during the pulses
+  if(filterL && !filterL_lvl)
+  {
     n1<-length(unique(evidence.dt[get(paste0(filterL_lbl,"p")) == 100.0]$Protein.IDs))
+    
+    # The following command simply drops the proteins that were not entirely quantified in the background label
     evidence.dt<-evidence.dt[get(paste0(filterL_lbl,"p")) < 100.0]
     levellog(paste0("read.pgroups: Filtered out ", n1," proteins which where identified solely by '", filterL_lbl, "' peptides ..."));
   }
   
-  ## Get protein IDs that were quantified with a total of at least 'nRequiredLeastBioreps' different peptides accross at least 'nRequiredLeastBioreps' biological replicates.
-  # E.g. 1: with 3 biological replicates, a protein that was quantified by a single peptide in 'nRequiredLeastBioreps' out of the 3 replicates will be discarded if 'nRequiredLeastBioreps' > 1 (retained otherwise).
-  # E.g. 2: with 3 biological replicates, a protein that was quantified by a single peptide in 1 out of the 3 replicates will be discarded if 'nRequiredLeastBioreps' > 1 (retained otherwise).
-  # E.g. 3: with 3 biological replicates, a protein that was quantified by two peptides in at one of replicates will be discarded if 'nRequiredLeastBioreps' > 1 (retained otherwise).
-  # E.g. 4: with 3 biological replicates, a protein that was quantified by two peptides (in total) in 2 out of the 3 replicates will be discarded if 'nRequiredLeastBioreps' > 2 (retained otherwise).
+  # Get protein IDs that match the following eligibility criteria: they were quantified with a total of at least 'nRequiredLeastPeps' different peptides
+  # accross at least 'nRequiredLeastBioreps' biological replicates.
+  #
+  # Let's explain the following line:
+  # Protein.Biorep.aggregation <- evidence.dt[, .(c1 = sum(N-nas)) , by=.(Protein.IDs, biorep)] is a data table that aggregates all proteins by their biological replicate and computes a new variable called c1
+  # which is the sum of all their N (peptides assigned to them) minus their NA values
+  #
+  # This transforms evidence.dt from:
+  #
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | rep_desc | Protein.IDs                                        | nas | Intensity.H | Intensity.L | N | UniqueSequences.H | UniqueSequences.L | common | Hp       | Lp       | biorep | techrep |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa i | 0   | 14520300    | 871800      | 1 | 1                 | 1                 | 1      | 50       | 50       | 1      | 1       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | b1t2     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa i | 0   | 10515500    | 300750      | 1 | 1                 | 1                 | 1      | 50       | 50       | 1      | 2       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | b2t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa i | 0   | 5686600     | 4330.7      | 1 | 1                 | 0                 | 0      | 100      | 0        | 2      | 1       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | b2t2     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa i | 0   | 4669800     | 4330.7      | 1 | 1                 | 0                 | 0      | 100      | 0        | 2      | 2       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV | 0   | 6315898     | 290628.7    | 2 | 2                 | 1                 | 1      | 66.66667 | 33.33333 | 1      | 1       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | b1t2     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV | 0   | 7997380     | 63117.7     | 2 | 2                 | 1                 | 1      | 66.66667 | 33.33333 | 1      | 2       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | b2t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV | 0   | 2115170     | 4330.7      | 1 | 1                 | 0                 | 0      | 100      | 0        | 2      | 1       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | b2t2     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV | 0   | 1054030     | 4330.7      | 1 | 1                 | 0                 | 0      | 100      | 0        | 2      | 2       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  # | b3t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV | 0   | 8142900     | 3170900     | 1 | 1                 | 1                 | 1      | 50       | 50       | 3      | 1       |
+  # +----------+----------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+
+  #
+  # to: (Protein ID trunction makes it a little difficult to show the aggregation of the table above to the table below...)
+  # +------------------------------------------------------------------------------+--------+----+
+  # | Protein.IDs                                                                  | biorep | c1 |
+  # +------------------------------------------------------------------------------+--------+----+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa immediate-early protein 1 | 1      | 2  |
+  # +------------------------------------------------------------------------------+--------+----+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa i                         | 2      | 2  |
+  # +------------------------------------------------------------------------------+--------+----+
+  # | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV                           | 1      | 4  |
+  # +------------------------------------------------------------------------------+--------+----+
+  #
+  # Notice that now the key is the pair {Protein ID - biorep} so each line represents a protein as detected in whole on a single biological replicate
+  #
+  # Protein.Least.Required.Stats <- Protein.Biorep.aggregation[, .(nQuantPeps = sum(c1), geqXnRequiredLeastBioreps = .N >= .GlobalEnv[["nRequiredLeastBioreps"]]), by=.(Protein.IDs)]
+  # will combine data from all bioreps for each protein and compute: all the peptide detections for the protein by aggregating by sum (storing the result to nQuantPeps) and
+  # the number of bioreps where the protein was by computing N (length of aggregation i.e. how many lines aggregated to a single row) a new column (geqXnRequiredLeastBioreps) will
+  # be set to false if N >= LeastRequiredBreps
+  #
+  # An example of the result is:
+  #
+  # +------------------------------------------------------+------------+---------------------------+
+  # | Protein.IDs                                          | nQuantPeps | geqXnRequiredLeastBioreps |
+  # +------------------------------------------------------+------------+---------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa i | 4          | TRUE                      |
+  # +------------------------------------------------------+------------+---------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV   | 7          | TRUE                      |
+  # +------------------------------------------------------+------------+---------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;ACZ80025.1;AAR   | 2          | FALSE                     |
+  # +------------------------------------------------------+------------+---------------------------+
+  # | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;ACZ80025.1|:   5 | 12         | TRUE                      |
+  # +------------------------------------------------------+------------+---------------------------+
+  # | AAR31362.1;ABV71635.1;P19893;Q6SWJ2;ACZ80024.1|:   4 | 2          | FALSE                     |
+  # +------------------------------------------------------+------------+---------------------------+
+  # | AAR31368.1;ABV71643.1;Q68400;ACZ80031.1|:   Membrane | 9          | TRUE                      |
+  # +------------------------------------------------------+------------+---------------------------+
+  # | AAR31368.1;ABV71643.1;Q68400|: Membrane   protein UL | 2          | FALSE                     |
+  # +------------------------------------------------------+------------+---------------------------+
+  # | ABV71513.1;ACZ80070.1;D3YS51;P09722|:   Early nuclea | 77         | TRUE                      |
+  # +------------------------------------------------------+------------+---------------------------+
+  #
+  # Protein.Least.Required.Stats[nQuantPeps >= .GlobalEnv[["nRequiredLeastPeps"]] & geqXnRequiredLeastBioreps == T] will get only the proteins that match the eligibility criteria
+  # The following line summarizes all the aforementioned commands to get a vector of the proteins that match all eligibility criteria:
   
-  Protein.IDs.quant <- evidence.dt[, .(c1 = sum(N.x-nas)) , by=.(Protein.IDs, biorep)][, .(nQuantPeps = sum(c1), geqXnRequiredLeastBioreps = .N >= .GlobalEnv[["nRequiredLeastBioreps"]]), by=.(Protein.IDs)][nQuantPeps >= .GlobalEnv[["nRequiredLeastPeps"]] & geqXnRequiredLeastBioreps == T]$Protein.IDs
+  
+  Protein.IDs.quant <- evidence.dt[, .(c1 = sum(N-nas)) , by=.(Protein.IDs, biorep)][, .(nQuantPeps = sum(c1), geqXnRequiredLeastBioreps = .N >= .GlobalEnv[["nRequiredLeastBioreps"]]), by=.(Protein.IDs)][nQuantPeps >= .GlobalEnv[["nRequiredLeastPeps"]] & geqXnRequiredLeastBioreps == T]$Protein.IDs
   levellog(paste0("read.pgroups: Filtered out ", (length(unique(evidence.dt$Protein.IDs)) - length(Protein.IDs.quant))," proteins which were not identified in at least ",nRequiredLeastBioreps," biological replicate(s) with at least a total of ",nRequiredLeastPeps," peptide(s)"));
-  evidence.dt[,nQuantPeps := N.x-nas]
+  
+  # Add the nQuantPeps in evidence.dt to show hoe many peptides were detected per protein
+  evidence.dt[,nQuantPeps := N-nas]
+  
+  # Keep only the proteins that match the eligibility criteria
   evidence.dt<-evidence.dt[Protein.IDs %in% Protein.IDs.quant]
+
+  # Cast the table to the following format
+  # Protein.IDs Intensity.[<rep_desc_X>.<condition_Y> ...] [<rep_desc_X>.Ratio.counts ...] [<rep_desc_X>.uniqueSequences ...] exp_desc [<condition_Y> ...] [<condition_Y>p ...]
+  # This will be the final form of our data (data table repdesc)
   
-  ## Experimental filter based on outlier removal (grubbs method) based on the first condition specified.
-  ## NOTE: It is applied when there are no technical replicates in Label-free data, where variability is expected to be very high.
-  # If a protein intensity in condition i and biological replicate j is found to be an outlier based on the distribution
-  # of intensities from all biological replicates, then
-  # the biological replicate j is removed for that particular protein for all conditions.
-  #if(LabelFree && .GlobalEnv[["n_techreps"]] < 2){
-  #  evidence.dt.bad <- suppressWarnings(evidence.dt[, lapply(.SD, function(x){p.val = grubbs.test(x)$p.value; if(!is.na(p.val) && p.val < 0.05){outlier.true <- T}else{outlier.true <- F}; if(outlier.true){return(.I[outlier(x, logical=T)][1] )}else{return(as.integer(0))} }),by=.(Protein.IDs),.SDcols=paste0('Intensity.',conditions[1])][,get(paste0('Intensity.',conditions[1]))])
-  #  evidence.dt.bad <- evidence.dt.bad[evidence.dt.bad > 0]
-  #  evidence.dt<-evidence.dt[! evidence.dt.bad]
-  #  levellog(paste0("read.pgroups: Filtered out ", length(evidence.dt.bad)," protein intensities based on outlier detection on condition '",conditions[1],"'."));
-  #  Protein.IDs.quant <- evidence.dt[, .(c1 = sum(n-nas)) , by=.(Protein.IDs, biorep)][, .(nQuantPeps = sum(c1), geqXnRequiredLeastBioreps = .N >= .GlobalEnv[["nRequiredLeastBioreps"]]), by=.(Protein.IDs)][nQuantPeps >= .GlobalEnv[["nRequiredLeastBioreps"]] & geqXnRequiredLeastBioreps == T]$Protein.IDs
-  #  levellog(paste0("read.pgroups: Filtered out another ", (length(unique(evidence.dt$Protein.IDs)) - length(Protein.IDs.quant))," proteins which were not identified in at least ",nRequiredLeastBioreps," biological replicate(s) with at least a total of ",nRequiredLeastBioreps," peptide(s)"));
-  #  evidence.dt[,nQuantPeps := n-nas]
-  #  evidence.dt<-evidence.dt[Protein.IDs %in% Protein.IDs.quant]
-  #}
-  
-  
-  
-  ## Generate Venn data for the identified proteins and output to a file
-  levellog("read.pgroups: Generating quant Venn data ...")
-  setwd(limma_out_dir)  
-  write.table(evidence.dt[, .(Protein.IDs, rep=biorep)],file=paste0(outputFigsPrefix,"_quant_venn3-data-",.GlobalEnv[["nRequiredLeastBioreps"]],"reps_",exp_desc,".txt"),sep="\t",row.names=F)
-  setwd("..")
-  
-  ## Cast the table to the following format
-  # Protein.IDs Intensity.[<rep_desc_X>.<label/condition_Y> ...] [<rep_desc_X>.Ratio.counts ...] [<rep_desc_X>.uniqueSequences ...] exp_desc [<label/condition_Y> ...] [<label/condition_Y>p ...]
-  
-  ## Step 1: For each 'rep_desc', add to a growing dataframe the evidence.dt data, renaming the columns accordingly
+  # Step 1: For each 'rep_desc', add the evidence.dt data to the growing dataframe pgroups
   # Also, calculate the missing columns required by the target format and drop the unnecessary columns
+  
+  # evidence.dt has now information only for the proteins that meet the eligibility criteria and the key is the triad {rep_desc - ProteinID - Unique.sequence.ID} (each line
+  # represents a peptide respective to a protein detected in a specific replication of the experiment)
+  #
+  # +----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+------------+
+  # | rep_desc | Protein.IDs                                                                                                                                                                                                 | nas | Intensity.H | Intensity.L | N | UniqueSequences.H | UniqueSequences.L | common | Hp       | Lp       | biorep | techrep | nQuantPeps |
+  # +----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+------------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                                                                                                                                | 0   | 14520300    | 871800      | 1 | 1                 | 1                 | 1      | 50       | 50       | 1      | 1       | 1          |
+  # +----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+------------+
+  # | b1t2     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                                                                                                                                | 0   | 10515500    | 300750      | 1 | 1                 | 1                 | 1      | 50       | 50       | 1      | 2       | 1          |
+  # +----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+------------+
+  # | b2t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                                                                                                                                | 0   | 5686600     | 4330.7      | 1 | 1                 | 0                 | 0      | 100      | 0        | 2      | 1       | 1          |
+  # +----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+------------+
+  # | b2t2     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                                                                                                                                | 0   | 4669800     | 4330.7      | 1 | 1                 | 0                 | 0      | 100      | 0        | 2      | 2       | 1          |
+  # +----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+------------+
+  # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV71635.1;P19893;Q6SWJ2|:   55 kDa immediate-early protein 1;Regulatory protein IE1;45 kDa   immediate-early protein 2;Protein UL122;Regulatory protein IE2 | 0   | 6315898     | 290628.7    | 2 | 2                 | 1                 | 1      | 66.66667 | 33.33333 | 1      | 1       | 2          |
+  # +----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+------------+
+  # | b1t2     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV71635.1;P19893;Q6SWJ2|:   55 kDa immediate-early protein 1;Regulatory protein IE1;45 kDa   immediate-early protein 2;Protein UL122;Regulatory protein IE2 | 0   | 7997380     | 63117.7     | 2 | 2                 | 1                 | 1      | 66.66667 | 33.33333 | 1      | 2       | 2          |
+  # +----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+------------+
+  # | b2t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV71635.1;P19893;Q6SWJ2|:   55 kDa immediate-early protein 1;Regulatory protein IE1;45 kDa   immediate-early protein 2;Protein UL122;Regulatory protein IE2 | 0   | 2115170     | 4330.7      | 1 | 1                 | 0                 | 0      | 100      | 0        | 2      | 1       | 1          |
+  # +----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+-------------+-------------+---+-------------------+-------------------+--------+----------+----------+--------+---------+------------+
+  #
+  # Start by getting all the unique Protein IDs
+  #
+  
   setkey(evidence.dt, Protein.IDs)
   pgroups<-data.frame(Protein.IDs = unique(evidence.dt$Protein.IDs))
   setkey(evidence.dt, rep_desc)
-  for(rep_desc_i in unique(evidence.dt$rep_desc)){
+  
+  # For each replication of the experiment:
+  # The comments below wwill assume that rep_desc_i == "b1t1"
+  for(rep_desc_i in unique(evidence.dt$rep_desc))
+  {
+    # Get all rows of evidence.dt that correspond to b1t1 replicate
     rep_desc_i_pgroups<-data.frame(evidence.dt[rep_desc == rep_desc_i,])
+    
+    # Rename the columns
     allcols<-colnames(rep_desc_i_pgroups)
-    # Rename Intensity cols
+    
+    # allcols before renaming:  [1] "rep_desc"    "Protein.IDs"  "nas"   "Intensity.H"   "Intensity.L"   "N"    "UniqueSequences.H" "UniqueSequences.L" "common"           
+    # "Hp"     "Lp"       "biorep"    "techrep"  "nQuantPeps"  
+    
+    # Rename Intensity columns
     colsl<-grepl('^Intensity' ,allcols)
     colnames(rep_desc_i_pgroups)[colsl]<-gsub("^Intensity(.+)$",paste("Intensity\\1",rep_desc_i,sep='.'), allcols[colsl])
-    # Rename UniqueSequences cols
+    
+    # Rename UniqueSequences columns
     colsl<-grepl('^UniqueSequences' ,allcols)
     colnames(rep_desc_i_pgroups)[colsl]<-gsub("^UniqueSequences(.+)$",paste(rep_desc_i,"uniqueSequences\\1",sep='.'), allcols[colsl])
+    
+    
     # Add new column <rep_desc_X>.uniqueSequences
     rep_desc_i_pgroups[, paste(rep_desc_i,'uniqueSequences',sep='.')]<-rowSums(rep_desc_i_pgroups[, colnames(rep_desc_i_pgroups)[colsl]])
+    
+    # The new column has the total amount of peptides attributed to this prtein in all conditions for the specific replication of the experiment:
+    #
+    # +----------+------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+------------------------+------------------------+----------------------+--------+----------+----------+--------+---------+------------+
+    # | rep_desc | Protein.IDs                                                                                                | nas | Intensity.H.b1t1 | Intensity.L.b1t1 | N | b1t1.uniqueSequences.H | b1t1.uniqueSequences.L | b1t1.uniqueSequences | common | Hp       | Lp       | biorep | techrep | nQuantPeps |
+    # +----------+------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+------------------------+------------------------+----------------------+--------+----------+----------+--------+---------+------------+
+    # | b1t1     | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                               | 0   | 14520300         | 871800           | 1 | 1                      | 1                      | 2                    | 1      | 50       | 50       | 1      | 1       | 1          |
+    # +----------+------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+------------------------+------------------------+----------------------+--------+----------+----------+--------+---------+------------+
+    # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV71635.1;P19893;Q6SWJ2|:   55 kDa immediate-early (...)   | 0   | 6315898          | 290628.7         | 2 | 2                      | 1                      | 3                    | 1      | 66.66667 | 33.33333 | 1      | 1       | 2          |
+    # +----------+------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+------------------------+------------------------+----------------------+--------+----------+----------+--------+---------+------------+
+    # | b1t1     | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;ACZ80025.1|: 55 kDa immediate-early   protein 1;Regulatory protein IE1 | 0   | 42086141         | 804846.7         | 3 | 3                      | 2                      | 5                    | 2      | 60       | 40       | 1      | 1       | 3          |
+    # +----------+------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+------------------------+------------------------+----------------------+--------+----------+----------+--------+---------+------------+
+    
     # Rename 'p' (percentage) cols
     colsl<-allcols %in% paste0(conditions,'p')
     colnames(rep_desc_i_pgroups)[colsl]<-gsub("^(.+)$",paste("\\1",rep_desc_i,sep='.'), allcols[colsl])
+    
     # Rename the 'nQuantPeps' column to <rep_desc_i>.Ratio.counts
     colsl<-allcols %in% c('nQuantPeps')
     colnames(rep_desc_i_pgroups)[colsl]<-paste(rep_desc_i,'Ratio.counts',sep='.')
-    # merge with the growing data frame
+    
+    # column names after renaming:
+    
+    #  "rep_desc"               "Protein.IDs"            "nas"                    "Intensity.H.b1t1"       "Intensity.L.b1t1"       "N"                      "b1t1.uniqueSequences.H"
+    #  "b1t1.uniqueSequences.L" "common"                 "Hp.b1t1"                "Lp.b1t1"                "biorep"                 "techrep"                "b1t1.Ratio.counts"     
+    #  "b1t1.uniqueSequences" 
+    
+    # Merge with the growing data frame
+    
+    # First find which columns are present in pgroups and rep_desc_i_pgroups at the same time (in the beggining it should be Protein.IDs only)
     cc<-intersect(names(pgroups), names(rep_desc_i_pgroups))
+    
+    # Extend proups by merging itself with rep_desc_i_pgroups excluding some columns
     pgroups<-merge(pgroups, rep_desc_i_pgroups[, ! colnames(rep_desc_i_pgroups) %in% c('biorep', 'techrep', 'fraction', 'rep_desc', cc[! grepl('Protein.IDs', cc)] )], all.x = T)
   }
-  # Step 2: Calculate the columns [<label/condition_Y> ...] containing the number of unique sequences found per condition in all replicates
+  
+  # pgroups now should look like:
+  #
+  # +-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------+------------------+----------+------------------------+------------------------+--------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+
+  # | Protein.IDs | nas                                                                                                                                                                                                         | Intensity.H.b1t1 | Intensity.L.b1t1 | N        | b1t1.uniqueSequences.H | b1t1.uniqueSequences.L | common | Hp.b1t1 | Lp.b1t1  | b1t1.Ratio.counts | b1t1.uniqueSequences | Intensity.H.b1t2 | Intensity.L.b1t2 | b1t2.uniqueSequences.H | b1t2.uniqueSequences.L | Hp.b1t2 | Lp.b1t2  | b1t2.Ratio.counts | b1t2.uniqueSequences | Intensity.H.b2t1 | Intensity.L.b2t1 | b2t1.uniqueSequences.H | b2t1.uniqueSequences.L | Hp.b2t1 | Lp.b2t1 | b2t1.Ratio.counts | b2t1.uniqueSequences | Intensity.H.b2t2 | Intensity.L.b2t2 | b2t2.uniqueSequences.H | b2t2.uniqueSequences.L | Hp.b2t2 | Lp.b2t2 | b2t2.Ratio.counts | b2t2.uniqueSequences | Intensity.H.b3t1 | Intensity.L.b3t1 | b3t1.uniqueSequences.H | b3t1.uniqueSequences.L | Hp.b3t1 | Lp.b3t1 | b3t1.Ratio.counts | b3t1.uniqueSequences | Intensity.H.b3t2 | Intensity.L.b3t2 | b3t2.uniqueSequences.H | b3t2.uniqueSequences.L | Hp.b3t2 | Lp.b3t2 | b3t2.Ratio.counts | b3t2.uniqueSequences |
+  # +-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------+------------------+----------+------------------------+------------------------+--------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+-----------+----------+
+  # | 1           | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|: 55 kDa immediate-early protein   1                                                                                                                                | 0                | 14520300         | 871800   | 1                      | 1                      | 1      | 1       | 50       | 50                | 1                    | 2                | 10515500         | 300750                 | 1                      | 1       | 50       | 50                | 1                    | 2                | 5686600          | 4330.7                 | 1                      | 0       | 100     | 0                 | 1                    | 1                | 4669800          | 4330.7                 | 1                      | 0       | 100     | 0                 | 1                    | 1                | NA               | NA                     | NA                     | NA      | NA      | NA                | NA                   | NA               | NA               | NA                     | NA                     | NA      | NA      | NA                | NA        | NA       |
+  # +-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------+------------------+----------+------------------------+------------------------+--------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+-----------+----------+
+  # | 2           | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV71635.1;P19893;Q6SWJ2|:   55 kDa immediate-early protein 1;Regulatory protein IE1;45 kDa   immediate-early protein 2;Protein UL122;Regulatory protein IE2 | 0                | 6315898          | 290628.7 | 2                      | 2                      | 1      | 1       | 66.66667 | 33.33333          | 2                    | 3                | 7997380          | 63117.7                | 2                      | 1       | 66.66667 | 33.33333          | 2                    | 3                | 2115170          | 4330.7                 | 1                      | 0       | 100     | 0                 | 1                    | 1                | 1054030          | 4330.7                 | 1                      | 0       | 100     | 0                 | 1                    | 1                | 8142900          | 3170900                | 1                      | 1       | 50      | 50                | 1                    | 2                | NA               | NA                     | NA                     | NA      | NA      | NA                | NA        | NA       |
+  # +-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------+------------------+----------+------------------------+------------------------+--------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+-----------+----------+
+  # | 3           | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;ACZ80025.1|: 55 kDa immediate-early   protein 1;Regulatory protein IE1                                                                                                  | 0                | 42086141         | 804846.7 | 3                      | 3                      | 2      | 2       | 60       | 40                | 3                    | 5                | 32540397         | 1955784                | 3                      | 2       | 60       | 40                | 3                    | 5                | 17497600         | 8661.4                 | 2                      | 0       | 100     | 0                 | 2                    | 2                | 10065000         | 8661.4                 | 2                      | 0       | 100     | 0                 | 2                    | 2                | 15538740         | 4850292                | 1                      | 1       | 50      | 50                | 1                    | 2                | 16142000         | 5161000                | 1                      | 1       | 50      | 50                | 1         | 2        |
+  # +-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------+------------------+----------+------------------------+------------------------+--------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+----------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+----------------------+------------------+------------------+------------------------+------------------------+---------+---------+-------------------+-----------+----------+
+  #
+  # Representing all data in a very wide format
+  
+  # Step 2: Calculate the columns [<label/condition_Y> ...] containing the number of peptides found per condition in all replicates - this is a simple sum of the peptide count in all replicates for each condition
   allcols<-colnames(pgroups)
-  for(cond_i in conditions){
+  for(cond_i in conditions)
+  {
     colsl<-grepl(paste('uniqueSequences', cond_i,sep='\\.') ,allcols)
     pgroups[, cond_i]<-rowSums(pgroups[, allcols[colsl]])
   }
+  
   # Step 3: Calculate the columns [<label/condition_Y>p ...] containing the percentage of unique sequences that were found in a specific condition in all replicates
+  # this is also aa simple division of the peptide count per condition over the total peptide count in all conditions
   allcols<-colnames(pgroups)
-  for(cond_i in conditions){
+  for(cond_i in conditions)
+  {
     colsl<-allcols %in% conditions & ! allcols %in% cond_i
     pgroups[, paste0(cond_i,'p')]<-(pgroups[, cond_i]/rowSums(pgroups[, c(cond_i, allcols[colsl])]))*100
   }
+  
   # Step 4: Add time-point column
   pgroups$exp_desc <- exp_desc
-  # Step 5: in case there is replicate mismatch between conditions i.e. there is at least one replicate of the experiment that contains quantification values not from all conditions, there are some columns in pgroups at the moment that have the format <replicate_description>.uniqueSequences.<condition> e.g. b1t1.uniqueSequences.WildType that contain 0 values solely. These columns should be emmited and the mismatch must be taken into account while sending the data to limma
+  
+  # Step 5: in case there is replicate mismatch between conditions i.e. there is at least one replicate of the experiment that contains quantification values not from all conditions, there are some columns in pgroups at the moment
+  # that have the format <replicate_description>.uniqueSequences.<condition> e.g. b1t1.uniqueSequences.WildType that contain 0 values solely. These columns should be emmited and the mismatch must be taken into account while sending the data to limma
   replicate_mismatch <<- F
+  
   # We have replicate mismatch in case not all conditions correspond to the same experimental replicates
-  for (rep_desc_i in unique(evidence.dt$rep_desc)) {
-    for (cond_i in conditions) {
+  for (rep_desc_i in unique(evidence.dt$rep_desc))
+  {
+    for (cond_i in conditions)
+    {
       # For each of the columns of interest check if it contains solely 0 values and if so delete the respective intensity column
-      #if (all(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)] == 0)) {
-      if (all(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)] == 0, na.rm = TRUE) || all(is.nan(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)]))) {
-        
+      if (all(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)] == 0, na.rm = TRUE) || all(is.nan(pgroups[, paste0(rep_desc_i, ".uniqueSequences.", cond_i)])))
+      {
         allcols <- colnames(pgroups)
         pgroups <- pgroups[, - which(grepl(paste0("Intensity", ".", cond_i, ".", rep_desc_i), allcols))]
         replicate_mismatch <<- T
       }
     }
   }
+  
   # Step 6: Remove unnecessary columns (uniqueSequences per rep_desc and percentage unique peptides per rep_desc)
   allcols<-colnames(pgroups)
   pgroups<-pgroups[,-which(grepl('uniqueSequences\\.', allcols) | grepl('p\\.b[0-9]+t[0-9]+$', allcols) | grepl('^common$', allcols))]
-  ##
+  
   levellog(paste0("read.pgroups: Quantifiable proteins: ", nrow(pgroups)," (",exp_desc,")"))
   levellog("",change=-1)
-  ## 
+  
+  # pgroups should now look like:
+  #
+  # +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+-------------------+----------------------+------------------+------------------+-------------------+
+  # | Protein.IDs                                                                                                                                                                                                 | nas | Intensity.H.b1t1 | Intensity.L.b1t1 | N | b1t1.Ratio.counts | b1t1.uniqueSequences | Intensity.H.b1t2 | Intensity.L.b1t2 | b1t2.Ratio.counts |
+  # +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+-------------------+----------------------+------------------+------------------+-------------------+
+  # | AAR31361.1;ABV71636.1;P13202;ACZ80025.1|:   55 kDa immediate-early protein 1                                                                                                                                | 0   | 14520300         | 871800           | 1 | 1                 | 2                    | 10515500         | 300750           | 1                 |
+  # +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+-------------------+----------------------+------------------+------------------+-------------------+
+  # | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;AAR31362.1;ABV71635.1;P19893;Q6SWJ2|:   55 kDa immediate-early protein 1;Regulatory protein IE1;45 kDa   immediate-early protein 2;Protein UL122;Regulatory protein IE2 | 0   | 6315898          | 290628.7         | 2 | 2                 | 3                    | 7997380          | 63117.7          | 2                 |
+  # +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+-------------------+----------------------+------------------+------------------+-------------------+
+  # | AAR31361.1;ABV71636.1;P13202;Q6SWJ1;ACZ80025.1|:   55 kDa immediate-early protein 1;Regulatory protein IE1                                                                                                  | 0   | 42086141         | 804846.7         | 3 | 3                 | 5                    | 32540397         | 1955784          | 3                 |
+  # +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----+------------------+------------------+---+-------------------+----------------------+------------------+------------------+-------------------+
+  #
+  # (...)
+  #
+  # +----------------------+------------------+------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+------------------+
+  # | b1t2.uniqueSequences | Intensity.H.b2t1 | Intensity.L.b2t1 | b2t1.Ratio.counts | b2t1.uniqueSequences | Intensity.H.b2t2 | Intensity.L.b2t2 | b2t2.Ratio.counts | b2t2.uniqueSequences | Intensity.H.b3t1 |
+  # +----------------------+------------------+------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+------------------+
+  # | 2                    | 5686600          | 4330.7           | 1                 | 1                    | 4669800          | 4330.7           | 1                 | 1                    | NA               |
+  # +----------------------+------------------+------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+------------------+
+  # | 3                    | 2115170          | 4330.7           | 1                 | 1                    | 1054030          | 4330.7           | 1                 | 1                    | 8142900          |
+  # +----------------------+------------------+------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+------------------+
+  # | 5                    | 17497600         | 8661.4           | 2                 | 2                    | 10065000         | 8661.4           | 2                 | 2                    | 15538740         |
+  # +----------------------+------------------+------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+------------------+
+  #
+  # (...)
+  #
+  # +------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+----+----+----------+----------+----------+
+  # | Intensity.L.b3t1 | b3t1.Ratio.counts | b3t1.uniqueSequences | Intensity.H.b3t2 | Intensity.L.b3t2 | b3t2.Ratio.counts | b3t2.uniqueSequences | H  | L  | Hp       | Lp       | exp_desc |
+  # +------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+----+----+----------+----------+----------+
+  # | NA               | NA                | NA                   | NA               | NA               | NA                | NA                   | NA | NA | NA       | NA       | 0h       |
+  # +------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+----+----+----------+----------+----------+
+  # | 3170900          | 1                 | 2                    | NA               | NA               | NA                | NA                   | NA | NA | NA       | NA       | 0h       |
+  # +------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+----+----+----------+----------+----------+
+  # | 4850292          | 1                 | 2                    | 16142000         | 5161000          | 1                 | 2                    | 12 | 6  | 66.66667 | 33.33333 | 0h       |
+  # +------------------+-------------------+----------------------+------------------+------------------+-------------------+----------------------+----+----+----------+----------+----------+
+  #
+  # Return the final data frame
+  
   return(pgroups)  
 }
 
@@ -2094,9 +3121,10 @@ get_uniprot_ids <- function(results, cond1, cond2) {
   
   #get p values associated to DE proteins
   col_desc_<-paste("P-value adjusted ",paste(cond2,"/",cond1,sep=""),sep="")
+  col_picker <- grepl(col_desc_, x = colnames(results), ignore.case = T)
   
   # Find DE proteins in results data frame
-  ind_diffexp_tmp<-which(results[,col_desc_]<pThreshold)
+  ind_diffexp_tmp<-which(results[,col_picker]<pThreshold)
   DE_prot <- rownames(results)[ind_diffexp_tmp]
   
   if (length(DE_prot) == 0)
@@ -2151,7 +3179,7 @@ run_enrichment_analysis <- function(UniProtList, myFNorganism, cond1, cond2) {
   # | GO:BP       | positive regulation of mRNA processing                | GO:0050685 | 1.97E-05 | 36        | 14         | 4                 | Q13573,P62995,P38159,Q14011                                    |
   # +-------------+-------------------------------------------------------+------------+----------+-----------+------------+-------------------+----------------------------------------------------------------+
   
-  # Which describes the Function detected per line, the term ID etc and all information relative to a GO enrichment analysis
+  # Which describes the Function detected per line, the term ID etc and all information relative to a functional enrichment analysis
   
   write.table(enrich.matrix, paste(outputFigsPrefix,"_enrichment_results_" , cond2, ".", cond1 , ".txt",sep=""), row.names=FALSE, sep = "\t", dec = ".", quote = F)
 }
@@ -3547,7 +4575,7 @@ perform_analysis<-function() {
         uniprot_ids <- get_uniprot_ids(results, conditions[ratio_combs[j, 1]], conditions[ratio_combs[j, 2]])
         if(length(uniprot_ids) == 0)
         {
-          levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions[ratio_combs[j, 1]], " and ", conditions[ratio_combs[j, 2]], " failed (", FNorganism, " was selected as target organism) because no UNIprot IDs were found for the differentially expressed proteins (if any)"))
+          levellog(paste0("Warn User: Functional enrichment analysis for conditions: ", conditions[ratio_combs[j, 1]], " and ", conditions[ratio_combs[j, 2]], " failed (", FNorganism, " was selected as target organism) because no UNIprot IDs were found for the differentially expressed proteins (if any)"))
           next;
         }
         # Since uniprot_ids contain the IDs of the DE expressed proteins lets run a GO analysis for them
@@ -3556,7 +4584,7 @@ perform_analysis<-function() {
         # run_enrichment_analysis produces a file with all enrichment analysis information - take a look at its comments to find out more
         
       }, error = function(err){
-        levellog(paste0("Warn User: GO enrichment analysis for conditions: ", conditions[ratio_combs[j, 1]], " and ", conditions[ratio_combs[j, 2]], " failed (", FNorganism, " was selected as target organism)"))
+        levellog(paste0("Warn User: Functional enrichment analysis for conditions: ", conditions[ratio_combs[j, 1]], " and ", conditions[ratio_combs[j, 2]], " failed (", FNorganism, " was selected as target organism)"))
       })
     }
   }
