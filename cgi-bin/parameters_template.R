@@ -97,5 +97,3 @@ FNenrichment<-REPLACE21
 
 # The organism to run functional enrichment on
 FNorganism<-REPLACE22
-addLabel("H",c(""))
-addLabel("L",c(""))

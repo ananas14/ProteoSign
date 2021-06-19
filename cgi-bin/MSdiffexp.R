@@ -2060,10 +2060,9 @@ read.pgroups <- function(fname,evidence_fname,exp_desc){
   
   # We will create a new column in rep_structure to erase any fractionation information - we start preparing the data to be in a format that limma will like!
   
-  if(length(unique(.GlobalEnv[["rep_structure"]]$fraction)) > 1){
-    .GlobalEnv[["rep_structure"]]$old_rep_desc <- .GlobalEnv[["rep_structure"]]$rep_desc
-    .GlobalEnv[["rep_structure"]]$rep_desc <- paste0('b',.GlobalEnv[["rep_structure"]]$biorep,'t',.GlobalEnv[["rep_structure"]]$techrep)
-  }
+  
+  .GlobalEnv[["rep_structure"]]$old_rep_desc <- .GlobalEnv[["rep_structure"]]$rep_desc
+  .GlobalEnv[["rep_structure"]]$rep_desc <- paste0('b',.GlobalEnv[["rep_structure"]]$biorep,'t',.GlobalEnv[["rep_structure"]]$techrep)
   
   # The next line will merge the table above with evidence by raw_file meaning that evidence will be widened: for each record data biorep techrep fraction and rep_desc will
   # be added to the end of evidence according to the Raw file the record was assigned to
@@ -4410,7 +4409,7 @@ create_expdesign <- function() {
     # descriptions. All this is done in the line below
     temp_vector <- original_rep_structure$rep_desc[match(temp_vector, sub("f.*", "", rep_structure$rep_desc))]
     
-    # The only issue with the method above is that the original rep structure might contain fraactionation information
+    # The only issue with the method above is that the original rep structure might contain fractionation information
     # (as seen in the example above) and this should be removed afterwards
     
     # Make sure that expdesign (column Sample) contains the original rep descriptions
@@ -4525,11 +4524,10 @@ perform_analysis<-function() {
   
   levellog("Performing the analysis ...")
   
-  norm.median.intensities <- do_limma_analysis(prepare_working_pgroups(protein_groups),exp_desc,exp_design_fname,exportFormat="pdf",outputFigsPrefix=outputFigsPrefix)
+  working_pgroups <- prepare_working_pgroups(protein_groups)
+  norm.median.intensities <- do_limma_analysis(working_pgroups, exp_desc, exp_design_fname, exportFormat="pdf", outputFigsPrefix=outputFigsPrefix)
   
   levellog("Generating analysis plots ...")
-  
-
   
   results<-do_results_plots(norm.median.intensities, exp_desc, exportFormat="pdf", outputFigsPrefix=outputFigsPrefix)
   
